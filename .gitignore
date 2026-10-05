@@ -1,0 +1,21 @@
+# Expo & React Native
+.expo/
+dist/
+web-build/
+
+# Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Native build folders
+android/
+ios/
+
+# Environment and IDE
+.env*
+.DS_Store
+*.pem
+.vscode/
+.idea/
