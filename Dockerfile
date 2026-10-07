@@ -14,4 +14,4 @@ COPY . .
 EXPOSE 8081 19000 19001 19002
 
 # Varsayılan başlangıç komutu
-CMD ["npx", "expo", "start", "--web", "--host", "lan"]
+CMD ["npx", "expo", "start", "--web"]
