@@ -7,16 +7,22 @@ import {
   ScrollView,
   TouchableOpacity,
   Alert,
+  Dimensions,
 } from 'react-native';
+import * as ImagePicker from 'expo-image-picker';
 import { Ionicons } from '@expo/vector-icons';
 import useCatStore from '../store/catStore';
 import { Colors } from '../theme/colors';
+
+const { width } = Dimensions.get('window');
+const PHOTO_SIZE = (width - 36 - 20) / 3; // 3 sütunlu ızgara
 
 export default function CatDetailScreen({ route, navigation }) {
   const { catId } = route.params || {};
 
   const cat = useCatStore((state) => state.cats.find((c) => c.id === catId));
   const addInteraction = useCatStore((state) => state.addInteraction);
+  const addPhotoToCat = useCatStore((state) => state.addPhotoToCat);
   const getBondLevelInfo = useCatStore((state) => state.getBondLevelInfo);
 
   if (!cat) {
@@ -35,6 +41,18 @@ export default function CatDetailScreen({ route, navigation }) {
   const interactionCount = interactions.length;
   const bondInfo = getBondLevelInfo(interactionCount);
 
+  // Albüm fotoğrafları (photos dizisi veya photoUri yedeği)
+  const catPhotos =
+    cat.photos && cat.photos.length > 0
+      ? cat.photos
+      : cat.photoUri
+      ? [cat.photoUri]
+      : [];
+
+  const coverPhoto =
+    catPhotos[0] ||
+    'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=600&q=80';
+
   // Son Beslenme / Etkileşim Zamanı
   const getLastFedText = () => {
     if (interactions.length === 0) {
@@ -44,7 +62,6 @@ export default function CatDetailScreen({ route, navigation }) {
     const dateObj = new Date(last.date);
     const now = new Date();
     const diffHours = Math.round((now.getTime() - dateObj.getTime()) / (1000 * 60 * 60));
-
     const timeStr = dateObj.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
 
     if (diffHours < 1) return `Az önce beslendi (${timeStr}) 🥣`;
@@ -57,7 +74,7 @@ export default function CatDetailScreen({ route, navigation }) {
   const handleFeedCat = () => {
     const now = new Date();
     const timeFormatted = now.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
-    
+
     addInteraction(cat.id, {
       type: 'feeding',
       note: `Mama ve taze su verildi (${timeFormatted}) 🥣`,
@@ -72,21 +89,30 @@ export default function CatDetailScreen({ route, navigation }) {
     );
   };
 
-  // Ekstra Hızlı Sevme / Oyun Etkileşimi
-  const handlePetCat = () => {
-    addInteraction(cat.id, {
-      type: 'petting',
-      note: 'Güneşte başı okşandı, mırıldadı ✨',
-    });
-    Alert.alert('Sevgi Dolu An! ✨', `${cat.name} başını sevdirdi ve sevgini hissetti!`);
-  };
+  // 4. ALBÜME YENİ FOTOĞRAF EKLEME (expo-image-picker)
+  const handlePickNewPhoto = async () => {
+    try {
+      const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (!permission.granted) {
+        Alert.alert('İzin Gerekli', 'Albüm için fotoğraf seçebilmek adına galeri iznine ihtiyacımız var 📷');
+        return;
+      }
 
-  const handlePlayCat = () => {
-    addInteraction(cat.id, {
-      type: 'playing',
-      note: 'İp ve oyuncakla neşeyle oynadı 🧶',
-    });
-    Alert.alert('Oyun Zamanı! 🧶', `${cat.name} ile harika bir oyun saati geçirdiniz!`);
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [4, 3],
+        quality: 0.85,
+      });
+
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        const newPhotoUri = result.assets[0].uri;
+        addPhotoToCat(cat.id, newPhotoUri);
+        Alert.alert('Harika! 📸', `${cat.name} için yeni fotoğraf albüme eklendi!`);
+      }
+    } catch (e) {
+      Alert.alert('Hata', 'Fotoğraf seçilirken bir hata oluştu.');
+    }
   };
 
   const formatDate = (isoString) => {
@@ -103,16 +129,9 @@ export default function CatDetailScreen({ route, navigation }) {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
-      {/* 1. KEDİ FOTOĞRAFI VE TEMEL BİLGİ KARTI */}
+      {/* 1. KEDİ KAPAK KARTI VE BİLGİLERİ */}
       <View style={styles.heroCard}>
-        <Image
-          source={{
-            uri:
-              cat.photoUri ||
-              'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=600&q=80',
-          }}
-          style={styles.heroImage}
-        />
+        <Image source={{ uri: coverPhoto }} style={styles.heroImage} />
 
         <View style={styles.heroInfo}>
           <View style={styles.nameRow}>
@@ -137,18 +156,20 @@ export default function CatDetailScreen({ route, navigation }) {
             </View>
           </View>
 
-          {/* Son Beslenme Zamanı Bilgi Kutusu */}
+          {/* Son Beslenme Zamanı */}
           <View style={styles.lastFedBox}>
             <Ionicons name="time" size={16} color={Colors.primaryDark} />
             <Text style={styles.lastFedText}>{getLastFedText()}</Text>
           </View>
         </View>
 
-        {/* 2. OYUNLAŞTIRMA: BAĞ / LEVEL İLERLEME ÇUBUĞU (PROGRESS BAR) */}
+        {/* 2. OYUNLAŞTIRMA: BAĞ / LEVEL İLERLEME ÇUBUĞU */}
         <View style={styles.progressCard}>
           <View style={styles.progressHeaderRow}>
             <View>
-              <Text style={styles.progressTitle}>Bağ Durumu: Seviye {bondInfo.level} ({bondInfo.title})</Text>
+              <Text style={styles.progressTitle}>
+                Bağ Seviyesi: Seviye {bondInfo.level} ({bondInfo.title})
+              </Text>
               <Text style={styles.progressSubtitle}>{bondInfo.description}</Text>
             </View>
             <View style={styles.countBadge}>
@@ -156,7 +177,6 @@ export default function CatDetailScreen({ route, navigation }) {
             </View>
           </View>
 
-          {/* İlerleme Çubuğu */}
           <View style={styles.progressBarTrack}>
             <View
               style={[
@@ -198,22 +218,56 @@ export default function CatDetailScreen({ route, navigation }) {
             <Ionicons name="sparkles" size={24} color="#FFFFFF" />
           </View>
         </TouchableOpacity>
-
-        {/* Ekstra Hızlı Etkileşim Seçenekleri */}
-        <View style={styles.subActionsRow}>
-          <TouchableOpacity style={styles.subActionBtn} onPress={handlePetCat}>
-            <Text style={styles.subActionEmoji}>✨</Text>
-            <Text style={styles.subActionText}>Sev / Başını Okşa</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity style={styles.subActionBtn} onPress={handlePlayCat}>
-            <Text style={styles.subActionEmoji}>🧶</Text>
-            <Text style={styles.subActionText}>Oyun Oyna</Text>
-          </TouchableOpacity>
-        </View>
       </View>
 
-      {/* 4. GEÇMİŞ ETKİLEŞİM TARİHLERİ LİSTESİ */}
+      {/* 4. FOTOĞRAF ALBÜMÜ BÖLÜMÜ (GRID VIEW) */}
+      <View style={styles.albumCard}>
+        <View style={styles.albumHeader}>
+          <View style={styles.albumTitleBox}>
+            <Ionicons name="images" size={20} color={Colors.primary} />
+            <Text style={styles.albumTitle}>Fotoğraf Albümü</Text>
+            <View style={styles.albumCountBadge}>
+              <Text style={styles.albumCountText}>{catPhotos.length}</Text>
+            </View>
+          </View>
+
+          {/* YENİ FOTOĞRAF EKLE BUTONU */}
+          <TouchableOpacity
+            style={styles.addPhotoBtn}
+            onPress={handlePickNewPhoto}
+            activeOpacity={0.85}
+          >
+            <Ionicons name="camera" size={16} color="#FFFFFF" />
+            <Text style={styles.addPhotoBtnText}>Fotoğraf Ekle</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Fotoğraf Izgarası */}
+        {catPhotos.length === 0 ? (
+          <View style={styles.emptyAlbumBox}>
+            <Ionicons name="image-outline" size={36} color={Colors.textMuted} />
+            <Text style={styles.emptyAlbumText}>Henüz albümde fotoğraf yok.</Text>
+            <TouchableOpacity style={styles.emptyAlbumAddBtn} onPress={handlePickNewPhoto}>
+              <Text style={styles.emptyAlbumAddBtnText}>İlk Fotoğrafı Çek / Seç 📷</Text>
+            </TouchableOpacity>
+          </View>
+        ) : (
+          <View style={styles.photoGrid}>
+            {catPhotos.map((uri, index) => (
+              <View key={`${uri}-${index}`} style={styles.photoGridItem}>
+                <Image source={{ uri }} style={styles.gridImage} />
+                {index === 0 && (
+                  <View style={styles.coverBadge}>
+                    <Text style={styles.coverBadgeText}>Kapak</Text>
+                  </View>
+                )}
+              </View>
+            ))}
+          </View>
+        )}
+      </View>
+
+      {/* 5. GEÇMİŞ ETKİLEŞİM TARİHLERİ */}
       <View style={styles.historyCard}>
         <View style={styles.historyHeader}>
           <Text style={styles.historyTitle}>📅 Geçmiş Etkileşim Tarihleri</Text>
@@ -266,7 +320,7 @@ export default function CatDetailScreen({ route, navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.background, // Fildişi Krem Arka Plan
+    backgroundColor: Colors.background, // Fildişi Krem
   },
   contentContainer: {
     padding: 18,
@@ -484,34 +538,120 @@ const styles = StyleSheet.create({
     color: '#FFF2EC',
     marginTop: 2,
   },
-  subActionsRow: {
-    flexDirection: 'row',
-    gap: 12,
-    marginTop: 10,
-  },
-  subActionBtn: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+  albumCard: {
     backgroundColor: '#FFFFFF',
+    borderRadius: 26,
+    padding: 18,
+    marginBottom: 18,
     borderWidth: 1,
     borderColor: Colors.cardBorder,
-    borderRadius: 16,
-    paddingVertical: 11,
-    gap: 6,
     shadowColor: Colors.cardShadow,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.08,
+    shadowRadius: 16,
+    elevation: 3,
   },
-  subActionEmoji: {
+  albumHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 14,
+  },
+  albumTitleBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  albumTitle: {
     fontSize: 16,
+    fontWeight: '800',
+    color: Colors.text,
   },
-  subActionText: {
+  albumCountBadge: {
+    backgroundColor: Colors.primaryLight,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 10,
+  },
+  albumCountText: {
+    fontSize: 11,
+    fontWeight: '800',
+    color: Colors.primaryDark,
+  },
+  addPhotoBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.primary,
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    borderRadius: 16,
+    gap: 6,
+    shadowColor: Colors.primary,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+  },
+  addPhotoBtnText: {
+    color: '#FFFFFF',
     fontSize: 12,
     fontWeight: '700',
-    color: Colors.text,
+  },
+  emptyAlbumBox: {
+    alignItems: 'center',
+    paddingVertical: 20,
+    backgroundColor: '#FFFBF9',
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: '#F8EDE7',
+    borderStyle: 'dashed',
+  },
+  emptyAlbumText: {
+    fontSize: 12,
+    color: Colors.textMuted,
+    marginTop: 6,
+    marginBottom: 10,
+  },
+  emptyAlbumAddBtn: {
+    backgroundColor: Colors.primaryLight,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 14,
+  },
+  emptyAlbumAddBtnText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: Colors.primaryDark,
+  },
+  photoGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+  },
+  photoGridItem: {
+    position: 'relative',
+    width: PHOTO_SIZE,
+    height: PHOTO_SIZE,
+    borderRadius: 16,
+    overflow: 'hidden',
+    backgroundColor: Colors.primaryLight,
+  },
+  gridImage: {
+    width: '100%',
+    height: '100%',
+  },
+  coverBadge: {
+    position: 'absolute',
+    bottom: 6,
+    left: 6,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 6,
+  },
+  coverBadgeText: {
+    color: '#FFFFFF',
+    fontSize: 9,
+    fontWeight: '700',
   },
   historyCard: {
     backgroundColor: '#FFFFFF',
@@ -549,23 +689,22 @@ const styles = StyleSheet.create({
   },
   emptyHistoryBox: {
     alignItems: 'center',
-    paddingVertical: 24,
+    paddingVertical: 20,
   },
   emptyHistoryEmoji: {
-    fontSize: 40,
-    marginBottom: 6,
+    fontSize: 36,
+    marginBottom: 4,
   },
   emptyHistoryTitle: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '700',
     color: Colors.text,
   },
   emptyHistorySub: {
-    fontSize: 12,
+    fontSize: 11,
     color: Colors.textMuted,
     textAlign: 'center',
-    marginTop: 4,
-    maxWidth: 240,
+    marginTop: 2,
   },
   historyRow: {
     flexDirection: 'row',

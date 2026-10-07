@@ -6,15 +6,17 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
 
-import HomeScreen from './screens/HomeScreen';
-import AddCatScreen from './screens/AddCatScreen';
-import CatDetailScreen from './screens/CatDetailScreen';
+import HomeScreen from './src/screens/HomeScreen';
+import CatListScreen from './src/screens/CatListScreen';
+import CatMapScreen from './src/screens/CatMapScreen';
+import AddCatScreen from './src/screens/AddCatScreen';
+import CatDetailScreen from './src/screens/CatDetailScreen';
 import { Colors } from './src/theme/colors';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
 
-// 1. Alt Sekmeler (Pastel Temalı)
+// 1. Alt Sekmeler (Kedi Ekle sekmesi kaldırıldı, FAB olarak taşındı)
 function BottomTabs() {
   return (
     <Tab.Navigator
@@ -53,23 +55,30 @@ function BottomTabs() {
         tabBarIcon: ({ focused, color, size }) => {
           let iconName = 'paw';
           if (route.name === 'Home') {
+            iconName = focused ? 'home' : 'home-outline';
+          } else if (route.name === 'CatList') {
             iconName = focused ? 'paw' : 'paw-outline';
-          } else if (route.name === 'AddCat') {
-            iconName = focused ? 'add-circle' : 'add-circle-outline';
+          } else if (route.name === 'CatMap') {
+            iconName = focused ? 'map' : 'map-outline';
           }
-          return <Ionicons name={iconName} size={24} color={color} />;
+          return <Ionicons name={iconName} size={22} color={color} />;
         },
       })}
     >
       <Tab.Screen
         name="Home"
         component={HomeScreen}
-        options={{ title: 'Patili Dostlar 🐾' }}
+        options={{ title: 'Ana Sayfa 🏠' }}
       />
       <Tab.Screen
-        name="AddCat"
-        component={AddCatScreen}
-        options={{ title: 'Kedi Ekle ➕' }}
+        name="CatList"
+        component={CatListScreen}
+        options={{ title: 'Kedilerim 🐾' }}
+      />
+      <Tab.Screen
+        name="CatMap"
+        component={CatMapScreen}
+        options={{ title: 'Harita 📍' }}
       />
     </Tab.Navigator>
   );
@@ -93,11 +102,14 @@ export default function App() {
             },
           }}
         >
+          {/* Ana Sekmeler */}
           <Stack.Screen
             name="MainTabs"
             component={BottomTabs}
             options={{ headerShown: false }}
           />
+
+          {/* Kedi Detayı ve Albüm Sayfası */}
           <Stack.Screen
             name="CatDetail"
             component={CatDetailScreen}
@@ -105,6 +117,16 @@ export default function App() {
               title: route.params?.catName ? `${route.params.catName} Profili 🐱` : 'Kedi Detayı',
               headerBackTitle: 'Geri',
             })}
+          />
+
+          {/* Kedi Ekleme Sayfası (FAB veya Buton ile açılır) */}
+          <Stack.Screen
+            name="AddCat"
+            component={AddCatScreen}
+            options={{
+              title: 'Yeni Kedi Ekle 🐾',
+              headerBackTitle: 'Geri',
+            }}
           />
         </Stack.Navigator>
       </NavigationContainer>

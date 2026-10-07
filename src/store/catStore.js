@@ -22,7 +22,8 @@ import { Colors } from '../theme/colors';
  * @typedef {Object} Cat
  * @property {string} id - Benzersiz kedi kimliği
  * @property {string} name - Kedinin ismi
- * @property {string|null} photoUri - Fotoğraf URI veya yerel dosya yolu
+ * @property {string[]} photos - Kedinin fotoğraf albümü (URI dizisi)
+ * @property {string|null} [photoUri] - Ana kapak fotoğrafı (geriye uyumluluk için)
  * @property {string} breed - Kedinin cinsi / türü (Tekir, Sarman, Calico vb.)
  * @property {CatLocation|string} location - Enlem/Boylam veya Bölge adı
  * @property {Interaction[]} interactionHistory - Etkileşim geçmişi (tarih dizisi)
@@ -33,7 +34,11 @@ const SAMPLE_CATS = [
   {
     id: 'sample-1',
     name: 'Pamuk',
-    photoUri: 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=600&q=80',
+    photos: [
+      'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=600&q=80',
+      'https://images.unsplash.com/photo-1573865526739-10659fec78a5?w=600&q=80',
+      'https://images.unsplash.com/photo-1495360010541-f48722b34f7d?w=600&q=80',
+    ],
     breed: 'Van Melezi',
     location: {
       latitude: 40.9880,
@@ -71,7 +76,10 @@ const SAMPLE_CATS = [
   {
     id: 'sample-2',
     name: 'Duman',
-    photoUri: 'https://images.unsplash.com/photo-1573865526739-10659fec78a5?w=600&q=80',
+    photos: [
+      'https://images.unsplash.com/photo-1573865526739-10659fec78a5?w=600&q=80',
+      'https://images.unsplash.com/photo-1533738363-b7f9aef128ce?w=600&q=80',
+    ],
     breed: 'Gri Tekir',
     location: {
       latitude: 40.9915,
@@ -97,7 +105,11 @@ const SAMPLE_CATS = [
   {
     id: 'sample-3',
     name: 'Tarçın',
-    photoUri: 'https://images.unsplash.com/photo-1543852786-1cf6624b9987?w=600&q=80',
+    photos: [
+      'https://images.unsplash.com/photo-1543852786-1cf6624b9987?w=600&q=80',
+      'https://images.unsplash.com/photo-1518791841217-8f162f1e1131?w=600&q=80',
+      'https://images.unsplash.com/photo-1561948955-570b270e7c36?w=600&q=80',
+    ],
     breed: 'Sarman',
     location: {
       latitude: 41.0855,
@@ -105,7 +117,7 @@ const SAMPLE_CATS = [
       regionName: 'Kampüs Kedileri',
     },
     interactionHistory: [
-      { id: 'int-7', date: new Date(Date.now() - 3600000 * 1).toISOString(), type: 'feeding', note: 'Öğle molasında konserve mama verildi 🥣' },
+      { id: 'int-7', date: new Date(Date.now() - 3600000 * 1).toISOString(), type: 'feeding', note: 'Konserve mama verildi 🥣' },
       { id: 'int-8', date: new Date(Date.now() - 3600000 * 20).toISOString(), type: 'petting', note: 'Kucakta uyukladı 🐾' },
       { id: 'int-9', date: new Date(Date.now() - 3600000 * 44).toISOString(), type: 'playing', note: 'İp oyuncağıyla koştu 🧶' },
       { id: 'int-10', date: new Date(Date.now() - 3600000 * 68).toISOString(), type: 'feeding', note: 'Kuru mama verildi 🥣' },
@@ -127,11 +139,19 @@ export const useCatStore = create(
       isLoading: false,
 
       /**
-       * Yeni kedi ekleme
+       * 1. Yeni Kedi Ekleme
+       * photoUri veya photos dizisini kabul eder, photos: [] olarak saklar.
        */
       addCat: (catData) => {
         const now = new Date().toISOString();
         const newCatId = Date.now().toString();
+
+        // Fotoğraf listesi oluştur (photos dizisi veya tekil photoUri)
+        const photoList = catData.photos && catData.photos.length > 0
+          ? catData.photos
+          : catData.photoUri
+          ? [catData.photoUri]
+          : [];
 
         const initialInteractions = catData.initialInteraction
           ? [
@@ -147,7 +167,8 @@ export const useCatStore = create(
         const newCat = {
           id: newCatId,
           name: catData.name || 'İsimsiz Kedi',
-          photoUri: catData.photoUri || null,
+          photos: photoList,
+          photoUri: photoList[0] || null, // Geriye dönük uyumluluk
           breed: catData.breed || 'Tekir / Melez',
           location:
             typeof catData.location === 'object'
@@ -165,7 +186,37 @@ export const useCatStore = create(
       },
 
       /**
-       * Var olan bir kediye yeni etkileşim ekleme (Besleme / Sevme)
+       * 2. Kediyi Silme (Prompt 1 gereksinimi: deleteCat(id))
+       */
+      deleteCat: (id) => {
+        set((state) => ({
+          cats: state.cats.filter((cat) => cat.id !== id),
+        }));
+      },
+
+      /**
+       * 3. Var Olan Kediye Fotoğraf Ekleme (Prompt 1 gereksinimi: addPhotoToCat(id, photoUri))
+       */
+      addPhotoToCat: (id, photoUri) => {
+        if (!photoUri) return;
+        set((state) => ({
+          cats: state.cats.map((cat) => {
+            if (cat.id === id) {
+              const currentPhotos = cat.photos || (cat.photoUri ? [cat.photoUri] : []);
+              const updatedPhotos = [photoUri, ...currentPhotos];
+              return {
+                ...cat,
+                photos: updatedPhotos,
+                photoUri: updatedPhotos[0],
+              };
+            }
+            return cat;
+          }),
+        }));
+      },
+
+      /**
+       * 4. Yeni Etkileşim Ekleme (Besleme / Sevme)
        */
       addInteraction: (catId, interactionDetails = {}) => {
         const now = new Date().toISOString();
@@ -201,12 +252,6 @@ export const useCatStore = create(
         }));
       },
 
-      deleteCat: (catId) => {
-        set((state) => ({
-          cats: state.cats.filter((cat) => cat.id !== catId),
-        }));
-      },
-
       seedSampleCats: () => {
         set({ cats: SAMPLE_CATS });
       },
@@ -216,7 +261,7 @@ export const useCatStore = create(
       },
 
       /**
-       * Etkileşim sayısına göre seviye hesaplayıcı (Prompt 5 gereksinimi):
+       * Etkileşim sayısına göre seviye hesaplayıcı:
        * 1-3 etkileşim: Tanışıklık (Level 1)
        * 4-8 etkileşim: Dost (Level 2)
        * 9+ etkileşim: Aile (Level 3)
