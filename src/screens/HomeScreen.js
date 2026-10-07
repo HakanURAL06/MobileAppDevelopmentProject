@@ -4,30 +4,15 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  FlatList,
   Image,
   Dimensions,
-  ActivityIndicator,
   Platform,
   ScrollView,
 } from 'react-native';
 import * as Location from 'expo-location';
 import { Ionicons } from '@expo/vector-icons';
 import useCatStore from '../store/catStore';
-
-// react-native-maps sadece yerel platformlarda (iOS/Android) import edilir.
-let MapView, Marker, Callout, PROVIDER_DEFAULT;
-if (Platform.OS !== 'web') {
-  try {
-    const Maps = require('react-native-maps');
-    MapView = Maps.default;
-    Marker = Maps.Marker;
-    Callout = Maps.Callout;
-    PROVIDER_DEFAULT = Maps.PROVIDER_DEFAULT;
-  } catch (e) {
-    console.log('Maps loading fallback', e);
-  }
-}
+import CatMap from '../components/CatMap';
 
 const { width } = Dimensions.get('window');
 
@@ -39,7 +24,6 @@ export default function HomeScreen({ navigation }) {
   const [location, setLocation] = useState(null);
   const [locationError, setLocationError] = useState(null);
   const [isLocating, setIsLocating] = useState(true);
-  const [selectedCatPin, setSelectedCatPin] = useState(null);
 
   // Konum izni ve mevcut konumu alma
   useEffect(() => {
@@ -92,14 +76,6 @@ export default function HomeScreen({ navigation }) {
     }));
   }, [cats]);
 
-  // Haritanın merkezleneceği varsayılan bölge (İstanbul Kadıköy merkezi)
-  const mapRegion = location || {
-    latitude: 40.9880,
-    longitude: 29.0255,
-    latitudeDelta: 0.06,
-    longitudeDelta: 0.06,
-  };
-
   // Son etkileşim metni formatlayıcı
   const getLastInteractionText = (cat) => {
     if (!cat.interactionHistory || cat.interactionHistory.length === 0) {
@@ -114,6 +90,13 @@ export default function HomeScreen({ navigation }) {
     if (diffHours < 24) return `${diffHours} saat önce ilgilenildi 🥣`;
     const diffDays = Math.floor(diffHours / 24);
     return `${diffDays} gün önce ilgilenildi 🥣`;
+  };
+
+  const handleSelectCat = (cat) => {
+    navigation.navigate('CatDetail', {
+      catId: cat.id,
+      catName: cat.name,
+    });
   };
 
   return (
@@ -146,81 +129,12 @@ export default function HomeScreen({ navigation }) {
           <Text style={styles.mapCountBadge}>{cats.length} Kedi Kayıtlı</Text>
         </View>
 
-        {Platform.OS !== 'web' && MapView ? (
-          // Mobil Cihazlar (iOS / Android) için Gerçek Harita
-          <MapView
-            provider={PROVIDER_DEFAULT}
-            style={styles.map}
-            initialRegion={mapRegion}
-            showsUserLocation={true}
-            showsMyLocationButton={true}
-          >
-            {cats.map((cat) => {
-              const lat = cat.location?.latitude;
-              const lng = cat.location?.longitude;
-              if (!lat || !lng) return null;
-
-              return (
-                <Marker
-                  key={cat.id}
-                  coordinate={{ latitude: lat, longitude: lng }}
-                  title={cat.name}
-                  description={`${cat.breed} - ${cat.location?.regionName}`}
-                  onPress={() => setSelectedCatPin(cat)}
-                >
-                  <View style={styles.customMarker}>
-                    <Text style={styles.markerEmoji}>🐱</Text>
-                  </View>
-                  <Callout
-                    tooltip
-                    onPress={() =>
-                      navigation.navigate('CatDetail', {
-                        catId: cat.id,
-                        catName: cat.name,
-                      })
-                    }
-                  >
-                    <View style={styles.calloutContainer}>
-                      <Text style={styles.calloutTitle}>{cat.name}</Text>
-                      <Text style={styles.calloutSubtitle}>{cat.breed}</Text>
-                      <Text style={styles.calloutAction}>Detaya Git ➔</Text>
-                    </View>
-                  </Callout>
-                </Marker>
-              );
-            })}
-          </MapView>
-        ) : (
-          // Web / Docker Tarayıcı Önizlemesi için İnteraktif Harita Kartı
-          <View style={styles.webMapContainer}>
-            <View style={styles.webMapGrid}>
-              <Ionicons name="map" size={48} color="#CBD5E1" />
-              <Text style={styles.webMapTitle}>İnteraktif Harita Önizlemesi</Text>
-              <Text style={styles.webMapSubtitle}>
-                Harita üzerindeki patili dostlarımızın koordinatları:
-              </Text>
-
-              {/* Web Pin Listesi */}
-              <View style={styles.webPinRow}>
-                {cats.slice(0, 4).map((cat) => (
-                  <TouchableOpacity
-                    key={cat.id}
-                    style={styles.webPinBadge}
-                    onPress={() =>
-                      navigation.navigate('CatDetail', {
-                        catId: cat.id,
-                        catName: cat.name,
-                      })
-                    }
-                  >
-                    <Text style={styles.webPinIcon}>📍</Text>
-                    <Text style={styles.webPinText}>{cat.name}</Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            </View>
-          </View>
-        )}
+        {/* Platforma duyarlı (Web / Mobil) Harita Bileşeni */}
+        <CatMap
+          cats={cats}
+          location={location}
+          onSelectCat={handleSelectCat}
+        />
       </View>
 
       {/* 2. BÖLÜM: BÖLGELERE GÖRE GRUPLANDIRILMIŞ KEDİ LİSTESİ */}
@@ -265,12 +179,7 @@ export default function HomeScreen({ navigation }) {
                     key={cat.id}
                     style={styles.catCard}
                     activeOpacity={0.85}
-                    onPress={() =>
-                      navigation.navigate('CatDetail', {
-                        catId: cat.id,
-                        catName: cat.name,
-                      })
-                    }
+                    onPress={() => handleSelectCat(cat)}
                   >
                     {/* Kedi Fotoğrafı / Avatarı */}
                     <Image
@@ -331,7 +240,7 @@ export default function HomeScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FAF5FF', // Çok soft tatlı lila/pembe arka plan
+    backgroundColor: '#FAF5FF',
   },
   contentContainer: {
     padding: 16,
@@ -397,104 +306,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 12,
-  },
-  map: {
-    width: '100%',
-    height: 220,
-    borderRadius: 18,
-  },
-  customMarker: {
-    backgroundColor: '#FFFFFF',
-    padding: 6,
-    borderRadius: 20,
-    borderWidth: 2,
-    borderColor: '#FF6B6B',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 4,
-  },
-  markerEmoji: {
-    fontSize: 18,
-  },
-  calloutContainer: {
-    backgroundColor: '#FFFFFF',
-    padding: 10,
-    borderRadius: 12,
-    width: 140,
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 6,
-  },
-  calloutTitle: {
-    fontWeight: 'bold',
-    fontSize: 14,
-    color: '#2D3748',
-  },
-  calloutSubtitle: {
-    fontSize: 11,
-    color: '#718096',
-    marginVertical: 2,
-  },
-  calloutAction: {
-    fontSize: 11,
-    color: '#FF6B6B',
-    fontWeight: '600',
-    marginTop: 4,
-  },
-  webMapContainer: {
-    height: 180,
-    backgroundColor: '#F8FAFC',
-    borderRadius: 18,
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 16,
-  },
-  webMapGrid: {
-    alignItems: 'center',
-  },
-  webMapTitle: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: '#475569',
-    marginTop: 6,
-  },
-  webMapSubtitle: {
-    fontSize: 12,
-    color: '#94A3B8',
-    marginTop: 2,
-    textAlign: 'center',
-  },
-  webPinRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-    marginTop: 12,
-    justifyContent: 'center',
-  },
-  webPinBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    borderWidth: 1,
-    borderColor: '#FECDD3',
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 16,
-    gap: 4,
-  },
-  webPinIcon: {
-    fontSize: 12,
-  },
-  webPinText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#E11D48',
   },
   listSection: {
     marginTop: 4,
