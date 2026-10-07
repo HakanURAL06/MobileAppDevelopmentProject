@@ -20,9 +20,6 @@ services:
       - REACT_NATIVE_PACKAGER_HOSTNAME=localhost
     stdin_open: true
     tty: true
-    # Ezilme durumuna ve yeni paketlere karşı kesin çözüm:
-    # node_modules boşsa veya expo/async-storage eksikse otomatik npm install çalıştırır
+    # SDK 57 yükseltmesi ve yeni bağımlılıklar için container başlangıcında paketleri güncel tutar:
     command: >
-      sh -c "if [ ! -d '/app/node_modules/expo' ] || [ ! -d '/app/node_modules/@react-native-async-storage/async-storage' ] || [ ! -d '/app/node_modules/expo-image-picker' ]; then
-               echo '>>> Eksik veya ezilen paketler tespit edildi. Container icinde npm install calistiriliyor...' && npm install;
-             fi && npx expo start --web --host lan"
+      sh -c "npm install && npx expo start --host lan"
