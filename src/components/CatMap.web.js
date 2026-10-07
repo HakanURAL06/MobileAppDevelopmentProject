@@ -1,14 +1,15 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { Colors } from '../theme/colors';
 
 export default function CatMap({ cats = [], location, onSelectCat }) {
   return (
     <View style={styles.webMapContainer}>
       <View style={styles.headerRow}>
         <View style={styles.titleWithIcon}>
-          <Ionicons name="map-outline" size={20} color="#FF6B6B" />
-          <Text style={styles.webMapTitle}>Canlı Kedi Haritası (Web Görünümü)</Text>
+          <Ionicons name="map-outline" size={18} color={Colors.primary} />
+          <Text style={styles.webMapTitle}>Canlı Kedi Haritası</Text>
         </View>
         <View style={styles.liveIndicator}>
           <View style={styles.liveDot} />
@@ -49,7 +50,9 @@ export default function CatMap({ cats = [], location, onSelectCat }) {
                 {cat.location?.latitude ? `${cat.location.latitude.toFixed(3)}, ${cat.location.longitude.toFixed(3)}` : 'Konum Kayıtlı'}
               </Text>
             </View>
-            <Ionicons name="chevron-forward" size={16} color="#CBD5E1" />
+            <View style={styles.actionArrowCircle}>
+              <Ionicons name="chevron-forward" size={14} color={Colors.primary} />
+            </View>
           </TouchableOpacity>
         ))}
       </View>
@@ -59,11 +62,11 @@ export default function CatMap({ cats = [], location, onSelectCat }) {
 
 const styles = StyleSheet.create({
   webMapContainer: {
-    backgroundColor: '#F8FAFC',
-    borderRadius: 20,
+    backgroundColor: '#FFFBF9',
+    borderRadius: 22,
     padding: 16,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: '#F8EDE7',
   },
   headerRow: {
     flexDirection: 'row',
@@ -74,17 +77,17 @@ const styles = StyleSheet.create({
   titleWithIcon: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: 7,
   },
   webMapTitle: {
     fontSize: 15,
-    fontWeight: '700',
-    color: '#334155',
+    fontWeight: '800',
+    color: Colors.text,
   },
   liveIndicator: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#ECFDF5',
+    backgroundColor: Colors.greenLight,
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: 10,
@@ -94,7 +97,7 @@ const styles = StyleSheet.create({
     width: 6,
     height: 6,
     borderRadius: 3,
-    backgroundColor: '#10B981',
+    backgroundColor: Colors.green,
   },
   liveText: {
     fontSize: 11,
@@ -103,8 +106,8 @@ const styles = StyleSheet.create({
   },
   webMapSubtitle: {
     fontSize: 12,
-    color: '#64748B',
-    marginBottom: 14,
+    color: Colors.textSecondary,
+    marginBottom: 12,
     lineHeight: 18,
   },
   pinGrid: {
@@ -116,19 +119,19 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#FFFFFF',
     padding: 10,
-    borderRadius: 14,
+    borderRadius: 16,
     borderWidth: 1,
-    borderColor: '#FED7D7',
-    shadowColor: '#000',
+    borderColor: Colors.cardBorder,
+    shadowColor: Colors.cardShadow,
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.04,
+    shadowOpacity: 0.05,
     shadowRadius: 6,
   },
   catPinAvatar: {
-    width: 44,
-    height: 44,
-    borderRadius: 12,
-    backgroundColor: '#FFE4E6',
+    width: 46,
+    height: 46,
+    borderRadius: 14,
+    backgroundColor: Colors.primaryLight,
   },
   pinInfo: {
     flex: 1,
@@ -141,20 +144,28 @@ const styles = StyleSheet.create({
   },
   catPinName: {
     fontSize: 14,
-    fontWeight: '700',
-    color: '#1E293B',
+    fontWeight: '800',
+    color: Colors.text,
   },
   pinEmoji: {
     fontSize: 12,
   },
   catPinLocation: {
     fontSize: 11,
-    color: '#64748B',
+    color: Colors.textSecondary,
     marginTop: 1,
   },
   catPinCoords: {
     fontSize: 10,
-    color: '#94A3B8',
+    color: Colors.textMuted,
     marginTop: 1,
+  },
+  actionArrowCircle: {
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    backgroundColor: Colors.primaryLight,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });

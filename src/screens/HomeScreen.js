@@ -6,13 +6,13 @@ import {
   TouchableOpacity,
   Image,
   Dimensions,
-  Platform,
   ScrollView,
 } from 'react-native';
 import * as Location from 'expo-location';
 import { Ionicons } from '@expo/vector-icons';
 import useCatStore from '../store/catStore';
 import CatMap from '../components/CatMap';
+import { Colors } from '../theme/colors';
 
 const { width } = Dimensions.get('window');
 
@@ -25,13 +25,13 @@ export default function HomeScreen({ navigation }) {
   const [locationError, setLocationError] = useState(null);
   const [isLocating, setIsLocating] = useState(true);
 
-  // Konum izni ve mevcut konumu alma
+  // GPS Konum İzni ve Canlı Koordinatlar
   useEffect(() => {
     (async () => {
       try {
         const { status } = await Location.requestForegroundPermissionsAsync();
         if (status !== 'granted') {
-          setLocationError('Konum izni verilmedi. Varsayılan konum kullanılıyor.');
+          setLocationError('Konum izni verilmedi');
           setIsLocating(false);
           return;
         }
@@ -43,18 +43,18 @@ export default function HomeScreen({ navigation }) {
         setLocation({
           latitude: currentLocation.coords.latitude,
           longitude: currentLocation.coords.longitude,
-          latitudeDelta: 0.06,
-          longitudeDelta: 0.06,
+          latitudeDelta: 0.05,
+          longitudeDelta: 0.05,
         });
       } catch (error) {
-        setLocationError('Konum alınamadı.');
+        setLocationError('Konum alınamadı');
       } finally {
         setIsLocating(false);
       }
     })();
   }, []);
 
-  // Kedileri lokasyonlarına (bölge adı) göre gruplandırma
+  // Kedileri bölgelere göre gruplandırma
   const groupedCats = useMemo(() => {
     const groups = {};
 
@@ -62,7 +62,7 @@ export default function HomeScreen({ navigation }) {
       const region =
         (typeof cat.location === 'object'
           ? cat.location?.regionName
-          : cat.location) || 'Diğer Kediler';
+          : cat.location) || 'Genel Bölge Kedileri';
 
       if (!groups[region]) {
         groups[region] = [];
@@ -76,18 +76,17 @@ export default function HomeScreen({ navigation }) {
     }));
   }, [cats]);
 
-  // Son etkileşim metni formatlayıcı
-  const getLastInteractionText = (cat) => {
-    if (!cat.interactionHistory || cat.interactionHistory.length === 0) {
-      return 'Henüz etkileşim yok 🌱';
-    }
-    const last = cat.interactionHistory[0];
+  // Son Beslenme Metni Formatlayıcı
+  const getLastFedText = (cat) => {
+    const list = cat.interactionHistory || [];
+    if (list.length === 0) return 'Henüz beslenmedi 🌱';
+    const last = list[0];
     const diffHours = Math.round(
       (Date.now() - new Date(last.date).getTime()) / (1000 * 60 * 60)
     );
 
-    if (diffHours < 1) return 'Az önce beslendi/sevildi 🥣';
-    if (diffHours < 24) return `${diffHours} saat önce ilgilenildi 🥣`;
+    if (diffHours < 1) return 'Az önce beslendi 🥣';
+    if (diffHours < 24) return `${diffHours} sa önce beslendi 🥣`;
     const diffDays = Math.floor(diffHours / 24);
     return `${diffDays} gün önce ilgilenildi 🥣`;
   };
@@ -101,35 +100,43 @@ export default function HomeScreen({ navigation }) {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
-      {/* Üst Karşılama ve Konum Durumu Barı */}
+      {/* 1. ÜST KARŞILAMA VE GPS BİLGİ ALANI */}
       <View style={styles.header}>
-        <View>
+        <View style={styles.headerLeft}>
           <Text style={styles.headerGreeting}>Merhaba Hayvansever! 🐾</Text>
           <Text style={styles.headerSubtitle}>
             Çevrendeki patili dostları keşfet ve ilgilen
           </Text>
         </View>
 
-        <View style={styles.locationBadge}>
-          <Ionicons name="navigate-circle" size={18} color="#FF6B6B" />
-          <Text style={styles.locationBadgeText}>
+        <View style={styles.gpsPill}>
+          <Ionicons
+            name="navigate-circle"
+            size={16}
+            color={locationError ? '#E11D48' : Colors.primaryDark}
+          />
+          <Text style={styles.gpsText}>
             {isLocating
-              ? 'Konum alınıyor...'
+              ? 'GPS alınıyor...'
               : locationError
-              ? 'Varsayılan Konum'
+              ? 'GPS Kapalı'
               : 'Canlı GPS Aktif'}
           </Text>
         </View>
       </View>
 
-      {/* 1. BÖLÜM: HARİTA GÖRÜNÜMÜ */}
+      {/* 2. HARİTA ALANI (Web / Native Uyumlu) */}
       <View style={styles.mapCard}>
         <View style={styles.mapHeaderRow}>
-          <Text style={styles.sectionTitle}>📍 Kedi Haritası</Text>
-          <Text style={styles.mapCountBadge}>{cats.length} Kedi Kayıtlı</Text>
+          <View style={styles.mapHeaderTitleBox}>
+            <Ionicons name="map" size={18} color={Colors.primary} />
+            <Text style={styles.sectionTitle}>Patili Dostlar Haritası</Text>
+          </View>
+          <View style={styles.catCountChip}>
+            <Text style={styles.catCountChipText}>{cats.length} Kedi</Text>
+          </View>
         </View>
 
-        {/* Platforma duyarlı (Web / Mobil) Harita Bileşeni */}
         <CatMap
           cats={cats}
           location={location}
@@ -137,24 +144,36 @@ export default function HomeScreen({ navigation }) {
         />
       </View>
 
-      {/* 2. BÖLÜM: BÖLGELERE GÖRE GRUPLANDIRILMIŞ KEDİ LİSTESİ */}
+      {/* 3. BÖLGELERE GÖRE GRUPLANMIŞ KEDİ LİSTESİ */}
       <View style={styles.listSection}>
         <View style={styles.sectionHeaderRow}>
           <Text style={styles.sectionTitle}>🏘️ Bölgelere Göre Kediler</Text>
           {cats.length === 0 && (
             <TouchableOpacity onPress={seedSampleCats} style={styles.seedButton}>
-              <Text style={styles.seedButtonText}>+ Örnek Kedileri Yükle</Text>
+              <Text style={styles.seedButtonText}>+ Örnek Kedileri Getir</Text>
             </TouchableOpacity>
           )}
         </View>
 
+        {/* EDGE CASE: HİÇ KEDİ OLMADIĞI DURUM (Prompt 6 Gereksinimi) */}
         {groupedCats.length === 0 ? (
           <View style={styles.emptyContainer}>
-            <Text style={styles.emptyIcon}>😿</Text>
-            <Text style={styles.emptyTitle}>Henüz kedi kaydı bulunmuyor</Text>
-            <Text style={styles.emptySubtitle}>
-              Alt menüdeki "Kedi Ekle" sekmesinden ilk kedini ekleyebilirsin!
+            <View style={styles.emptyEmojiCircle}>
+              <Text style={styles.emptyEmoji}>🐾</Text>
+            </View>
+            <Text style={styles.emptyTitle}>
+              Henüz kedi eklenmedi, hadi dışarı çıkıp patili dostlar bulalım! 🐱
             </Text>
+            <Text style={styles.emptySubtitle}>
+              Sokakta gördüğün, beslediğin veya sevdiğin kedileri haritana ekleyerek ilk adımı atabilirsin.
+            </Text>
+            <TouchableOpacity
+              style={styles.addCatEmptyBtn}
+              onPress={() => navigation.navigate('AddCat')}
+            >
+              <Ionicons name="add-circle" size={20} color="#FFFFFF" />
+              <Text style={styles.addCatEmptyBtnText}>İlk Kedini Ekle</Text>
+            </TouchableOpacity>
           </View>
         ) : (
           groupedCats.map((group) => (
@@ -162,7 +181,7 @@ export default function HomeScreen({ navigation }) {
               {/* Grup Başlığı */}
               <View style={styles.groupHeader}>
                 <View style={styles.groupTitleContainer}>
-                  <Ionicons name="location-sharp" size={18} color="#FF6B6B" />
+                  <Ionicons name="location" size={18} color={Colors.primary} />
                   <Text style={styles.groupTitleText}>{group.regionName}</Text>
                 </View>
                 <View style={styles.groupCountChip}>
@@ -172,7 +191,7 @@ export default function HomeScreen({ navigation }) {
 
               {/* Grup İçindeki Kedi Kartları */}
               {group.catList.map((cat) => {
-                const bondInfo = getBondLevelInfo(cat.bondScore || 0);
+                const bondInfo = getBondLevelInfo(cat.interactionHistory?.length || 0);
 
                 return (
                   <TouchableOpacity
@@ -181,7 +200,6 @@ export default function HomeScreen({ navigation }) {
                     activeOpacity={0.85}
                     onPress={() => handleSelectCat(cat)}
                   >
-                    {/* Kedi Fotoğrafı / Avatarı */}
                     <Image
                       source={{
                         uri:
@@ -191,7 +209,6 @@ export default function HomeScreen({ navigation }) {
                       style={styles.catAvatar}
                     />
 
-                    {/* Kedi Bilgileri */}
                     <View style={styles.catDetails}>
                       <View style={styles.catNameRow}>
                         <Text style={styles.catName}>{cat.name}</Text>
@@ -215,16 +232,15 @@ export default function HomeScreen({ navigation }) {
                       <Text style={styles.catBreed}>{cat.breed}</Text>
 
                       <View style={styles.lastFedRow}>
-                        <Ionicons name="time-outline" size={14} color="#94A3B8" />
+                        <Ionicons name="time-outline" size={13} color={Colors.primaryDark} />
                         <Text style={styles.lastFedText}>
-                          {getLastInteractionText(cat)}
+                          {getLastFedText(cat)}
                         </Text>
                       </View>
                     </View>
 
-                    {/* Ok İkonu */}
-                    <View style={styles.arrowContainer}>
-                      <Ionicons name="chevron-forward" size={20} color="#CBD5E1" />
+                    <View style={styles.arrowCircle}>
+                      <Ionicons name="chevron-forward" size={18} color={Colors.primary} />
                     </View>
                   </TouchableOpacity>
                 );
@@ -240,48 +256,55 @@ export default function HomeScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FAF5FF',
+    backgroundColor: Colors.background, // Fildişi Krem Arka Plan
   },
   contentContainer: {
-    padding: 16,
+    padding: 18,
     paddingBottom: 40,
   },
   header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
     marginBottom: 16,
   },
+  headerLeft: {
+    flex: 1,
+  },
   headerGreeting: {
-    fontSize: 22,
+    fontSize: 23,
     fontWeight: '800',
-    color: '#2D3748',
-    letterSpacing: -0.5,
+    color: Colors.text,
+    letterSpacing: -0.4,
   },
   headerSubtitle: {
-    fontSize: 14,
-    color: '#718096',
-    marginTop: 2,
-    marginBottom: 10,
+    fontSize: 13,
+    color: Colors.textSecondary,
+    marginTop: 3,
   },
-  locationBadge: {
+  gpsPill: {
     flexDirection: 'row',
     alignItems: 'center',
-    alignSelf: 'flex-start',
-    backgroundColor: '#FFE4E6',
-    paddingHorizontal: 12,
+    backgroundColor: Colors.primaryLight,
+    paddingHorizontal: 10,
     paddingVertical: 6,
-    borderRadius: 20,
-    gap: 6,
+    borderRadius: 16,
+    gap: 5,
+    marginLeft: 8,
   },
-  locationBadgeText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#E11D48',
+  gpsText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: Colors.primaryDark,
   },
   mapCard: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 24,
-    padding: 14,
-    marginBottom: 20,
-    shadowColor: '#FF6B6B',
+    borderRadius: 26,
+    padding: 16,
+    marginBottom: 18,
+    borderWidth: 1,
+    borderColor: Colors.cardBorder,
+    shadowColor: Colors.cardShadow,
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.08,
     shadowRadius: 16,
@@ -293,22 +316,29 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 12,
   },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#2D3748',
+  mapHeaderTitleBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
   },
-  mapCountBadge: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#FF6B6B',
-    backgroundColor: '#FFF0F2',
+  sectionTitle: {
+    fontSize: 17,
+    fontWeight: '800',
+    color: Colors.text,
+  },
+  catCountChip: {
+    backgroundColor: Colors.primaryLight,
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 12,
   },
+  catCountChipText: {
+    fontSize: 11,
+    fontWeight: '800',
+    color: Colors.primaryDark,
+  },
   listSection: {
-    marginTop: 4,
+    marginTop: 2,
   },
   sectionHeaderRow: {
     flexDirection: 'row',
@@ -317,24 +347,26 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   seedButton: {
-    backgroundColor: '#E0E7FF',
-    paddingHorizontal: 10,
-    paddingVertical: 5,
+    backgroundColor: Colors.blueLight,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
     borderRadius: 12,
   },
   seedButtonText: {
     fontSize: 12,
-    fontWeight: '600',
-    color: '#4F46E5',
+    fontWeight: '700',
+    color: Colors.blue,
   },
   groupCard: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 22,
+    borderRadius: 24,
     padding: 16,
-    marginBottom: 16,
-    shadowColor: '#000',
+    marginBottom: 14,
+    borderWidth: 1,
+    borderColor: Colors.cardBorder,
+    shadowColor: Colors.cardShadow,
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.04,
+    shadowOpacity: 0.06,
     shadowRadius: 12,
     elevation: 2,
   },
@@ -342,9 +374,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingBottom: 12,
+    paddingBottom: 10,
     borderBottomWidth: 1,
-    borderBottomColor: '#F1F5F9',
+    borderBottomColor: '#FAF5F0',
     marginBottom: 12,
   },
   groupTitleContainer: {
@@ -353,34 +385,36 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   groupTitleText: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#334155',
+    fontSize: 15,
+    fontWeight: '800',
+    color: Colors.text,
   },
   groupCountChip: {
-    backgroundColor: '#F1F5F9',
-    paddingHorizontal: 10,
+    backgroundColor: '#FAF5F0',
+    paddingHorizontal: 9,
     paddingVertical: 3,
-    borderRadius: 12,
+    borderRadius: 10,
   },
   groupCountText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#64748B',
+    fontSize: 11,
+    fontWeight: '700',
+    color: Colors.textSecondary,
   },
   catCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFF5F5',
+    backgroundColor: '#FFFBF9',
     padding: 12,
-    borderRadius: 18,
+    borderRadius: 20,
     marginBottom: 10,
+    borderWidth: 1,
+    borderColor: '#F8EDE7',
   },
   catAvatar: {
-    width: 60,
-    height: 60,
-    borderRadius: 16,
-    backgroundColor: '#FFE4E6',
+    width: 62,
+    height: 62,
+    borderRadius: 18,
+    backgroundColor: Colors.primaryLight,
   },
   catDetails: {
     flex: 1,
@@ -390,25 +424,25 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 2,
+    marginBottom: 3,
   },
   catName: {
     fontSize: 16,
-    fontWeight: '700',
-    color: '#1E293B',
+    fontWeight: '800',
+    color: Colors.text,
   },
   bondBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 10,
+    paddingHorizontal: 9,
+    paddingVertical: 3,
+    borderRadius: 12,
   },
   bondBadgeText: {
     fontSize: 10,
-    fontWeight: '700',
+    fontWeight: '800',
   },
   catBreed: {
     fontSize: 13,
-    color: '#64748B',
+    color: Colors.textSecondary,
     marginBottom: 4,
   },
   lastFedRow: {
@@ -418,30 +452,72 @@ const styles = StyleSheet.create({
   },
   lastFedText: {
     fontSize: 11,
-    color: '#94A3B8',
+    fontWeight: '600',
+    color: Colors.primaryDark,
   },
-  arrowContainer: {
-    paddingLeft: 8,
+  arrowCircle: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    backgroundColor: Colors.primaryLight,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginLeft: 6,
   },
   emptyContainer: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 20,
+    borderRadius: 26,
     padding: 30,
     alignItems: 'center',
+    borderWidth: 2,
+    borderColor: Colors.cardBorder,
+    borderStyle: 'dashed',
+    marginTop: 8,
   },
-  emptyIcon: {
-    fontSize: 48,
-    marginBottom: 10,
+  emptyEmojiCircle: {
+    width: 70,
+    height: 70,
+    borderRadius: 35,
+    backgroundColor: Colors.primaryLight,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 14,
+  },
+  emptyEmoji: {
+    fontSize: 34,
   },
   emptyTitle: {
     fontSize: 16,
-    fontWeight: 'bold',
-    color: '#334155',
+    fontWeight: '800',
+    color: Colors.text,
+    textAlign: 'center',
+    lineHeight: 22,
+    marginBottom: 8,
   },
   emptySubtitle: {
     fontSize: 13,
-    color: '#94A3B8',
+    color: Colors.textSecondary,
     textAlign: 'center',
-    marginTop: 6,
+    lineHeight: 19,
+    marginBottom: 20,
+    maxWidth: 280,
+  },
+  addCatEmptyBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.primary,
+    paddingVertical: 13,
+    paddingHorizontal: 22,
+    borderRadius: 18,
+    gap: 8,
+    shadowColor: Colors.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+  },
+  addCatEmptyBtnText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '800',
   },
 });

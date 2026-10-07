@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import useCatStore from '../store/catStore';
+import { Colors } from '../theme/colors';
 
 export default function CatDetailScreen({ route, navigation }) {
   const { catId } = route.params || {};
@@ -22,7 +23,7 @@ export default function CatDetailScreen({ route, navigation }) {
     return (
       <View style={styles.notFoundContainer}>
         <Text style={styles.notFoundEmoji}>😿</Text>
-        <Text style={styles.notFoundText}>Kedi bilgisi bulunamadı.</Text>
+        <Text style={styles.notFoundTitle}>Kedi Dostumuz Bulunamadı</Text>
         <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
           <Text style={styles.backButtonText}>Geri Dön</Text>
         </TouchableOpacity>
@@ -30,25 +31,68 @@ export default function CatDetailScreen({ route, navigation }) {
     );
   }
 
-  const bondInfo = getBondLevelInfo(cat.bondScore || 0);
+  const interactions = cat.interactionHistory || [];
+  const interactionCount = interactions.length;
+  const bondInfo = getBondLevelInfo(interactionCount);
 
-  // Seviye İlerleme Çubuğu Hesaplaması (0 - 100 arası max)
-  const progressPercent = Math.min(100, Math.round(((cat.bondScore || 0) / 100) * 100));
+  // Son Beslenme / Etkileşim Zamanı
+  const getLastFedText = () => {
+    if (interactions.length === 0) {
+      return 'Henüz beslenmedi / etkileşim yok 🌱';
+    }
+    const last = interactions[0];
+    const dateObj = new Date(last.date);
+    const now = new Date();
+    const diffHours = Math.round((now.getTime() - dateObj.getTime()) / (1000 * 60 * 60));
 
-  const handleInteraction = (type, title, points, note) => {
-    addInteraction(cat.id, {
-      type,
-      points,
-      note,
-    });
-    Alert.alert('Sevgi Dolu An! 💖', `${cat.name} ile ilgilendin! (+${points} Bağ Puanı)`);
+    const timeStr = dateObj.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
+
+    if (diffHours < 1) return `Az önce beslendi (${timeStr}) 🥣`;
+    if (diffHours < 24) return `Bugün ${timeStr} civarında ilgilenildi (${diffHours} saat önce) 🥣`;
+    const diffDays = Math.floor(diffHours / 24);
+    return `${diffDays} gün önce (${dateObj.toLocaleDateString('tr-TR')}) ilgilenildi 🥣`;
   };
 
-  // Tarih formatlama yardımcısı
+  // Kocaman Buton: Kediyi Besle / İlgilen
+  const handleFeedCat = () => {
+    const now = new Date();
+    const timeFormatted = now.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
+    
+    addInteraction(cat.id, {
+      type: 'feeding',
+      note: `Mama ve taze su verildi (${timeFormatted}) 🥣`,
+    });
+
+    const newCount = interactionCount + 1;
+    const newBond = getBondLevelInfo(newCount);
+
+    Alert.alert(
+      'Mırıl Mırıl! 💖🐾',
+      `${cat.name} mamasını afiyetle yedi! Etkileşim kaydedildi.\n\nBağ Durumu: ${newBond.title} (${newCount} Etkileşim)`
+    );
+  };
+
+  // Ekstra Hızlı Sevme / Oyun Etkileşimi
+  const handlePetCat = () => {
+    addInteraction(cat.id, {
+      type: 'petting',
+      note: 'Güneşte başı okşandı, mırıldadı ✨',
+    });
+    Alert.alert('Sevgi Dolu An! ✨', `${cat.name} başını sevdirdi ve sevgini hissetti!`);
+  };
+
+  const handlePlayCat = () => {
+    addInteraction(cat.id, {
+      type: 'playing',
+      note: 'İp ve oyuncakla neşeyle oynadı 🧶',
+    });
+    Alert.alert('Oyun Zamanı! 🧶', `${cat.name} ile harika bir oyun saati geçirdiniz!`);
+  };
+
   const formatDate = (isoString) => {
     try {
       const d = new Date(isoString);
-      return `${d.toLocaleDateString('tr-TR')} ${d.toLocaleTimeString('tr-TR', {
+      return `${d.toLocaleDateString('tr-TR')} • ${d.toLocaleTimeString('tr-TR', {
         hour: '2-digit',
         minute: '2-digit',
       })}`;
@@ -59,19 +103,19 @@ export default function CatDetailScreen({ route, navigation }) {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
-      {/* Kedi Profil Kartı */}
-      <View style={styles.profileCard}>
+      {/* 1. KEDİ FOTOĞRAFI VE TEMEL BİLGİ KARTI */}
+      <View style={styles.heroCard}>
         <Image
           source={{
             uri:
               cat.photoUri ||
               'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=600&q=80',
           }}
-          style={styles.catImage}
+          style={styles.heroImage}
         />
 
-        <View style={styles.catMainInfo}>
-          <View style={styles.titleRow}>
+        <View style={styles.heroInfo}>
+          <View style={styles.nameRow}>
             <Text style={styles.catName}>{cat.name}</Text>
             <View style={[styles.levelBadge, { backgroundColor: bondInfo.badgeBg }]}>
               <Text style={[styles.levelBadgeText, { color: bondInfo.color }]}>
@@ -80,87 +124,116 @@ export default function CatDetailScreen({ route, navigation }) {
             </View>
           </View>
 
-          <Text style={styles.catBreed}>🐾 {cat.breed}</Text>
-          <Text style={styles.catLocation}>
-            📍 {typeof cat.location === 'object' ? cat.location?.regionName : cat.location}
-          </Text>
-        </View>
-
-        {/* BAĞ / LEVEL İLERLEME ÇUBUĞU (PROGRESS BAR) */}
-        <View style={styles.progressSection}>
-          <View style={styles.progressLabelRow}>
-            <Text style={styles.progressLabel}>Bağ Seviyesi: Seviye {bondInfo.level}</Text>
-            <Text style={styles.progressScoreText}>{cat.bondScore || 0} / 100 Puan</Text>
+          <View style={styles.metaRow}>
+            <View style={styles.metaChip}>
+              <Ionicons name="paw" size={14} color={Colors.primary} />
+              <Text style={styles.metaChipText}>{cat.breed}</Text>
+            </View>
+            <View style={styles.metaChip}>
+              <Ionicons name="location" size={14} color={Colors.blue} />
+              <Text style={styles.metaChipText}>
+                {typeof cat.location === 'object' ? cat.location?.regionName : cat.location}
+              </Text>
+            </View>
           </View>
 
+          {/* Son Beslenme Zamanı Bilgi Kutusu */}
+          <View style={styles.lastFedBox}>
+            <Ionicons name="time" size={16} color={Colors.primaryDark} />
+            <Text style={styles.lastFedText}>{getLastFedText()}</Text>
+          </View>
+        </View>
+
+        {/* 2. OYUNLAŞTIRMA: BAĞ / LEVEL İLERLEME ÇUBUĞU (PROGRESS BAR) */}
+        <View style={styles.progressCard}>
+          <View style={styles.progressHeaderRow}>
+            <View>
+              <Text style={styles.progressTitle}>Bağ Durumu: Seviye {bondInfo.level} ({bondInfo.title})</Text>
+              <Text style={styles.progressSubtitle}>{bondInfo.description}</Text>
+            </View>
+            <View style={styles.countBadge}>
+              <Text style={styles.countBadgeText}>{interactionCount} Etkileşim</Text>
+            </View>
+          </View>
+
+          {/* İlerleme Çubuğu */}
           <View style={styles.progressBarTrack}>
             <View
               style={[
                 styles.progressBarFill,
-                { width: `${progressPercent}%`, backgroundColor: bondInfo.color },
+                { width: `${bondInfo.progressPercent}%`, backgroundColor: bondInfo.color },
               ]}
             />
           </View>
-          <Text style={styles.progressSubtext}>
-            {progressPercent >= 100
-              ? 'Tebrikler! Kedinizle aranızdaki bağ maksimum seviyede! 💖'
-              : `Bir sonraki seviyeye ${100 - (cat.bondScore || 0)} puan kaldı.`}
-          </Text>
+
+          <View style={styles.tierIndicatorRow}>
+            <Text style={[styles.tierText, interactionCount < 4 && styles.tierTextActive]}>
+              1-3: Tanışıklık 🐾
+            </Text>
+            <Text style={[styles.tierText, interactionCount >= 4 && interactionCount < 9 && styles.tierTextActive]}>
+              4-8: Dost 😺
+            </Text>
+            <Text style={[styles.tierText, interactionCount >= 9 && styles.tierTextActive]}>
+              9+: Aile 💖
+            </Text>
+          </View>
+
+          <Text style={styles.nextTargetMessage}>{bondInfo.nextTargetText}</Text>
         </View>
       </View>
 
-      {/* HIZLI ETKİLEŞİM BUTONLARI */}
-      <View style={styles.actionCard}>
-        <Text style={styles.sectionTitle}>Etkileşimde Bulun 🥣</Text>
-        <Text style={styles.sectionSubtitle}>
-          Her sevgi ve mama kedinizin bağ seviyesini artırır!
-        </Text>
+      {/* 3. KOCAMAN VE TATLI 'KEDİYİ BESLE / İLGİLEN' BUTONU */}
+      <View style={styles.feedActionSection}>
+        <TouchableOpacity style={styles.bigFeedButton} onPress={handleFeedCat} activeOpacity={0.88}>
+          <View style={styles.feedButtonContent}>
+            <View style={styles.feedEmojiCircle}>
+              <Text style={styles.feedEmojiText}>🥣</Text>
+            </View>
+            <View style={styles.feedTextWrapper}>
+              <Text style={styles.bigFeedTitle}>Kediyi Besle / İlgilen 🐾</Text>
+              <Text style={styles.bigFeedSubtitle}>
+                Bugünün tarihini kaydet ve bağ seviyesini yükselt!
+              </Text>
+            </View>
+            <Ionicons name="sparkles" size={24} color="#FFFFFF" />
+          </View>
+        </TouchableOpacity>
 
-        <View style={styles.actionButtonsRow}>
-          <TouchableOpacity
-            style={[styles.actionBtn, { backgroundColor: '#FFF0F2' }]}
-            onPress={() => handleInteraction('feeding', 'Besleme', 15, 'Taze mama ve su verildi 🥣')}
-          >
-            <Text style={styles.actionEmoji}>🥣</Text>
-            <Text style={styles.actionBtnText}>Mama Ver</Text>
-            <Text style={styles.actionPointText}>+15 Puan</Text>
+        {/* Ekstra Hızlı Etkileşim Seçenekleri */}
+        <View style={styles.subActionsRow}>
+          <TouchableOpacity style={styles.subActionBtn} onPress={handlePetCat}>
+            <Text style={styles.subActionEmoji}>✨</Text>
+            <Text style={styles.subActionText}>Sev / Başını Okşa</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity
-            style={[styles.actionBtn, { backgroundColor: '#FDF4FF' }]}
-            onPress={() => handleInteraction('petting', 'Sevme', 10, 'Başını okşadın, mırıldadı ✨')}
-          >
-            <Text style={styles.actionEmoji}>🐾</Text>
-            <Text style={styles.actionBtnText}>Sev / Okşa</Text>
-            <Text style={styles.actionPointText}>+10 Puan</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[styles.actionBtn, { backgroundColor: '#FEFCE8' }]}
-            onPress={() => handleInteraction('playing', 'Oyun', 20, 'İp yumağıyla oynadınız 🧶')}
-          >
-            <Text style={styles.actionEmoji}>🧶</Text>
-            <Text style={styles.actionBtnText}>Oyun Oyna</Text>
-            <Text style={styles.actionPointText}>+20 Puan</Text>
+          <TouchableOpacity style={styles.subActionBtn} onPress={handlePlayCat}>
+            <Text style={styles.subActionEmoji}>🧶</Text>
+            <Text style={styles.subActionText}>Oyun Oyna</Text>
           </TouchableOpacity>
         </View>
       </View>
 
-      {/* ETKİLEŞİM GEÇMİŞİ LİSTESİ */}
+      {/* 4. GEÇMİŞ ETKİLEŞİM TARİHLERİ LİSTESİ */}
       <View style={styles.historyCard}>
-        <View style={styles.historyHeaderRow}>
-          <Text style={styles.sectionTitle}>Geçmiş Etkileşimler</Text>
-          <Text style={styles.historyCountBadge}>
-            {cat.interactionHistory?.length || 0} Etkileşim
-          </Text>
+        <View style={styles.historyHeader}>
+          <Text style={styles.historyTitle}>📅 Geçmiş Etkileşim Tarihleri</Text>
+          <View style={styles.historyCountPill}>
+            <Text style={styles.historyCountPillText}>{interactions.length} Kayıt</Text>
+          </View>
         </View>
 
-        {!cat.interactionHistory || cat.interactionHistory.length === 0 ? (
-          <Text style={styles.emptyHistoryText}>Henüz kayıtlı bir etkileşim yok.</Text>
+        {interactions.length === 0 ? (
+          <View style={styles.emptyHistoryBox}>
+            <Text style={styles.emptyHistoryEmoji}>🥣</Text>
+            <Text style={styles.emptyHistoryTitle}>Henüz bir etkileşim kaydı yok</Text>
+            <Text style={styles.emptyHistorySub}>
+              Yukarıdaki büyük butona dokunarak ilk beslemeni kaydedebilirsin!
+            </Text>
+          </View>
         ) : (
-          cat.interactionHistory.map((item) => (
-            <View key={item.id} style={styles.historyItem}>
-              <View style={styles.historyIconWrapper}>
+          interactions.map((item, index) => (
+            <View key={item.id || index} style={styles.historyRow}>
+              <View style={styles.historyIconCircle}>
                 <Ionicons
                   name={
                     item.type === 'feeding'
@@ -170,20 +243,18 @@ export default function CatDetailScreen({ route, navigation }) {
                       : 'game-controller'
                   }
                   size={16}
-                  color="#FF6B6B"
+                  color={Colors.primary}
                 />
               </View>
 
-              <View style={styles.historyContent}>
-                <Text style={styles.historyNote}>
-                  {item.note || (item.type === 'feeding' ? 'Besleme yapıldı' : 'Sevildi')}
-                </Text>
+              <View style={styles.historyTextCol}>
+                <Text style={styles.historyNote}>{item.note || 'Besleme ve ilgi'}</Text>
                 <Text style={styles.historyDate}>{formatDate(item.date)}</Text>
               </View>
 
-              {item.pointsEarned ? (
-                <Text style={styles.historyEarnedPoints}>+{item.pointsEarned} P</Text>
-              ) : null}
+              <View style={styles.historyTag}>
+                <Text style={styles.historyTagText}>+1 Etkileşim</Text>
+              </View>
             </View>
           ))
         )}
@@ -195,234 +266,345 @@ export default function CatDetailScreen({ route, navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FAF5FF',
+    backgroundColor: Colors.background, // Fildişi Krem Arka Plan
   },
   contentContainer: {
-    padding: 16,
+    padding: 18,
     paddingBottom: 40,
   },
   notFoundContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 20,
+    padding: 24,
   },
   notFoundEmoji: {
-    fontSize: 48,
+    fontSize: 50,
     marginBottom: 10,
   },
-  notFoundText: {
-    fontSize: 16,
-    color: '#64748B',
+  notFoundTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: Colors.text,
     marginBottom: 16,
   },
   backButton: {
-    backgroundColor: '#FF6B6B',
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderRadius: 12,
+    backgroundColor: Colors.primary,
+    paddingHorizontal: 22,
+    paddingVertical: 12,
+    borderRadius: 16,
   },
   backButtonText: {
     color: '#FFFFFF',
-    fontWeight: 'bold',
+    fontWeight: '700',
   },
-  profileCard: {
+  heroCard: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 24,
+    borderRadius: 26,
     padding: 16,
-    marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.05,
-    shadowRadius: 12,
+    marginBottom: 18,
+    borderWidth: 1,
+    borderColor: Colors.cardBorder,
+    shadowColor: Colors.cardShadow,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.08,
+    shadowRadius: 16,
     elevation: 3,
   },
-  catImage: {
+  heroImage: {
     width: '100%',
-    height: 220,
+    height: 240,
     borderRadius: 20,
-    backgroundColor: '#FFE4E6',
+    backgroundColor: Colors.primaryLight,
   },
-  catMainInfo: {
+  heroInfo: {
     marginTop: 14,
   },
-  titleRow: {
+  nameRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
   catName: {
-    fontSize: 24,
+    fontSize: 26,
     fontWeight: '800',
-    color: '#1E293B',
+    color: Colors.text,
+    letterSpacing: -0.5,
   },
   levelBadge: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 14,
+  },
+  levelBadgeText: {
+    fontSize: 12,
+    fontWeight: '800',
+  },
+  metaRow: {
+    flexDirection: 'row',
+    gap: 8,
+    marginTop: 8,
+  },
+  metaChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FAF5F0',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 12,
+    gap: 5,
+  },
+  metaChipText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: Colors.textSecondary,
+  },
+  lastFedBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFF7F2',
+    borderWidth: 1,
+    borderColor: '#FFE8DF',
+    borderRadius: 14,
+    paddingHorizontal: 12,
+    paddingVertical: 9,
+    marginTop: 12,
+    gap: 8,
+  },
+  lastFedText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: Colors.primaryDark,
+  },
+  progressCard: {
+    marginTop: 18,
+    paddingTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: '#F5ECE6',
+  },
+  progressHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 10,
+  },
+  progressTitle: {
+    fontSize: 15,
+    fontWeight: '800',
+    color: Colors.text,
+  },
+  progressSubtitle: {
+    fontSize: 12,
+    color: Colors.textSecondary,
+    marginTop: 2,
+  },
+  countBadge: {
+    backgroundColor: Colors.primaryLight,
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 12,
   },
-  levelBadgeText: {
+  countBadgeText: {
     fontSize: 12,
     fontWeight: '700',
-  },
-  catBreed: {
-    fontSize: 14,
-    color: '#64748B',
-    marginTop: 4,
-  },
-  catLocation: {
-    fontSize: 14,
-    color: '#94A3B8',
-    marginTop: 2,
-  },
-  progressSection: {
-    marginTop: 18,
-    paddingTop: 14,
-    borderTopWidth: 1,
-    borderTopColor: '#F1F5F9',
-  },
-  progressLabelRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 6,
-  },
-  progressLabel: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#334155',
-  },
-  progressScoreText: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: '#FF6B6B',
+    color: Colors.primaryDark,
   },
   progressBarTrack: {
-    height: 12,
-    backgroundColor: '#F1F5F9',
-    borderRadius: 6,
+    height: 14,
+    backgroundColor: '#F3E8E2',
+    borderRadius: 8,
     overflow: 'hidden',
+    marginTop: 6,
   },
   progressBarFill: {
     height: '100%',
-    borderRadius: 6,
+    borderRadius: 8,
   },
-  progressSubtext: {
+  tierIndicatorRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 8,
+  },
+  tierText: {
     fontSize: 11,
-    color: '#94A3B8',
-    marginTop: 6,
+    fontWeight: '600',
+    color: Colors.textMuted,
   },
-  actionCard: {
-    backgroundColor: '#FFFFFF',
+  tierTextActive: {
+    color: Colors.text,
+    fontWeight: '800',
+  },
+  nextTargetMessage: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: Colors.primaryDark,
+    textAlign: 'center',
+    marginTop: 8,
+  },
+  feedActionSection: {
+    marginBottom: 18,
+  },
+  bigFeedButton: {
+    backgroundColor: Colors.primary,
     borderRadius: 24,
     padding: 16,
-    marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.05,
-    shadowRadius: 12,
-    elevation: 3,
+    shadowColor: Colors.primary,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.38,
+    shadowRadius: 16,
+    elevation: 5,
   },
-  sectionTitle: {
+  feedButtonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  feedEmojiCircle: {
+    width: 52,
+    height: 52,
+    borderRadius: 20,
+    backgroundColor: '#FFFFFF',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 14,
+  },
+  feedEmojiText: {
+    fontSize: 26,
+  },
+  feedTextWrapper: {
+    flex: 1,
+  },
+  bigFeedTitle: {
     fontSize: 17,
     fontWeight: '800',
-    color: '#1E293B',
+    color: '#FFFFFF',
   },
-  sectionSubtitle: {
-    fontSize: 12,
-    color: '#94A3B8',
-    marginTop: 2,
-    marginBottom: 12,
-  },
-  actionButtonsRow: {
-    flexDirection: 'row',
-    gap: 10,
-  },
-  actionBtn: {
-    flex: 1,
-    alignItems: 'center',
-    paddingVertical: 14,
-    borderRadius: 18,
-  },
-  actionEmoji: {
-    fontSize: 24,
-    marginBottom: 4,
-  },
-  actionBtnText: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: '#334155',
-  },
-  actionPointText: {
+  bigFeedSubtitle: {
     fontSize: 11,
-    fontWeight: '700',
-    color: '#FF6B6B',
+    fontWeight: '500',
+    color: '#FFF2EC',
     marginTop: 2,
+  },
+  subActionsRow: {
+    flexDirection: 'row',
+    gap: 12,
+    marginTop: 10,
+  },
+  subActionBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: Colors.cardBorder,
+    borderRadius: 16,
+    paddingVertical: 11,
+    gap: 6,
+    shadowColor: Colors.cardShadow,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 6,
+  },
+  subActionEmoji: {
+    fontSize: 16,
+  },
+  subActionText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: Colors.text,
   },
   historyCard: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 24,
-    padding: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.05,
-    shadowRadius: 12,
+    borderRadius: 26,
+    padding: 18,
+    borderWidth: 1,
+    borderColor: Colors.cardBorder,
+    shadowColor: Colors.cardShadow,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.08,
+    shadowRadius: 16,
     elevation: 3,
   },
-  historyHeaderRow: {
+  historyHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: 14,
   },
-  historyCountBadge: {
+  historyTitle: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: Colors.text,
+  },
+  historyCountPill: {
+    backgroundColor: '#FAF5F0',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  historyCountPillText: {
     fontSize: 11,
     fontWeight: '700',
-    color: '#64748B',
-    backgroundColor: '#F1F5F9',
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 10,
+    color: Colors.textSecondary,
   },
-  emptyHistoryText: {
-    fontSize: 13,
-    color: '#94A3B8',
+  emptyHistoryBox: {
+    alignItems: 'center',
+    paddingVertical: 24,
+  },
+  emptyHistoryEmoji: {
+    fontSize: 40,
+    marginBottom: 6,
+  },
+  emptyHistoryTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: Colors.text,
+  },
+  emptyHistorySub: {
+    fontSize: 12,
+    color: Colors.textMuted,
     textAlign: 'center',
-    paddingVertical: 10,
+    marginTop: 4,
+    maxWidth: 240,
   },
-  historyItem: {
+  historyRow: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: 10,
     borderBottomWidth: 1,
-    borderBottomColor: '#F8FAFC',
+    borderBottomColor: '#FAF5F0',
   },
-  historyIconWrapper: {
-    width: 32,
-    height: 32,
-    borderRadius: 10,
-    backgroundColor: '#FFF0F2',
+  historyIconCircle: {
+    width: 34,
+    height: 34,
+    borderRadius: 12,
+    backgroundColor: Colors.primaryLight,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 10,
+    marginRight: 12,
   },
-  historyContent: {
+  historyTextCol: {
     flex: 1,
   },
   historyNote: {
     fontSize: 13,
-    fontWeight: '600',
-    color: '#334155',
+    fontWeight: '700',
+    color: Colors.text,
   },
   historyDate: {
     fontSize: 11,
-    color: '#94A3B8',
+    color: Colors.textMuted,
     marginTop: 2,
   },
-  historyEarnedPoints: {
-    fontSize: 12,
+  historyTag: {
+    backgroundColor: Colors.greenLight,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 10,
+  },
+  historyTagText: {
+    fontSize: 10,
     fontWeight: '700',
-    color: '#10B981',
-    marginLeft: 8,
+    color: '#059669',
   },
 });

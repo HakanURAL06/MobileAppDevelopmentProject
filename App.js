@@ -9,25 +9,46 @@ import { Ionicons } from '@expo/vector-icons';
 import HomeScreen from './screens/HomeScreen';
 import AddCatScreen from './screens/AddCatScreen';
 import CatDetailScreen from './screens/CatDetailScreen';
+import { Colors } from './src/theme/colors';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
 
-// 1. Bottom Tab Navigation (Home & AddCat)
+// 1. Alt Sekmeler (Pastel Temalı)
 function BottomTabs() {
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
         headerShown: true,
-        headerStyle: { backgroundColor: '#FF6B6B' },
+        headerStyle: {
+          backgroundColor: Colors.primary,
+          shadowColor: 'transparent',
+          elevation: 0,
+        },
         headerTintColor: '#FFFFFF',
-        headerTitleStyle: { fontWeight: 'bold' },
-        tabBarActiveTintColor: '#FF6B6B',
-        tabBarInactiveTintColor: '#A0AEC0',
+        headerTitleStyle: {
+          fontWeight: '800',
+          fontSize: 18,
+        },
+        tabBarActiveTintColor: Colors.primary,
+        tabBarInactiveTintColor: Colors.textMuted,
         tabBarStyle: {
-          paddingBottom: 6,
-          paddingTop: 6,
-          height: 60,
+          backgroundColor: '#FFFFFF',
+          borderTopWidth: 1,
+          borderTopColor: '#F5ECE6',
+          paddingBottom: 8,
+          paddingTop: 8,
+          height: 64,
+          shadowColor: Colors.cardShadow,
+          shadowOffset: { width: 0, height: -4 },
+          shadowOpacity: 0.04,
+          shadowRadius: 10,
+          elevation: 4,
+        },
+        tabBarLabelStyle: {
+          fontSize: 12,
+          fontWeight: '700',
+          marginTop: -2,
         },
         tabBarIcon: ({ focused, color, size }) => {
           let iconName = 'paw';
@@ -36,7 +57,7 @@ function BottomTabs() {
           } else if (route.name === 'AddCat') {
             iconName = focused ? 'add-circle' : 'add-circle-outline';
           }
-          return <Ionicons name={iconName} size={size} color={color} />;
+          return <Ionicons name={iconName} size={24} color={color} />;
         },
       })}
     >
@@ -54,7 +75,7 @@ function BottomTabs() {
   );
 }
 
-// 2. Root Navigation (Tabs + CatDetail Stack)
+// 2. Ana Uygulama Stack Navigasyonu
 export default function App() {
   return (
     <SafeAreaProvider>
@@ -62,9 +83,14 @@ export default function App() {
         <StatusBar style="light" />
         <Stack.Navigator
           screenOptions={{
-            headerStyle: { backgroundColor: '#FF6B6B' },
+            headerStyle: {
+              backgroundColor: Colors.primary,
+            },
             headerTintColor: '#FFFFFF',
-            headerTitleStyle: { fontWeight: 'bold' },
+            headerTitleStyle: {
+              fontWeight: '800',
+              fontSize: 18,
+            },
           }}
         >
           <Stack.Screen
