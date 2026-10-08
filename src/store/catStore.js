@@ -409,9 +409,17 @@ export const useCatStore = create(
       },
     }),
     {
-      name: 'street-cat-tracker-v4-storage',
+      name: 'street-cat-tracker-v5-storage',
       storage: createJSONStorage(() => AsyncStorage),
       partialize: (state) => ({ cats: state.cats }),
+      onRehydrateStorage: () => (state) => {
+        if (state && Array.isArray(state.cats)) {
+          const avci = INITIAL_CATS.find((c) => c.id === 'cat-avci');
+          if (avci && !state.cats.some((c) => c.id === 'cat-avci')) {
+            state.cats = [avci, ...state.cats];
+          }
+        }
+      },
     }
   )
 );
