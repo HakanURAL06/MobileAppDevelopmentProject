@@ -9,7 +9,6 @@ import {
   ScrollView,
   Alert,
   ActivityIndicator,
-  Switch,
   Platform,
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
@@ -17,6 +16,65 @@ import * as Location from 'expo-location';
 import { Ionicons } from '@expo/vector-icons';
 import useCatStore from '../store/catStore';
 import { Colors } from '../theme/colors';
+
+// Çeşitlendirilmiş İlk Etkileşim Seçenekleri
+const INTERACTION_OPTIONS = [
+  {
+    id: 'feeding',
+    type: 'feeding',
+    emoji: '🥣',
+    title: 'Mama Verdim',
+    desc: 'Kuru veya yaş mama ile besledim',
+    note: 'İlk tanışmada taze mama verildi 🥣',
+    color: Colors.primaryDark,
+    activeBg: '#FFF2EC',
+    activeBorder: '#FFBFA8',
+  },
+  {
+    id: 'petting',
+    type: 'petting',
+    emoji: '🐾',
+    title: 'Sevdim / Okşadım',
+    desc: 'Başını, çenesini okşadım, kendini sevdirdi',
+    note: 'Kendini sevdirdi, başı okşandı ✨',
+    color: Colors.secondary,
+    activeBg: '#FFF0F4',
+    activeBorder: '#FFBAC9',
+  },
+  {
+    id: 'water',
+    type: 'feeding',
+    emoji: '💧',
+    title: 'Temiz Su Bıraktım',
+    desc: 'Taze ve temiz bir kap su koydum',
+    note: 'Taze ve temiz su bırakıldı 💧',
+    color: Colors.blue,
+    activeBg: '#EDF6FD',
+    activeBorder: '#BCE0FB',
+  },
+  {
+    id: 'playing',
+    type: 'playing',
+    emoji: '🧶',
+    title: 'Oyun Oynadım',
+    desc: 'İp veya oyuncakla neşeyle vakit geçirdik',
+    note: 'Oyun oynandı, neşeyle koşturdu 🧶',
+    color: '#D97706',
+    activeBg: '#FEF9E7',
+    activeBorder: '#FDE68A',
+  },
+  {
+    id: 'health',
+    type: 'other',
+    emoji: '🩺',
+    title: 'Sağlık / Durum Kontrolü',
+    desc: 'Tüy, göz ve genel sağlık durumunu inceledim',
+    note: 'Genel sağlık ve tüy durumu kontrol edildi 🩺',
+    color: '#059669',
+    activeBg: '#EEFBF3',
+    activeBorder: '#A7F3D0',
+  },
+];
 
 export default function AddCatScreen({ navigation }) {
   const addCat = useCatStore((state) => state.addCat);
@@ -27,7 +85,25 @@ export default function AddCatScreen({ navigation }) {
   const [photoUri, setPhotoUri] = useState(null);
   const [coordinates, setCoordinates] = useState(null);
   const [isGettingLocation, setIsGettingLocation] = useState(false);
-  const [initialFeeding, setInitialFeeding] = useState(true); // İlk besleme/etkileşim varsayılan açık
+
+  // Çoklu seçim: Başlangıçta mama ve sevme varsayılan seçili
+  const [selectedInteractions, setSelectedInteractions] = useState(['feeding', 'petting']);
+
+  // Etkileşim Seçimini Aç/Kapat
+  const toggleInteraction = (id) => {
+    setSelectedInteractions((prev) =>
+      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
+    );
+  };
+
+  // Hepsini Seç / Temizle
+  const selectAllInteractions = () => {
+    if (selectedInteractions.length === INTERACTION_OPTIONS.length) {
+      setSelectedInteractions([]);
+    } else {
+      setSelectedInteractions(INTERACTION_OPTIONS.map((opt) => opt.id));
+    }
+  };
 
   // 1. Galeriden Fotoğraf Seçme
   const pickFromGallery = async () => {
@@ -118,6 +194,18 @@ export default function AddCatScreen({ navigation }) {
     const defaultCatPhoto =
       'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=600&q=80';
 
+    const now = new Date().toISOString();
+
+    // Seçilen etkileşimlerin detaylarını hazırla
+    const initialInteractionsData = selectedInteractions.map((id) => {
+      const option = INTERACTION_OPTIONS.find((opt) => opt.id === id);
+      return {
+        type: option?.type || 'feeding',
+        note: option?.note || 'İlk etkileşim',
+        date: now,
+      };
+    });
+
     addCat({
       name: name.trim(),
       breed: breed.trim() || 'Tekir / Melez',
@@ -127,27 +215,35 @@ export default function AddCatScreen({ navigation }) {
         latitude: coordinates?.latitude || 40.988,
         longitude: coordinates?.longitude || 29.025,
       },
-      initialInteraction: initialFeeding,
+      initialInteractions: initialInteractionsData,
     });
 
+    const interactionCountText =
+      initialInteractionsData.length > 0
+        ? `${initialInteractionsData.length} adet ilk etkileşim kaydedildi ve bağ seviyeniz yükseltildi!`
+        : 'İlk kedi kaydınız oluşturuldu!';
+
     Alert.alert(
-      'Harika! 🐱',
-      `${name} başarıyla kaydedildi! ${initialFeeding ? 'İlk besleme etkileşimi de eklendi.' : ''}`,
+      'Harika! 🐱💖',
+      `"${name}" başarıyla kaydedildi!\n\n${interactionCountText}`,
       [
         {
-          text: 'Ana Sayfaya Git ➔',
+          text: 'Harika ➔',
           onPress: () => {
             setName('');
             setBreed('');
             setRegionName('');
             setPhotoUri(null);
             setCoordinates(null);
+            setSelectedInteractions(['feeding', 'petting']);
             navigation.navigate('Home');
           },
         },
       ]
     );
   };
+
+  const isAllSelected = selectedInteractions.length === INTERACTION_OPTIONS.length;
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
@@ -263,25 +359,89 @@ export default function AddCatScreen({ navigation }) {
           </TouchableOpacity>
         </View>
 
-        {/* İLK ETKİLEŞİM / BESLEME SEÇENEĞİ */}
-        <View style={styles.initialFeedingCard}>
-          <View style={styles.feedingLeft}>
-            <View style={styles.feedingEmojiBox}>
-              <Text style={styles.feedingEmoji}>🥣</Text>
-            </View>
+        {/* ÇEŞİTLENDİRİLMİŞ İLK ETKİLEŞİM SEÇENEKLERİ ALANI */}
+        <View style={styles.interactionSection}>
+          <View style={styles.interactionHeaderRow}>
             <View style={{ flex: 1 }}>
-              <Text style={styles.feedingTitle}>İlk Etkileşim / Besleme</Text>
-              <Text style={styles.feedingSub}>
-                Şimdi besledim veya sevdim (+1 Etkileşim & Bağ Başlangıcı)
+              <View style={styles.interactionTitleBox}>
+                <Ionicons name="sparkles" size={18} color={Colors.primary} />
+                <Text style={styles.interactionMainTitle}>İlk Tanışma & Etkileşimler</Text>
+              </View>
+              <Text style={styles.interactionMainSubtitle}>
+                Bu sevimli dostla ilk karşılaştığında hangilerini yaptın?
               </Text>
             </View>
+
+            {/* Hepsini Seç / Temizle Butonu */}
+            <TouchableOpacity style={styles.toggleAllBtn} onPress={selectAllInteractions}>
+              <Text style={styles.toggleAllBtnText}>
+                {isAllSelected ? 'Temizle' : 'Tümünü Seç'}
+              </Text>
+            </TouchableOpacity>
           </View>
-          <Switch
-            value={initialFeeding}
-            onValueChange={setInitialFeeding}
-            trackColor={{ false: '#E5E7EB', true: Colors.primaryLight }}
-            thumbColor={initialFeeding ? Colors.primary : '#FFFFFF'}
-          />
+
+          {/* Seçim Sayacı Rozeti */}
+          <View style={styles.selectionCountBar}>
+            <Ionicons name="heart" size={14} color={Colors.primaryDark} />
+            <Text style={styles.selectionCountText}>
+              {selectedInteractions.length > 0
+                ? `${selectedInteractions.length} Etkileşim Seçildi (+${selectedInteractions.length} Bağ Puanı)`
+                : 'Henüz bir etkileşim seçilmedi'}
+            </Text>
+          </View>
+
+          {/* Etkileşim Seçenek Kartları */}
+          <View style={styles.optionsList}>
+            {INTERACTION_OPTIONS.map((option) => {
+              const isSelected = selectedInteractions.includes(option.id);
+
+              return (
+                <TouchableOpacity
+                  key={option.id}
+                  style={[
+                    styles.optionCard,
+                    isSelected && {
+                      backgroundColor: option.activeBg,
+                      borderColor: option.activeBorder,
+                    },
+                  ]}
+                  activeOpacity={0.8}
+                  onPress={() => toggleInteraction(option.id)}
+                >
+                  <View style={styles.optionEmojiBox}>
+                    <Text style={styles.optionEmoji}>{option.emoji}</Text>
+                  </View>
+
+                  <View style={styles.optionTextBox}>
+                    <Text
+                      style={[
+                        styles.optionTitle,
+                        isSelected && { color: Colors.text, fontWeight: '800' },
+                      ]}
+                    >
+                      {option.title}
+                    </Text>
+                    <Text style={styles.optionDesc}>{option.desc}</Text>
+                  </View>
+
+                  {/* Seçim Göstergesi (Checkbox / Checkmark) */}
+                  <View
+                    style={[
+                      styles.checkCircle,
+                      isSelected && {
+                        backgroundColor: option.color,
+                        borderColor: option.color,
+                      },
+                    ]}
+                  >
+                    {isSelected && (
+                      <Ionicons name="checkmark" size={14} color="#FFFFFF" />
+                    )}
+                  </View>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
         </View>
 
         {/* KAYDET BUTONU */}
@@ -444,44 +604,116 @@ const styles = StyleSheet.create({
   locationBtnTextActive: {
     color: '#059669',
   },
-  initialFeedingCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: '#FFF7F2',
-    borderRadius: 18,
-    padding: 14,
-    marginTop: 6,
+  interactionSection: {
+    marginTop: 10,
     marginBottom: 20,
-    borderWidth: 1,
-    borderColor: '#FFE8DF',
+    paddingTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: '#F5ECE6',
   },
-  feedingLeft: {
+  interactionHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  interactionTitleBox: {
     flexDirection: 'row',
     alignItems: 'center',
-    flex: 1,
+    gap: 6,
+  },
+  interactionMainTitle: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: Colors.text,
+  },
+  interactionMainSubtitle: {
+    fontSize: 12,
+    color: Colors.textSecondary,
+    marginTop: 2,
+  },
+  toggleAllBtn: {
+    backgroundColor: '#FAF5F0',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 12,
+  },
+  toggleAllBtnText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: Colors.textSecondary,
+  },
+  selectionCountBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFF7F2',
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    borderRadius: 12,
+    gap: 6,
+    marginBottom: 12,
+  },
+  selectionCountText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: Colors.primaryDark,
+  },
+  optionsList: {
     gap: 10,
   },
-  feedingEmojiBox: {
-    width: 40,
-    height: 40,
+  optionCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFFDF9',
+    borderRadius: 18,
+    padding: 12,
+    borderWidth: 1.5,
+    borderColor: '#F3E8E2',
+    shadowColor: Colors.cardShadow,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 6,
+  },
+  optionEmojiBox: {
+    width: 44,
+    height: 44,
     borderRadius: 14,
     backgroundColor: '#FFFFFF',
     justifyContent: 'center',
     alignItems: 'center',
+    marginRight: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 3,
   },
-  feedingEmoji: {
-    fontSize: 20,
+  optionEmoji: {
+    fontSize: 22,
   },
-  feedingTitle: {
+  optionTextBox: {
+    flex: 1,
+  },
+  optionTitle: {
     fontSize: 14,
     fontWeight: '700',
     color: Colors.text,
   },
-  feedingSub: {
+  optionDesc: {
     fontSize: 11,
     color: Colors.textSecondary,
     marginTop: 2,
+    lineHeight: 15,
+  },
+  checkCircle: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    borderWidth: 1.5,
+    borderColor: '#D1D5DB',
+    backgroundColor: '#FFFFFF',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginLeft: 10,
   },
   submitButton: {
     backgroundColor: Colors.primary,

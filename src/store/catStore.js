@@ -153,16 +153,25 @@ export const useCatStore = create(
           ? [catData.photoUri]
           : [];
 
-        const initialInteractions = catData.initialInteraction
-          ? [
-              {
-                id: `int-${newCatId}`,
-                date: now,
-                type: 'feeding',
-                note: 'İlk tanışma ve besleme 🥣',
-              },
-            ]
-          : [];
+        let initialInteractions = [];
+
+        if (Array.isArray(catData.initialInteractions) && catData.initialInteractions.length > 0) {
+          initialInteractions = catData.initialInteractions.map((item, idx) => ({
+            id: `int-${newCatId}-${idx}`,
+            date: item.date || now,
+            type: item.type || 'feeding',
+            note: item.note || 'İlk etkileşim',
+          }));
+        } else if (catData.initialInteraction) {
+          initialInteractions = [
+            {
+              id: `int-${newCatId}`,
+              date: now,
+              type: 'feeding',
+              note: 'İlk tanışma ve besleme 🥣',
+            },
+          ];
+        }
 
         const newCat = {
           id: newCatId,
