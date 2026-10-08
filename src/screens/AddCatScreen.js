@@ -78,10 +78,12 @@ const INTERACTION_OPTIONS = [
 
 export default function AddCatScreen({ navigation }) {
   const addCat = useCatStore((state) => state.addCat);
+  const showToast = useCatStore((state) => state.showToast);
 
   const [name, setName] = useState('');
   const [breed, setBreed] = useState('');
   const [regionName, setRegionName] = useState('');
+  const [notes, setNotes] = useState('');
   const [photoUri, setPhotoUri] = useState(null);
   const [coordinates, setCoordinates] = useState(null);
   const [isGettingLocation, setIsGettingLocation] = useState(false);
@@ -172,11 +174,15 @@ export default function AddCatScreen({ navigation }) {
         longitude: loc.coords.longitude,
       });
 
-      if (!regionName) {
-        setRegionName('Yakınımdaki Sokak');
+      // Kullanıcı zaten bir isim yazmışsa ezme, boşsa öneri ver
+      if (!regionName.trim()) {
+        setRegionName('Konumum (GPS)');
       }
 
-      Alert.alert('Başarılı! 📍', 'Mevcut konum koordinatların alındı.');
+      Alert.alert(
+        'GPS Konumu Alındı! 📍',
+        `Koordinatlar (${loc.coords.latitude.toFixed(4)}, ${loc.coords.longitude.toFixed(4)}) başarıyla kaydedildi!\n\nYukarıdaki "Konum / Bölge Adı" kutusuna bu alan için istediğin ismi (örn: Moda Parkı, Evimin Önü) verebilirsin. Kediler bu isme göre gruplanacaktır.`
+      );
     } catch (error) {
       Alert.alert('Hata', 'Konum bilgisi alınamadı.');
     } finally {
@@ -187,7 +193,7 @@ export default function AddCatScreen({ navigation }) {
   // 4. Form Gönderimi & Zustand Store'a Kayıt
   const handleSubmit = () => {
     if (!name.trim()) {
-      Alert.alert('Eksik Bilgi', 'Lütfen sevimli dostumuzun adını veya lakabını yazın 🐾');
+      showToast('Lütfen sevimli dostumuzun adını yazın 🐾', 'info');
       return;
     }
 
@@ -211,36 +217,29 @@ export default function AddCatScreen({ navigation }) {
       breed: breed.trim() || 'Tekir / Melez',
       photoUri: photoUri || defaultCatPhoto,
       location: {
-        regionName: regionName.trim() || 'Genel Bölge Kedileri',
-        latitude: coordinates?.latitude || 40.988,
-        longitude: coordinates?.longitude || 29.025,
+        regionName: regionName.trim() || 'Bilinmeyen Bölge',
+        latitude: coordinates?.latitude || null,
+        longitude: coordinates?.longitude || null,
       },
+      notes: notes.trim(),
       initialInteractions: initialInteractionsData,
     });
 
-    const interactionCountText =
-      initialInteractionsData.length > 0
-        ? `${initialInteractionsData.length} adet ilk etkileşim kaydedildi ve bağ seviyeniz yükseltildi!`
-        : 'İlk kedi kaydınız oluşturuldu!';
+    // Formu temizle
+    setName('');
+    setBreed('');
+    setRegionName('');
+    setNotes('');
+    setPhotoUri(null);
+    setCoordinates(null);
+    setSelectedInteractions(['feeding', 'petting']);
 
-    Alert.alert(
-      'Harika! 🐱💖',
-      `"${name}" başarıyla kaydedildi!\n\n${interactionCountText}`,
-      [
-        {
-          text: 'Harika ➔',
-          onPress: () => {
-            setName('');
-            setBreed('');
-            setRegionName('');
-            setPhotoUri(null);
-            setCoordinates(null);
-            setSelectedInteractions(['feeding', 'petting']);
-            navigation.navigate('Home');
-          },
-        },
-      ]
-    );
+    // Listeye dön
+    if (navigation.canGoBack()) {
+      navigation.goBack();
+    } else {
+      navigation.navigate('MainTabs', { screen: 'CatList' });
+    }
   };
 
   const isAllSelected = selectedInteractions.length === INTERACTION_OPTIONS.length;
@@ -322,12 +321,20 @@ export default function AddCatScreen({ navigation }) {
 
         {/* Konum / Bölge */}
         <View style={styles.inputGroup}>
-          <Text style={styles.label}>Konum / Bölge Adı</Text>
+          <View style={styles.labelWithBadgeRow}>
+            <Text style={styles.label}>Konum / Bölge Adı *</Text>
+            <View style={styles.groupingHintBadge}>
+              <Text style={styles.groupingHintBadgeText}>📍 Gruplamada Kullanılır</Text>
+            </View>
+          </View>
+          <Text style={styles.helperText}>
+            GPS koordinatı alsan bile buraya istediğin ismi (örn: Moda Parkı, Evimin Önü) verebilirsin. Kediler bu isme göre gruplanır.
+          </Text>
           <View style={styles.inputBox}>
             <Ionicons name="location-outline" size={20} color={Colors.primary} style={styles.inputIcon} />
             <TextInput
               style={styles.input}
-              placeholder="Örn: Kadıköy Moda Sahili, Kampüs..."
+              placeholder="Örn: Kadıköy Moda Sahili, Kampüs Kantini..."
               placeholderTextColor={Colors.textMuted}
               value={regionName}
               onChangeText={setRegionName}
@@ -351,12 +358,43 @@ export default function AddCatScreen({ navigation }) {
                 />
                 <Text style={[styles.locationBtnText, coordinates && styles.locationBtnTextActive]}>
                   {coordinates
-                    ? `GPS Konumu Alındı (${coordinates.latitude.toFixed(3)}, ${coordinates.longitude.toFixed(3)}) ✓`
-                    : '📍 Mevcut Konumumu Otomatik Al'}
+                    ? `GPS Alındı (${coordinates.latitude.toFixed(3)}, ${coordinates.longitude.toFixed(3)}) ✓`
+                    : '📍 Mevcut GPS Konumumu Al'}
                 </Text>
               </>
             )}
           </TouchableOpacity>
+          {coordinates && (
+            <Text style={styles.gpsSuccessHint}>
+              💡 GPS koordinatları kaydedildi. Yukarıdaki bölge adını istediğin gibi düzenleyebilirsin.
+            </Text>
+          )}
+        </View>
+
+        {/* Kedi Hakkında Notlar & Bilgiler */}
+        <View style={styles.inputGroup}>
+          <Text style={styles.label}>Hakkında Notlar & Özel Bilgiler 📝</Text>
+          <Text style={styles.helperText}>
+            Karakteri, aşı durumu, sevdiği mamalar veya dikkat edilmesi gereken huyları (İsteğe bağlı)
+          </Text>
+          <View style={[styles.inputBox, styles.notesInputBox]}>
+            <Ionicons
+              name="create-outline"
+              size={20}
+              color={Colors.primary}
+              style={[styles.inputIcon, { marginTop: 12, alignSelf: 'flex-start' }]}
+            />
+            <TextInput
+              style={[styles.input, styles.notesInput]}
+              placeholder="Örn: Sol kulağında çentik var, somonlu yaş mamayı çok seviyor, çok uysal ve kucak istiyor..."
+              placeholderTextColor={Colors.textMuted}
+              value={notes}
+              onChangeText={setNotes}
+              multiline
+              numberOfLines={3}
+              textAlignVertical="top"
+            />
+          </View>
         </View>
 
         {/* ÇEŞİTLENDİRİLMİŞ İLK ETKİLEŞİM SEÇENEKLERİ ALANI */}
@@ -564,6 +602,47 @@ const styles = StyleSheet.create({
     color: Colors.text,
     marginBottom: 6,
     marginLeft: 2,
+  },
+  labelWithBadgeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 4,
+  },
+  groupingHintBadge: {
+    backgroundColor: '#FFF2EC',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 8,
+  },
+  groupingHintBadgeText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: Colors.primaryDark,
+  },
+  helperText: {
+    fontSize: 11,
+    color: Colors.textMuted,
+    marginBottom: 6,
+    marginLeft: 2,
+    lineHeight: 15,
+  },
+  gpsSuccessHint: {
+    fontSize: 11,
+    color: '#059669',
+    marginTop: 6,
+    marginLeft: 2,
+    fontWeight: '600',
+    lineHeight: 15,
+  },
+  notesInputBox: {
+    height: 96,
+    alignItems: 'flex-start',
+    paddingTop: 8,
+  },
+  notesInput: {
+    height: 80,
+    paddingTop: 4,
   },
   inputBox: {
     flexDirection: 'row',

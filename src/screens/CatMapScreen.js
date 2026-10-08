@@ -12,6 +12,7 @@ import { Ionicons } from '@expo/vector-icons';
 import useCatStore from '../store/catStore';
 import CatMap from '../components/CatMap';
 import { Colors } from '../theme/colors';
+import { getImageSource } from '../utils/imageHelper';
 
 export default function CatMapScreen({ navigation }) {
   const cats = useCatStore((state) => state.cats);
@@ -82,47 +83,57 @@ export default function CatMapScreen({ navigation }) {
 
       {/* Bölgelere Göre Kediler */}
       <Text style={styles.sectionTitle}>🏘️ Bölgelere Göre Kediler</Text>
-      {groupedCats.map((group) => (
-        <View key={group.regionName} style={styles.groupCard}>
-          <View style={styles.groupHeader}>
-            <View style={styles.groupTitleBox}>
-              <Ionicons name="location" size={16} color={Colors.primary} />
-              <Text style={styles.groupTitleText}>{group.regionName}</Text>
-            </View>
-            <View style={styles.groupCountChip}>
-              <Text style={styles.groupCountText}>{group.catList.length} Kedi</Text>
-            </View>
-          </View>
-
-          {group.catList.map((cat) => {
-            const photo =
-              (cat.photos && cat.photos.length > 0 ? cat.photos[0] : cat.photoUri) ||
-              'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=200&q=80';
-            const bond = getBondLevelInfo(cat.interactionHistory?.length || 0);
-
-            return (
-              <TouchableOpacity
-                key={cat.id}
-                style={styles.catCard}
-                activeOpacity={0.85}
-                onPress={() => handleSelectCat(cat)}
-              >
-                <Image source={{ uri: photo }} style={styles.catAvatar} />
-                <View style={styles.catInfo}>
-                  <Text style={styles.catName}>{cat.name}</Text>
-                  <Text style={styles.catBreed}>{cat.breed}</Text>
-                </View>
-                <View style={[styles.bondBadge, { backgroundColor: bond.badgeBg }]}>
-                  <Text style={[styles.bondBadgeText, { color: bond.color }]}>
-                    {bond.title}
-                  </Text>
-                </View>
-                <Ionicons name="chevron-forward" size={16} color={Colors.primary} />
-              </TouchableOpacity>
-            );
-          })}
+      {groupedCats.length === 0 ? (
+        <View style={styles.emptyMapListBox}>
+          <Text style={styles.emptyMapEmoji}>🐾</Text>
+          <Text style={styles.emptyMapTitle}>Henüz haritada gösterilecek kedi yok</Text>
+          <Text style={styles.emptyMapSub}>
+            Yeni bir kedi eklediğinde burada bölgesi ve harita üzerindeki konumu belirecektir.
+          </Text>
         </View>
-      ))}
+      ) : (
+        groupedCats.map((group) => (
+          <View key={group.regionName} style={styles.groupCard}>
+            <View style={styles.groupHeader}>
+              <View style={styles.groupTitleBox}>
+                <Ionicons name="location" size={16} color={Colors.primary} />
+                <Text style={styles.groupTitleText}>{group.regionName}</Text>
+              </View>
+              <View style={styles.groupCountChip}>
+                <Text style={styles.groupCountText}>{group.catList.length} Kedi</Text>
+              </View>
+            </View>
+
+            {group.catList.map((cat) => {
+              const photo =
+                (cat.photos && cat.photos.length > 0 ? cat.photos[0] : cat.photoUri) ||
+                'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=200&q=80';
+              const bond = getBondLevelInfo(cat.interactionHistory?.length || 0);
+
+              return (
+                <TouchableOpacity
+                  key={cat.id}
+                  style={styles.catCard}
+                  activeOpacity={0.85}
+                  onPress={() => handleSelectCat(cat)}
+                >
+                  <Image source={getImageSource(photo)} style={styles.catAvatar} />
+                  <View style={styles.catInfo}>
+                    <Text style={styles.catName}>{cat.name}</Text>
+                    <Text style={styles.catBreed}>{cat.breed}</Text>
+                  </View>
+                  <View style={[styles.bondBadge, { backgroundColor: bond.badgeBg }]}>
+                    <Text style={[styles.bondBadgeText, { color: bond.color }]}>
+                      {bond.title}
+                    </Text>
+                  </View>
+                  <Ionicons name="chevron-forward" size={16} color={Colors.primary} />
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        ))
+      )}
     </ScrollView>
   );
 }
@@ -184,4 +195,29 @@ const styles = StyleSheet.create({
   catBreed: { fontSize: 12, color: Colors.textSecondary },
   bondBadge: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 10, marginRight: 6 },
   bondBadgeText: { fontSize: 10, fontWeight: '800' },
+  emptyMapListBox: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 22,
+    padding: 24,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: Colors.cardBorder,
+  },
+  emptyMapEmoji: {
+    fontSize: 36,
+    marginBottom: 6,
+  },
+  emptyMapTitle: {
+    fontSize: 15,
+    fontWeight: '800',
+    color: Colors.text,
+    textAlign: 'center',
+    marginBottom: 4,
+  },
+  emptyMapSub: {
+    fontSize: 12,
+    color: Colors.textMuted,
+    textAlign: 'center',
+    lineHeight: 18,
+  },
 });

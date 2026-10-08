@@ -11,6 +11,7 @@ import CatListScreen from './src/screens/CatListScreen';
 import CatMapScreen from './src/screens/CatMapScreen';
 import AddCatScreen from './src/screens/AddCatScreen';
 import CatDetailScreen from './src/screens/CatDetailScreen';
+import ToastBanner from './src/components/ToastBanner';
 import { Colors } from './src/theme/colors';
 
 const Tab = createBottomTabNavigator();
@@ -130,6 +131,7 @@ export default function App() {
           />
         </Stack.Navigator>
       </NavigationContainer>
+      <ToastBanner />
     </SafeAreaProvider>
   );
 }

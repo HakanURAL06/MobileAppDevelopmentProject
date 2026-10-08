@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../theme/colors';
+import { getImageSource } from '../utils/imageHelper';
 
 export default function CatMap({ cats = [], location, onSelectCat }) {
   return (
@@ -31,11 +32,7 @@ export default function CatMap({ cats = [], location, onSelectCat }) {
             onPress={() => onSelectCat && onSelectCat(cat)}
           >
             <Image
-              source={{
-                uri:
-                  cat.photoUri ||
-                  'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=200&q=80',
-              }}
+              source={getImageSource(cat.photoUri || (cat.photos && cat.photos[0]))}
               style={styles.catPinAvatar}
             />
             <View style={styles.pinInfo}>

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -6,6 +6,7 @@ import {
   Image,
   ScrollView,
   TouchableOpacity,
+  TextInput,
   Alert,
   Dimensions,
 } from 'react-native';
@@ -13,6 +14,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { Ionicons } from '@expo/vector-icons';
 import useCatStore from '../store/catStore';
 import { Colors } from '../theme/colors';
+import { getImageSource } from '../utils/imageHelper';
 
 const { width } = Dimensions.get('window');
 const PHOTO_SIZE = (width - 36 - 20) / 3; // 3 sütunlu ızgara
@@ -23,7 +25,30 @@ export default function CatDetailScreen({ route, navigation }) {
   const cat = useCatStore((state) => state.cats.find((c) => c.id === catId));
   const addInteraction = useCatStore((state) => state.addInteraction);
   const addPhotoToCat = useCatStore((state) => state.addPhotoToCat);
+  const updateCatNotes = useCatStore((state) => state.updateCatNotes);
+  const showToast = useCatStore((state) => state.showToast);
   const getBondLevelInfo = useCatStore((state) => state.getBondLevelInfo);
+
+  const [isEditingNote, setIsEditingNote] = useState(false);
+  const [noteText, setNoteText] = useState(cat?.notes || '');
+
+  useEffect(() => {
+    if (cat?.notes !== undefined) {
+      setNoteText(cat.notes);
+    }
+  }, [cat?.notes]);
+
+  const handleSaveNotes = () => {
+    if (!cat) return;
+    updateCatNotes(cat.id, noteText);
+    setIsEditingNote(false);
+    Alert.alert('Not Kaydedildi 📝', `${cat.name} hakkında notun başarıyla güncellendi!`);
+  };
+
+  const handleCancelNotes = () => {
+    setNoteText(cat?.notes || '');
+    setIsEditingNote(false);
+  };
 
   if (!cat) {
     return (
@@ -83,10 +108,7 @@ export default function CatDetailScreen({ route, navigation }) {
     const newCount = interactionCount + 1;
     const newBond = getBondLevelInfo(newCount);
 
-    Alert.alert(
-      'Mırıl Mırıl! 💖🐾',
-      `${cat.name} mamasını afiyetle yedi! Etkileşim kaydedildi.\n\nBağ Durumu: ${newBond.title} (${newCount} Etkileşim)`
-    );
+    showToast(`"${cat.name}" mamasını yedi! 🥣 Bağ: ${newBond.title}`, 'success');
   };
 
   // 4. ALBÜME YENİ FOTOĞRAF EKLEME (expo-image-picker)
@@ -94,7 +116,7 @@ export default function CatDetailScreen({ route, navigation }) {
     try {
       const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
       if (!permission.granted) {
-        Alert.alert('İzin Gerekli', 'Albüm için fotoğraf seçebilmek adına galeri iznine ihtiyacımız var 📷');
+        showToast('Fotoğraf seçmek için galeri izni gereklidir 📷', 'info');
         return;
       }
 
@@ -108,10 +130,10 @@ export default function CatDetailScreen({ route, navigation }) {
       if (!result.canceled && result.assets && result.assets.length > 0) {
         const newPhotoUri = result.assets[0].uri;
         addPhotoToCat(cat.id, newPhotoUri);
-        Alert.alert('Harika! 📸', `${cat.name} için yeni fotoğraf albüme eklendi!`);
+        showToast(`"${cat.name}" albümüne yeni fotoğraf eklendi 📸`, 'success');
       }
     } catch (e) {
-      Alert.alert('Hata', 'Fotoğraf seçilirken bir hata oluştu.');
+      showToast('Fotoğraf seçilirken bir hata oluştu', 'info');
     }
   };
 
@@ -131,7 +153,7 @@ export default function CatDetailScreen({ route, navigation }) {
     <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
       {/* 1. KEDİ KAPAK KARTI VE BİLGİLERİ */}
       <View style={styles.heroCard}>
-        <Image source={{ uri: coverPhoto }} style={styles.heroImage} />
+        <Image source={getImageSource(coverPhoto)} style={styles.heroImage} />
 
         <View style={styles.heroInfo}>
           <View style={styles.nameRow}>
@@ -220,7 +242,94 @@ export default function CatDetailScreen({ route, navigation }) {
         </TouchableOpacity>
       </View>
 
-      {/* 4. FOTOĞRAF ALBÜMÜ BÖLÜMÜ (GRID VIEW) */}
+      {/* 4. HAKKINDA & ÖZEL NOTLAR BÖLÜMÜ */}
+      <View style={styles.notesCard}>
+        <View style={styles.notesHeader}>
+          <View style={styles.notesTitleBox}>
+            <Ionicons name="document-text" size={20} color={Colors.primary} />
+            <Text style={styles.notesTitle}>Hakkında & Notlar 📝</Text>
+          </View>
+
+          {!isEditingNote && (
+            <TouchableOpacity
+              style={styles.editNoteBtn}
+              onPress={() => setIsEditingNote(true)}
+              activeOpacity={0.8}
+            >
+              <Ionicons name="create-outline" size={15} color={Colors.primaryDark} />
+              <Text style={styles.editNoteBtnText}>
+                {cat.notes && cat.notes.trim().length > 0 ? 'Düzenle' : 'Not Ekle'}
+              </Text>
+            </TouchableOpacity>
+          )}
+        </View>
+
+        {isEditingNote ? (
+          <View style={styles.editNoteBox}>
+            <TextInput
+              style={styles.noteTextInput}
+              placeholder={`${cat.name} hakkında notlar al (karakteri, huyları, aşıları, sevdiği şeyler)...`}
+              placeholderTextColor={Colors.textMuted}
+              value={noteText}
+              onChangeText={setNoteText}
+              multiline
+              numberOfLines={4}
+              textAlignVertical="top"
+              autoFocus
+            />
+
+            <View style={styles.noteActionsRow}>
+              <TouchableOpacity
+                style={styles.cancelNoteBtn}
+                onPress={handleCancelNotes}
+                activeOpacity={0.8}
+              >
+                <Text style={styles.cancelNoteBtnText}>Vazgeç</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.saveNoteBtn}
+                onPress={handleSaveNotes}
+                activeOpacity={0.85}
+              >
+                <Ionicons name="save-outline" size={16} color="#FFFFFF" />
+                <Text style={styles.saveNoteBtnText}>Notu Kaydet</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        ) : (
+          <View>
+            {cat.notes && cat.notes.trim().length > 0 ? (
+              <View style={styles.noteDisplayBox}>
+                <Ionicons
+                  name="chatbubble-ellipses-outline"
+                  size={18}
+                  color={Colors.primary}
+                  style={styles.noteQuoteIcon}
+                />
+                <Text style={styles.noteDisplayText}>{cat.notes}</Text>
+              </View>
+            ) : (
+              <TouchableOpacity
+                style={styles.emptyNotePromptBox}
+                onPress={() => setIsEditingNote(true)}
+                activeOpacity={0.8}
+              >
+                <Ionicons name="create-outline" size={28} color={Colors.primary} />
+                <Text style={styles.emptyNotePromptTitle}>Henüz bir not yazılmadı</Text>
+                <Text style={styles.emptyNotePromptSub}>
+                  {cat.name} dostumuzun aşı durumu, huyları veya sevdiği mamalar hakkında buraya not alabilirsin.
+                </Text>
+                <View style={styles.addNotePill}>
+                  <Text style={styles.addNotePillText}>+ Not Ekle</Text>
+                </View>
+              </TouchableOpacity>
+            )}
+          </View>
+        )}
+      </View>
+
+      {/* 5. FOTOĞRAF ALBÜMÜ BÖLÜMÜ (GRID VIEW) */}
       <View style={styles.albumCard}>
         <View style={styles.albumHeader}>
           <View style={styles.albumTitleBox}>
@@ -255,7 +364,7 @@ export default function CatDetailScreen({ route, navigation }) {
           <View style={styles.photoGrid}>
             {catPhotos.map((uri, index) => (
               <View key={`${uri}-${index}`} style={styles.photoGridItem}>
-                <Image source={{ uri }} style={styles.gridImage} />
+                <Image source={getImageSource(uri)} style={styles.gridImage} />
                 {index === 0 && (
                   <View style={styles.coverBadge}>
                     <Text style={styles.coverBadgeText}>Kapak</Text>
@@ -745,5 +854,152 @@ const styles = StyleSheet.create({
     fontSize: 10,
     fontWeight: '700',
     color: '#059669',
+  },
+  notesCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 26,
+    padding: 18,
+    marginBottom: 18,
+    borderWidth: 1,
+    borderColor: Colors.cardBorder,
+    shadowColor: Colors.cardShadow,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.08,
+    shadowRadius: 16,
+    elevation: 3,
+  },
+  notesHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  notesTitleBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  notesTitle: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: Colors.text,
+  },
+  editNoteBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.primaryLight,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 14,
+    gap: 5,
+  },
+  editNoteBtnText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: Colors.primaryDark,
+  },
+  editNoteBox: {
+    marginTop: 4,
+  },
+  noteTextInput: {
+    backgroundColor: '#FFFBF9',
+    borderWidth: 1.5,
+    borderColor: '#F3E8E2',
+    borderRadius: 18,
+    padding: 14,
+    fontSize: 14,
+    color: Colors.text,
+    height: 110,
+    lineHeight: 20,
+  },
+  noteActionsRow: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    gap: 10,
+    marginTop: 12,
+  },
+  cancelNoteBtn: {
+    paddingVertical: 9,
+    paddingHorizontal: 16,
+    borderRadius: 14,
+    backgroundColor: '#FAF5F0',
+  },
+  cancelNoteBtnText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: Colors.textSecondary,
+  },
+  saveNoteBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingVertical: 9,
+    paddingHorizontal: 18,
+    borderRadius: 14,
+    backgroundColor: Colors.primary,
+    shadowColor: Colors.primary,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+  },
+  saveNoteBtnText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#FFFFFF',
+  },
+  noteDisplayBox: {
+    flexDirection: 'row',
+    backgroundColor: '#FFFDF9',
+    borderWidth: 1,
+    borderColor: '#F8EDE7',
+    borderRadius: 18,
+    padding: 14,
+    gap: 10,
+  },
+  noteQuoteIcon: {
+    marginTop: 2,
+  },
+  noteDisplayText: {
+    flex: 1,
+    fontSize: 14,
+    color: Colors.text,
+    lineHeight: 21,
+    fontWeight: '500',
+  },
+  emptyNotePromptBox: {
+    alignItems: 'center',
+    paddingVertical: 18,
+    paddingHorizontal: 16,
+    backgroundColor: '#FFFBF9',
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: '#F8EDE7',
+    borderStyle: 'dashed',
+  },
+  emptyNotePromptTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: Colors.text,
+    marginTop: 6,
+  },
+  emptyNotePromptSub: {
+    fontSize: 12,
+    color: Colors.textMuted,
+    textAlign: 'center',
+    marginTop: 4,
+    marginBottom: 12,
+    lineHeight: 17,
+    maxWidth: 280,
+  },
+  addNotePill: {
+    backgroundColor: Colors.primaryLight,
+    paddingVertical: 7,
+    paddingHorizontal: 16,
+    borderRadius: 14,
+  },
+  addNotePillText: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: Colors.primaryDark,
   },
 });
