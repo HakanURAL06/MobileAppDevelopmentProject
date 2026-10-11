@@ -13,9 +13,35 @@ import { Colors } from '../theme/colors';
 
 /**
  * @typedef {Object} CatLocation
- * @property {number} [latitude] - Enlem
- * @property {number} [longitude] - Boylam
+ * @property {number|null} [latitude] - Enlem
+ * @property {number|null} [longitude] - Boylam
  * @property {string} regionName - Bölge/Semt/Sokak adı
+ */
+
+/**
+ * @typedef {Object} LocationHistoryItem
+ * @property {string} id - Benzersiz kayıt kimliği
+ * @property {string} regionName - Önceki bölge / konum adı
+ * @property {number|null} [latitude] - Önceki enlem
+ * @property {number|null} [longitude] - Önceki boylam
+ * @property {string} changedAt - Konumun değiştiği tarih (ISO string)
+ */
+
+/**
+ * @typedef {Object} Vaccination
+ * @property {string} id - Benzersiz aşı kimliği
+ * @property {string} name - Aşı adı (örn: Kuduz, Karma, İç-Dış Parazit)
+ * @property {string} date - Yapılış tarihi (YYYY-MM-DD)
+ * @property {string} [clinic] - Uygulanan veteriner / klinik
+ * @property {string} [notes] - Aşıya dair notlar
+ */
+
+/**
+ * @typedef {Object} ScheduledVaccine
+ * @property {string} id - Benzersiz plan kimliği
+ * @property {string} name - Planlanan aşı adı
+ * @property {string} plannedDate - Planlanan tarih (YYYY-MM-DD)
+ * @property {string} [notes] - Hatırlatma notu
  */
 
 /**
@@ -23,11 +49,14 @@ import { Colors } from '../theme/colors';
  * @property {string} id - Benzersiz kedi kimliği
  * @property {string} name - Kedinin ismi
  * @property {string[]} photos - Kedinin fotoğraf albümü (URI dizisi)
- * @property {string|null} [photoUri] - Ana kapak fotoğrafı (geriye uyumluluk için)
- * @property {string} breed - Kedinin cinsi / türü (Tekir, Sarman, Calico vb.)
- * @property {CatLocation|string} location - Enlem/Boylam veya Bölge adı
- * @property {string} [notes] - Kedi hakkında kullanıcı notları (karakter, aşı, özel bilgiler)
- * @property {Interaction[]} interactionHistory - Etkileşim geçmişi (tarih dizisi)
+ * @property {string|null} [photoUri] - Ana kapak fotoğrafı
+ * @property {string} breed - Kedinin cinsi / türü
+ * @property {CatLocation} location - Enlem/Boylam ve Bölge adı
+ * @property {LocationHistoryItem[]} locationHistory - Eski konum geçmişi
+ * @property {Vaccination[]} vaccinations - Tamamlanan aşılar
+ * @property {ScheduledVaccine[]} scheduledVaccines - Gelecek / planlanan aşılar
+ * @property {string} [notes] - Kedi hakkında kullanıcı notları
+ * @property {Interaction[]} interactionHistory - Etkileşim geçmişi
  * @property {string} createdAt - Oluşturulma tarihi (ISO string)
  */
 
@@ -46,6 +75,39 @@ export const INITIAL_CATS = [
       longitude: 28.8945,
       regionName: 'Kocatepe Metrosu',
     },
+    locationHistory: [
+      {
+        id: 'loc-avci-prev-1',
+        regionName: 'Bayrampaşa Şehir Parkı',
+        latitude: 41.042,
+        longitude: 28.891,
+        changedAt: new Date(Date.now() - 86400000 * 25).toISOString(),
+      },
+    ],
+    vaccinations: [
+      {
+        id: 'vac-avci-1',
+        name: 'Kuduz Aşısı',
+        date: new Date(Date.now() - 86400000 * 90).toISOString().split('T')[0],
+        clinic: 'Bayrampaşa Belediyesi Vet. Hizmetleri',
+        notes: 'Yıllık rutin kuduz aşısı yapıldı, mikroçip kontrol edildi.',
+      },
+      {
+        id: 'vac-avci-2',
+        name: 'İç-Dış Parazit',
+        date: new Date(Date.now() - 86400000 * 28).toISOString().split('T')[0],
+        clinic: 'Mobil Veteriner',
+        notes: 'Ense damlası ve iç parazit hapı uygulandı.',
+      },
+    ],
+    scheduledVaccines: [
+      {
+        id: 'sch-avci-1',
+        name: 'İç-Dış Parazit Tekrarı',
+        plannedDate: new Date(Date.now() + 86400000 * 14).toISOString().split('T')[0],
+        notes: '3 aylık periyot için ense damlası tekrarlanacak.',
+      },
+    ],
     notes: 'Fare avlamayı seviyor, çok şişman, metrodan ayrılmıyor.',
     interactionHistory: [
       {
@@ -85,10 +147,70 @@ export const INITIAL_CATS = [
     photoUri: require('../../assets/cats/habes1.jpg'),
     breed: 'Uzun Tüylü Calico',
     location: {
-      latitude: 41.0250,
-      longitude: 28.9850,
+      latitude: 41.025,
+      longitude: 28.985,
       regionName: 'Site',
     },
+    locationHistory: [
+      {
+        id: 'loc-habes-prev-1',
+        regionName: 'Site B Blok Bahçesi',
+        latitude: 41.0245,
+        longitude: 28.9845,
+        changedAt: new Date(Date.now() - 86400000 * 45).toISOString(),
+      },
+      {
+        id: 'loc-habes-prev-2',
+        regionName: 'Site Otopark Girişi',
+        latitude: 41.0248,
+        longitude: 28.9848,
+        changedAt: new Date(Date.now() - 86400000 * 90).toISOString(),
+      },
+    ],
+    vaccinations: [
+      {
+        id: 'vac-habes-1',
+        name: 'Karma Aşı (1. Doz)',
+        date: new Date(Date.now() - 86400000 * 120).toISOString().split('T')[0],
+        clinic: 'Pati Dostu Vet Kliniği',
+        notes: 'İlk doz uygulandı, genel sağlık durumu mükemmel.',
+      },
+      {
+        id: 'vac-habes-2',
+        name: 'Karma Aşı (2. Doz)',
+        date: new Date(Date.now() - 86400000 * 99).toISOString().split('T')[0],
+        clinic: 'Pati Dostu Vet Kliniği',
+        notes: 'Rapel dozu yapıldı, bağışıklık koruması sağlandı.',
+      },
+      {
+        id: 'vac-habes-3',
+        name: 'Kuduz Aşısı',
+        date: new Date(Date.now() - 86400000 * 70).toISOString().split('T')[0],
+        clinic: 'Pati Dostu Vet Kliniği',
+        notes: 'Mikroçip taraması yapıldı, kuduz aşısı işlendi.',
+      },
+      {
+        id: 'vac-habes-4',
+        name: 'İç-Dış Parazit',
+        date: new Date(Date.now() - 86400000 * 20).toISOString().split('T')[0],
+        clinic: 'Pati Dostu Vet Kliniği',
+        notes: 'Boyun damlası yapıldı.',
+      },
+    ],
+    scheduledVaccines: [
+      {
+        id: 'sch-habes-1',
+        name: 'İç-Dış Parazit Tekrarı',
+        plannedDate: new Date(Date.now() + 86400000 * 25).toISOString().split('T')[0],
+        notes: 'Site sakinleri ortak yaptıracak.',
+      },
+      {
+        id: 'sch-habes-2',
+        name: 'Yıllık Karma Aşı Rapeli',
+        plannedDate: new Date(Date.now() + 86400000 * 240).toISOString().split('T')[0],
+        notes: 'Gelecek yılın karma aşı tekrarı.',
+      },
+    ],
     notes: "Değişik bir şekilde miyavlıyor, adına duyarlı, 'göbüş' deyince göbek açıyor, favori mekanlarından ayrılmıyor.",
     interactionHistory: [
       { id: 'int-habes-1', date: new Date(Date.now() - 3600000 * 1).toISOString(), type: 'feeding', note: 'Sabah yaş maması verildi 🥣' },
@@ -121,6 +243,39 @@ export const INITIAL_CATS = [
       longitude: 28.9635,
       regionName: 'İstanbul Üniversitesi EK-1 Kantini',
     },
+    locationHistory: [
+      {
+        id: 'loc-prenses-prev-1',
+        regionName: 'Beyazıt Kampüs Havuzu Çevresi',
+        latitude: 41.0118,
+        longitude: 28.9625,
+        changedAt: new Date(Date.now() - 86400000 * 30).toISOString(),
+      },
+    ],
+    vaccinations: [
+      {
+        id: 'vac-prenses-1',
+        name: 'Kuduz Aşısı',
+        date: new Date(Date.now() - 86400000 * 150).toISOString().split('T')[0],
+        clinic: 'Fatih Belediyesi Vet İşleri',
+        notes: 'Kulak çentiği ve aşı kontrolü yapıldı.',
+      },
+      {
+        id: 'vac-prenses-2',
+        name: 'İç Parazit Hapı',
+        date: new Date(Date.now() - 86400000 * 40).toISOString().split('T')[0],
+        clinic: 'Öğrenci Kulübü Desteği',
+        notes: 'Yaş mama içine toz haline getirilerek verildi.',
+      },
+    ],
+    scheduledVaccines: [
+      {
+        id: 'sch-prenses-1',
+        name: 'Dış Parazit Ense Damlası',
+        plannedDate: new Date(Date.now() + 86400000 * 6).toISOString().split('T')[0],
+        notes: 'Bahar başlangıcı için kene/pire koruması yapılacak.',
+      },
+    ],
     notes: 'Çanta üstünde uyumaya bayılıyor, sürekli yargılarmış gibi bakıyor.',
     interactionHistory: [
       { id: 'int-prenses-1', date: new Date(Date.now() - 3600000 * 3).toISOString(), type: 'petting', note: 'Kantin masasında sırt çantası üzerinde uyurken sevildi 🎒' },
@@ -147,6 +302,32 @@ export const INITIAL_CATS = [
       longitude: 28.9642,
       regionName: 'İstanbul Üniversitesi İktisat Fakültesi',
     },
+    locationHistory: [
+      {
+        id: 'loc-puskul-prev-1',
+        regionName: 'İktisat Fakültesi Arka Bahçe',
+        latitude: 41.0135,
+        longitude: 28.9638,
+        changedAt: new Date(Date.now() - 86400000 * 60).toISOString(),
+      },
+    ],
+    vaccinations: [
+      {
+        id: 'vac-puskul-1',
+        name: 'Kuduz Aşısı',
+        date: new Date(Date.now() - 86400000 * 180).toISOString().split('T')[0],
+        clinic: 'İÜ Hayvan Hakları Kulübü Vet İşbirliği',
+        notes: 'Kısırlaştırma sonrası kuduz aşısı tamamlandı.',
+      },
+    ],
+    scheduledVaccines: [
+      {
+        id: 'sch-puskul-1',
+        name: 'Karma Aşı & Parazit Kontrolü',
+        plannedDate: new Date(Date.now() + 86400000 * 18).toISOString().split('T')[0],
+        notes: 'Fakülte bahçesinde sakin bir anda kafese alınarak kontrole götürülecek.',
+      },
+    ],
     notes: 'Çok gizemli bir kedi, kendisini sevdirmiyor.',
     interactionHistory: [
       {
@@ -189,13 +370,11 @@ export const useCatStore = create(
 
       /**
        * 1. Yeni Kedi Ekleme
-       * photoUri veya photos dizisini kabul eder, photos: [] olarak saklar.
        */
       addCat: (catData) => {
         const now = new Date().toISOString();
         const newCatId = Date.now().toString();
 
-        // Fotoğraf listesi oluştur (photos dizisi veya tekil photoUri)
         const photoList = catData.photos && catData.photos.length > 0
           ? catData.photos
           : catData.photoUri
@@ -226,7 +405,7 @@ export const useCatStore = create(
           id: newCatId,
           name: (catData.name || '').trim() || 'İsimsiz Kedi',
           photos: photoList,
-          photoUri: photoList[0] || null, // Geriye dönük uyumluluk
+          photoUri: photoList[0] || null,
           breed: (catData.breed || '').trim() || 'Tekir / Melez',
           location:
             typeof catData.location === 'object'
@@ -240,6 +419,9 @@ export const useCatStore = create(
                   latitude: null,
                   longitude: null,
                 },
+          locationHistory: catData.locationHistory || [],
+          vaccinations: catData.vaccinations || [],
+          scheduledVaccines: catData.scheduledVaccines || [],
           notes: (catData.notes || '').trim(),
           interactionHistory: initialInteractions,
           createdAt: now,
@@ -249,14 +431,65 @@ export const useCatStore = create(
           cats: [newCat, ...state.cats],
         }));
 
-        // Otomatik küçük pop-up toast bildirimi
         get().showToast(`"${newCat.name}" başarıyla kaydedildi! 🐾`, 'success');
-
         return newCat;
       },
 
       /**
-       * 2. Kedi Notlarını Güncelleme
+       * 2. Kedi Bilgilerini Güncelleme (Konum değiştiğinde eski konumu otomatik geçmişe kaydeder)
+       */
+      updateCatInfo: (catId, updatedFields) => {
+        const currentCat = get().cats.find((c) => c.id === catId);
+        if (!currentCat) return;
+
+        const currentRegion =
+          typeof currentCat.location === 'object'
+            ? currentCat.location?.regionName
+            : currentCat.location;
+
+        let newHistory = Array.isArray(currentCat.locationHistory) ? [...currentCat.locationHistory] : [];
+
+        // Eğer konum değiştirildiyse ve önceki konum doluysa, eski konumu geçmişe kaydet
+        if (updatedFields.location) {
+          const newRegion =
+            typeof updatedFields.location === 'object'
+              ? updatedFields.location?.regionName
+              : updatedFields.location;
+
+          if (
+            currentRegion &&
+            newRegion &&
+            currentRegion.trim().toLowerCase() !== newRegion.trim().toLowerCase()
+          ) {
+            const historyItem = {
+              id: `loc-hist-${Date.now()}`,
+              regionName: currentRegion.trim(),
+              latitude: typeof currentCat.location === 'object' ? currentCat.location?.latitude ?? null : null,
+              longitude: typeof currentCat.location === 'object' ? currentCat.location?.longitude ?? null : null,
+              changedAt: new Date().toISOString(),
+            };
+            newHistory = [historyItem, ...newHistory];
+          }
+        }
+
+        set((state) => ({
+          cats: state.cats.map((cat) => {
+            if (cat.id === catId) {
+              return {
+                ...cat,
+                ...updatedFields,
+                locationHistory: newHistory,
+              };
+            }
+            return cat;
+          }),
+        }));
+
+        get().showToast(`"${updatedFields.name || currentCat.name}" bilgileri güncellendi ✨`, 'success');
+      },
+
+      /**
+       * 3. Kedi Notlarını Güncelleme
        */
       updateCatNotes: (id, notes) => {
         set((state) => ({
@@ -268,7 +501,7 @@ export const useCatStore = create(
       },
 
       /**
-       * 3. Kediyi Silme (Pop-up bildirimi ile)
+       * 4. Kediyi Silme
        */
       deleteCat: (id) => {
         const target = get().cats.find((cat) => cat.id === id);
@@ -278,12 +511,11 @@ export const useCatStore = create(
           cats: state.cats.filter((cat) => cat.id !== id),
         }));
 
-        // Otomatik küçük pop-up toast bildirimi
         get().showToast(`"${catName}" başarıyla silindi 🗑️`, 'delete');
       },
 
       /**
-       * 3. Var Olan Kediye Fotoğraf Ekleme (Prompt 1 gereksinimi: addPhotoToCat(id, photoUri))
+       * 5. Kediye Fotoğraf Ekleme
        */
       addPhotoToCat: (id, photoUri) => {
         if (!photoUri) return;
@@ -304,7 +536,7 @@ export const useCatStore = create(
       },
 
       /**
-       * 4. Yeni Etkileşim Ekleme (Besleme / Sevme)
+       * 6. Yeni Etkileşim Ekleme
        */
       addInteraction: (catId, interactionDetails = {}) => {
         const now = new Date().toISOString();
@@ -326,6 +558,125 @@ export const useCatStore = create(
             return cat;
           }),
         }));
+      },
+
+      /**
+       * 7. Tamamlanan Aşı Ekleme
+       */
+      addVaccination: (catId, vaccinationData) => {
+        const newVac = {
+          id: `vac-${Date.now()}`,
+          name: (vaccinationData.name || '').trim() || 'Aşı',
+          date: vaccinationData.date || new Date().toISOString().split('T')[0],
+          clinic: (vaccinationData.clinic || '').trim(),
+          notes: (vaccinationData.notes || '').trim(),
+        };
+
+        set((state) => ({
+          cats: state.cats.map((cat) => {
+            if (cat.id === catId) {
+              return {
+                ...cat,
+                vaccinations: [newVac, ...(cat.vaccinations || [])],
+              };
+            }
+            return cat;
+          }),
+        }));
+
+        get().showToast(`Aşı kaydı eklendi: ${newVac.name} 💉`, 'success');
+        return newVac;
+      },
+
+      /**
+       * 8. Gelecek Aşı Planlama
+       */
+      scheduleVaccine: (catId, scheduleData) => {
+        const newSchedule = {
+          id: `sch-${Date.now()}`,
+          name: (scheduleData.name || '').trim() || 'Planlanan Aşı',
+          plannedDate:
+            scheduleData.plannedDate ||
+            new Date(Date.now() + 86400000 * 30).toISOString().split('T')[0],
+          notes: (scheduleData.notes || '').trim(),
+        };
+
+        set((state) => ({
+          cats: state.cats.map((cat) => {
+            if (cat.id === catId) {
+              return {
+                ...cat,
+                scheduledVaccines: [newSchedule, ...(cat.scheduledVaccines || [])],
+              };
+            }
+            return cat;
+          }),
+        }));
+
+        get().showToast(`Gelecek aşı planlandı: ${newSchedule.name} 📅`, 'success');
+        return newSchedule;
+      },
+
+      /**
+       * 9. Planlanan Aşıyı Tamamlandı Olarak İşaretleme
+       */
+      completeScheduledVaccine: (catId, scheduledId, completionDetails = {}) => {
+        const currentCat = get().cats.find((c) => c.id === catId);
+        if (!currentCat) return;
+
+        const targetPlan = (currentCat.scheduledVaccines || []).find((s) => s.id === scheduledId);
+        if (!targetPlan) return;
+
+        const completedVac = {
+          id: `vac-${Date.now()}`,
+          name: targetPlan.name,
+          date: completionDetails.completionDate || new Date().toISOString().split('T')[0],
+          clinic: (completionDetails.clinic || '').trim() || 'Veteriner Kliniği',
+          notes: completionDetails.notes
+            ? `${targetPlan.notes ? targetPlan.notes + ' • ' : ''}${completionDetails.notes}`
+            : targetPlan.notes || 'Planlanan aşı başarıyla uygulandı',
+        };
+
+        set((state) => ({
+          cats: state.cats.map((cat) => {
+            if (cat.id === catId) {
+              return {
+                ...cat,
+                scheduledVaccines: (cat.scheduledVaccines || []).filter((s) => s.id !== scheduledId),
+                vaccinations: [completedVac, ...(cat.vaccinations || [])],
+              };
+            }
+            return cat;
+          }),
+        }));
+
+        get().showToast(`"${targetPlan.name}" tamamlandı olarak kaydedildi! 💉✓`, 'success');
+      },
+
+      /**
+       * 10. Aşı Kaydı Silme (Tamamlanan veya Planlanan)
+       */
+      deleteVaccine: (catId, vaccineId, isScheduled = false) => {
+        set((state) => ({
+          cats: state.cats.map((cat) => {
+            if (cat.id === catId) {
+              if (isScheduled) {
+                return {
+                  ...cat,
+                  scheduledVaccines: (cat.scheduledVaccines || []).filter((v) => v.id !== vaccineId),
+                };
+              } else {
+                return {
+                  ...cat,
+                  vaccinations: (cat.vaccinations || []).filter((v) => v.id !== vaccineId),
+                };
+              }
+            }
+            return cat;
+          }),
+        }));
+
+        get().showToast('Aşı kaydı silindi 🗑️', 'delete');
       },
 
       getCatById: (catId) => {
@@ -409,15 +760,28 @@ export const useCatStore = create(
       },
     }),
     {
-      name: 'street-cat-tracker-v5-storage',
+      name: 'street-cat-tracker-v6-storage',
       storage: createJSONStorage(() => AsyncStorage),
       partialize: (state) => ({ cats: state.cats }),
       onRehydrateStorage: () => (state) => {
         if (state && Array.isArray(state.cats)) {
-          const avci = INITIAL_CATS.find((c) => c.id === 'cat-avci');
-          if (avci && !state.cats.some((c) => c.id === 'cat-avci')) {
-            state.cats = [avci, ...state.cats];
-          }
+          // Eksik diziler varsa seed verisinden veya boş dizi olarak doldur
+          state.cats = state.cats.map((cat) => {
+            const seedMatch = INITIAL_CATS.find((c) => c.id === cat.id);
+            return {
+              ...cat,
+              locationHistory: cat.locationHistory || seedMatch?.locationHistory || [],
+              vaccinations: cat.vaccinations || seedMatch?.vaccinations || [],
+              scheduledVaccines: cat.scheduledVaccines || seedMatch?.scheduledVaccines || [],
+            };
+          });
+
+          // Başlangıç kedilerinin silinmediğinden emin ol
+          INITIAL_CATS.forEach((seedCat) => {
+            if (!state.cats.some((c) => c.id === seedCat.id)) {
+              state.cats.push(seedCat);
+            }
+          });
         }
       },
     }

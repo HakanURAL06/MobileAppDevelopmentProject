@@ -7,7 +7,7 @@ import {
   SectionList,
   TouchableOpacity,
   Image,
-  Alert,
+  TextInput,
   ScrollView,
   Modal,
 } from 'react-native';
@@ -28,6 +28,9 @@ export default function CatListScreen({ navigation }) {
   const deleteCat = useCatStore((state) => state.deleteCat);
   const getBondLevelInfo = useCatStore((state) => state.getBondLevelInfo);
 
+  // Arama metni
+  const [searchQuery, setSearchQuery] = useState('');
+
   // Gruplama seçeneği (all | location | breed | bond)
   const [groupBy, setGroupBy] = useState('all');
 
@@ -39,14 +42,30 @@ export default function CatListScreen({ navigation }) {
     setCatToDelete(cat);
   };
 
-  // Gruplara göre bölümlenmiş kedi verisi
+  // Arama filtresi: İsim, Konum veya Cins bazında Türkçe harf duyarlı arama
+  const filteredCats = useMemo(() => {
+    const q = searchQuery.trim().toLocaleLowerCase('tr');
+    if (!q) return cats;
+
+    return cats.filter((cat) => {
+      const nameMatch = (cat.name || '').toLocaleLowerCase('tr').includes(q);
+      const locStr = (
+        typeof cat.location === 'object' ? cat.location?.regionName : cat.location
+      ) || '';
+      const locMatch = locStr.toLocaleLowerCase('tr').includes(q);
+      const breedMatch = (cat.breed || '').toLocaleLowerCase('tr').includes(q);
+      return nameMatch || locMatch || breedMatch;
+    });
+  }, [cats, searchQuery]);
+
+  // Gruplara göre bölümlenmiş kedi verisi (filtrelenmiş kediler üzerinden)
   const groupedSections = useMemo(() => {
-    if (groupBy === 'all' || cats.length === 0) return [];
+    if (groupBy === 'all' || filteredCats.length === 0) return [];
 
     // 1. Konuma göre gruplama (Kullanıcının verdiği el ile isim öncelikli)
     if (groupBy === 'location') {
       const map = {};
-      cats.forEach((cat) => {
+      filteredCats.forEach((cat) => {
         const locName =
           (typeof cat.location === 'object'
             ? cat.location?.regionName
@@ -69,7 +88,7 @@ export default function CatListScreen({ navigation }) {
     // 2. Cinsine göre gruplama
     if (groupBy === 'breed') {
       const map = {};
-      cats.forEach((cat) => {
+      filteredCats.forEach((cat) => {
         const breedName = cat.breed?.trim() || 'Tekir / Melez';
         if (!map[breedName]) {
           map[breedName] = [];
@@ -121,13 +140,13 @@ export default function CatListScreen({ navigation }) {
         .map((tier) => ({
           title: tier.title,
           emoji: tier.emoji,
-          data: cats.filter(tier.filter),
+          data: filteredCats.filter(tier.filter),
         }))
         .filter((section) => section.data.length > 0);
     }
 
     return [];
-  }, [cats, groupBy]);
+  }, [filteredCats, groupBy]);
 
   // Tekil kedi kartı tasarımı
   const renderCatItem = ({ item }) => {
@@ -140,6 +159,8 @@ export default function CatListScreen({ navigation }) {
     const bondInfo = getBondLevelInfo(interactionCount);
     const locationName =
       typeof item.location === 'object' ? item.location?.regionName : item.location;
+    const vacCount = item.vaccinations?.length || 0;
+    const schCount = item.scheduledVaccines?.length || 0;
 
     return (
       <TouchableOpacity
@@ -159,7 +180,7 @@ export default function CatListScreen({ navigation }) {
             <Text style={styles.catName} numberOfLines={1}>
               {item.name}
             </Text>
-            {/* ŞIK SİL BUTONU */}
+            {/* SİL BUTONU */}
             <TouchableOpacity
               style={styles.deleteButton}
               onPress={() => handleDeleteCat(item)}
@@ -186,6 +207,7 @@ export default function CatListScreen({ navigation }) {
             </View>
           ) : null}
 
+          {/* ROZETLER: BAĞ, FOTOĞRAF, AŞI */}
           <View style={styles.badgeRow}>
             <View style={[styles.bondBadge, { backgroundColor: bondInfo.badgeBg }]}>
               <Text style={[styles.bondBadgeText, { color: bondInfo.color }]}>
@@ -193,14 +215,23 @@ export default function CatListScreen({ navigation }) {
               </Text>
             </View>
 
+            {vacCount > 0 && (
+              <View style={styles.vaccineBadge}>
+                <Ionicons name="shield-checkmark" size={11} color="#059669" />
+                <Text style={styles.vaccineBadgeText}>{vacCount} Aşı</Text>
+              </View>
+            )}
+
+            {schCount > 0 && (
+              <View style={styles.scheduledBadge}>
+                <Ionicons name="calendar-outline" size={11} color="#D97706" />
+                <Text style={styles.scheduledBadgeText}>{schCount} Plan</Text>
+              </View>
+            )}
+
             <View style={styles.metaBadge}>
               <Ionicons name="images-outline" size={12} color={Colors.textSecondary} />
               <Text style={styles.metaBadgeText}>{photoCount} Foto</Text>
-            </View>
-
-            <View style={styles.metaBadge}>
-              <Ionicons name="restaurant-outline" size={12} color={Colors.textSecondary} />
-              <Text style={styles.metaBadgeText}>{interactionCount} Besleme</Text>
             </View>
           </View>
         </View>
@@ -232,7 +263,36 @@ export default function CatListScreen({ navigation }) {
           <Text style={styles.headerSub}>Takip ettiğin tüm patili dostlar</Text>
         </View>
         <View style={styles.countPill}>
-          <Text style={styles.countPillText}>{cats.length} Kedi</Text>
+          <Text style={styles.countPillText}>
+            {searchQuery.trim().length > 0
+              ? `${filteredCats.length} / ${cats.length} Kedi`
+              : `${cats.length} Kedi`}
+          </Text>
+        </View>
+      </View>
+
+      {/* ARAMA ÇUBUĞU (SEARCH BAR) */}
+      <View style={styles.searchContainer}>
+        <View style={styles.searchBarBox}>
+          <Ionicons name="search" size={18} color={Colors.primary} style={styles.searchIcon} />
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Kedi adı veya konum ara (örn: Avcı, Kocatepe)..."
+            placeholderTextColor={Colors.textMuted}
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            autoCapitalize="none"
+            autoCorrect={false}
+          />
+          {searchQuery.length > 0 && (
+            <TouchableOpacity
+              onPress={() => setSearchQuery('')}
+              style={styles.clearSearchBtn}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            >
+              <Ionicons name="close-circle" size={18} color={Colors.textMuted} />
+            </TouchableOpacity>
+          )}
         </View>
       </View>
 
@@ -269,7 +329,7 @@ export default function CatListScreen({ navigation }) {
         </View>
       )}
 
-      {/* KEDİ LİSTESİ VEYA SEVİMLİ BOŞ DURUM */}
+      {/* KEDİ LİSTESİ VEYA DURUM EKRANLARI */}
       {cats.length === 0 ? (
         <View style={styles.emptyContainer}>
           <View style={styles.emptyIconCircle}>
@@ -288,9 +348,27 @@ export default function CatListScreen({ navigation }) {
             <Text style={styles.emptyAddBtnText}>İlk Kedini Ekle</Text>
           </TouchableOpacity>
         </View>
+      ) : filteredCats.length === 0 ? (
+        /* ARAMA SONUCU BULUNAMADIĞINDA GÖRÜNTÜLENEN EKRAN */
+        <View style={styles.emptySearchContainer}>
+          <View style={styles.emptySearchCircle}>
+            <Text style={styles.emptySearchEmoji}>🔍</Text>
+          </View>
+          <Text style={styles.emptySearchTitle}>Eşleşen Kedi Bulunamadı</Text>
+          <Text style={styles.emptySearchSub}>
+            "{searchQuery}" aramasına uygun kedi ismi veya konum bulunamadı.
+          </Text>
+          <TouchableOpacity
+            style={styles.clearSearchActionButton}
+            onPress={() => setSearchQuery('')}
+          >
+            <Ionicons name="refresh" size={16} color="#FFFFFF" />
+            <Text style={styles.clearSearchActionButtonText}>Aramayı Temizle</Text>
+          </TouchableOpacity>
+        </View>
       ) : groupBy === 'all' ? (
         <FlatList
-          data={cats}
+          data={filteredCats}
           keyExtractor={(item) => item.id}
           renderItem={renderCatItem}
           contentContainerStyle={styles.listContent}
@@ -374,7 +452,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 20,
     paddingTop: 16,
-    paddingBottom: 8,
+    paddingBottom: 6,
   },
   headerTitle: {
     fontSize: 22,
@@ -397,8 +475,40 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     color: Colors.primaryDark,
   },
+  searchContainer: {
+    paddingHorizontal: 18,
+    paddingVertical: 6,
+  },
+  searchBarBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1.5,
+    borderColor: '#F3E8E2',
+    borderRadius: 18,
+    paddingHorizontal: 12,
+    height: 46,
+    shadowColor: Colors.cardShadow,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 6,
+    elevation: 2,
+  },
+  searchIcon: {
+    marginRight: 8,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 14,
+    color: Colors.text,
+    fontWeight: '500',
+    paddingVertical: 0,
+  },
+  clearSearchBtn: {
+    padding: 4,
+  },
   filterSection: {
-    paddingVertical: 8,
+    paddingVertical: 6,
     marginBottom: 4,
   },
   filterScroll: {
@@ -577,6 +687,38 @@ const styles = StyleSheet.create({
     fontSize: 10,
     fontWeight: '800',
   },
+  vaccineBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#EEFBF3',
+    borderWidth: 1,
+    borderColor: '#C6F6D5',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 8,
+    gap: 3,
+  },
+  vaccineBadgeText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#059669',
+  },
+  scheduledBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFFBEB',
+    borderWidth: 1,
+    borderColor: '#FDE68A',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 8,
+    gap: 3,
+  },
+  scheduledBadgeText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#D97706',
+  },
   metaBadge: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -643,6 +785,53 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 15,
     fontWeight: '800',
+  },
+  emptySearchContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 30,
+    marginTop: -30,
+  },
+  emptySearchCircle: {
+    width: 76,
+    height: 76,
+    borderRadius: 38,
+    backgroundColor: '#FFF2EC',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 14,
+  },
+  emptySearchEmoji: {
+    fontSize: 36,
+  },
+  emptySearchTitle: {
+    fontSize: 17,
+    fontWeight: '800',
+    color: Colors.text,
+    marginBottom: 6,
+  },
+  emptySearchSub: {
+    fontSize: 13,
+    color: Colors.textSecondary,
+    textAlign: 'center',
+    lineHeight: 19,
+    marginBottom: 20,
+    maxWidth: 270,
+  },
+  clearSearchActionButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.primary,
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 16,
+    gap: 6,
+  },
+  clearSearchActionButtonText: {
+    color: '#FFFFFF',
+    fontSize: 13,
+    fontWeight: '700',
   },
   fabButton: {
     position: 'absolute',
