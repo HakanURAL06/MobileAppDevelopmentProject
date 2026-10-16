@@ -7,15 +7,8 @@ import { Colors } from '../theme/colors';
  * @typedef {Object} Interaction
  * @property {string} id - Benzersiz etkileşim kimliği
  * @property {string} date - ISO formatında etkileşim tarihi/saati
- * @property {('feeding'|'petting'|'playing'|'other')} type - Etkileşim türü (besleme, sevme vb.)
+ * @property {('feeding'|'walking'|'petting'|'playing'|'training'|'other')} type - Etkileşim türü
  * @property {string} [note] - İsteğe bağlı not
- */
-
-/**
- * @typedef {Object} CatLocation
- * @property {number|null} [latitude] - Enlem
- * @property {number|null} [longitude] - Boylam
- * @property {string} regionName - Bölge/Semt/Sokak adı
  */
 
 /**
@@ -30,7 +23,7 @@ import { Colors } from '../theme/colors';
 /**
  * @typedef {Object} Vaccination
  * @property {string} id - Benzersiz aşı kimliği
- * @property {string} name - Aşı adı (örn: Kuduz, Karma, İç-Dış Parazit)
+ * @property {string} name - Aşı adı (örn: Kuduz, Karma, Parazit)
  * @property {string} date - Yapılış tarihi (YYYY-MM-DD)
  * @property {string} [clinic] - Uygulanan veteriner / klinik
  * @property {string} [notes] - Aşıya dair notlar
@@ -45,19 +38,19 @@ import { Colors } from '../theme/colors';
  */
 
 /**
- * @typedef {Object} Cat
- * @property {string} id - Benzersiz kedi kimliği
- * @property {string} name - Kedinin ismi
- * @property {string[]} photos - Kedinin fotoğraf albümü (URI dizisi)
- * @property {string|null} [photoUri] - Ana kapak fotoğrafı
- * @property {string} breed - Kedinin cinsi / türü
- * @property {CatLocation} location - Enlem/Boylam ve Bölge adı
+ * @typedef {Object} Animal
+ * @property {string} id - Benzersiz kimlik
+ * @property {string} name - İsim
+ * @property {string[]} photos - Fotoğraf albümü
+ * @property {string|null} [photoUri] - Kapak fotoğrafı
+ * @property {string} breed - Cinsi / türü
+ * @property {Object} location - Bölge adı ve koordinatlar
  * @property {LocationHistoryItem[]} locationHistory - Eski konum geçmişi
  * @property {Vaccination[]} vaccinations - Tamamlanan aşılar
  * @property {ScheduledVaccine[]} scheduledVaccines - Gelecek / planlanan aşılar
- * @property {string} [notes] - Kedi hakkında kullanıcı notları
+ * @property {string} [notes] - Notlar
  * @property {Interaction[]} interactionHistory - Etkileşim geçmişi
- * @property {string} createdAt - Oluşturulma tarihi (ISO string)
+ * @property {string} createdAt - Oluşturulma tarihi
  */
 
 export const INITIAL_CATS = [
@@ -341,10 +334,14 @@ export const INITIAL_CATS = [
   },
 ];
 
+// Kullanıcı isteği: Şu anlık örnek köpek ekleme (başlangıçta boş liste)
+export const INITIAL_DOGS = [];
+
 export const useCatStore = create(
   persist(
     (set, get) => ({
       cats: INITIAL_CATS,
+      dogs: INITIAL_DOGS,
       isLoading: false,
       toast: null, // { message: string, type: 'success' | 'delete' | 'info', id: number }
 
@@ -368,9 +365,10 @@ export const useCatStore = create(
         set({ toast: null });
       },
 
-      /**
-       * 1. Yeni Kedi Ekleme
-       */
+      // ==========================================
+      // KEDİ İŞLEMLERİ (CATS)
+      // ==========================================
+
       addCat: (catData) => {
         const now = new Date().toISOString();
         const newCatId = Date.now().toString();
@@ -435,9 +433,6 @@ export const useCatStore = create(
         return newCat;
       },
 
-      /**
-       * 2. Kedi Bilgilerini Güncelleme (Konum değiştiğinde eski konumu otomatik geçmişe kaydeder)
-       */
       updateCatInfo: (catId, updatedFields) => {
         const currentCat = get().cats.find((c) => c.id === catId);
         if (!currentCat) return;
@@ -449,7 +444,6 @@ export const useCatStore = create(
 
         let newHistory = Array.isArray(currentCat.locationHistory) ? [...currentCat.locationHistory] : [];
 
-        // Eğer konum değiştirildiyse ve önceki konum doluysa, eski konumu geçmişe kaydet
         if (updatedFields.location) {
           const newRegion =
             typeof updatedFields.location === 'object'
@@ -488,9 +482,6 @@ export const useCatStore = create(
         get().showToast(`"${updatedFields.name || currentCat.name}" bilgileri güncellendi ✨`, 'success');
       },
 
-      /**
-       * 3. Kedi Notlarını Güncelleme
-       */
       updateCatNotes: (id, notes) => {
         set((state) => ({
           cats: state.cats.map((cat) =>
@@ -500,9 +491,6 @@ export const useCatStore = create(
         get().showToast('Not güncellendi 📝', 'success');
       },
 
-      /**
-       * 4. Kediyi Silme
-       */
       deleteCat: (id) => {
         const target = get().cats.find((cat) => cat.id === id);
         const catName = target?.name || 'Kedi';
@@ -514,9 +502,6 @@ export const useCatStore = create(
         get().showToast(`"${catName}" başarıyla silindi 🗑️`, 'delete');
       },
 
-      /**
-       * 5. Kediye Fotoğraf Ekleme
-       */
       addPhotoToCat: (id, photoUri) => {
         if (!photoUri) return;
         set((state) => ({
@@ -535,9 +520,6 @@ export const useCatStore = create(
         }));
       },
 
-      /**
-       * 6. Yeni Etkileşim Ekleme
-       */
       addInteraction: (catId, interactionDetails = {}) => {
         const now = new Date().toISOString();
         const newInteraction = {
@@ -560,9 +542,6 @@ export const useCatStore = create(
         }));
       },
 
-      /**
-       * 7. Tamamlanan Aşı Ekleme
-       */
       addVaccination: (catId, vaccinationData) => {
         const newVac = {
           id: `vac-${Date.now()}`,
@@ -588,9 +567,6 @@ export const useCatStore = create(
         return newVac;
       },
 
-      /**
-       * 8. Gelecek Aşı Planlama
-       */
       scheduleVaccine: (catId, scheduleData) => {
         const newSchedule = {
           id: `sch-${Date.now()}`,
@@ -617,9 +593,6 @@ export const useCatStore = create(
         return newSchedule;
       },
 
-      /**
-       * 9. Planlanan Aşıyı Tamamlandı Olarak İşaretleme
-       */
       completeScheduledVaccine: (catId, scheduledId, completionDetails = {}) => {
         const currentCat = get().cats.find((c) => c.id === catId);
         if (!currentCat) return;
@@ -653,9 +626,6 @@ export const useCatStore = create(
         get().showToast(`"${targetPlan.name}" tamamlandı olarak kaydedildi! 💉✓`, 'success');
       },
 
-      /**
-       * 10. Aşı Kaydı Silme (Tamamlanan veya Planlanan)
-       */
       deleteVaccine: (catId, vaccineId, isScheduled = false) => {
         set((state) => ({
           cats: state.cats.map((cat) => {
@@ -683,13 +653,301 @@ export const useCatStore = create(
         return get().cats.find((cat) => cat.id === catId);
       },
 
-      updateCat: (catId, updatedFields) => {
+      // ==========================================
+      // KÖPEK İŞLEMLERİ (DOGS)
+      // ==========================================
+
+      addDog: (dogData) => {
+        const now = new Date().toISOString();
+        const newDogId = `dog-${Date.now()}`;
+
+        const photoList = dogData.photos && dogData.photos.length > 0
+          ? dogData.photos
+          : dogData.photoUri
+          ? [dogData.photoUri]
+          : [];
+
+        let initialInteractions = [];
+
+        if (Array.isArray(dogData.initialInteractions) && dogData.initialInteractions.length > 0) {
+          initialInteractions = dogData.initialInteractions.map((item, idx) => ({
+            id: `int-${newDogId}-${idx}`,
+            date: item.date || now,
+            type: item.type || 'feeding',
+            note: item.note || 'İlk tanışma',
+          }));
+        } else if (dogData.initialInteraction) {
+          initialInteractions = [
+            {
+              id: `int-${newDogId}`,
+              date: now,
+              type: 'feeding',
+              note: 'İlk tanışma ve besleme 🥣',
+            },
+          ];
+        }
+
+        const newDog = {
+          id: newDogId,
+          name: (dogData.name || '').trim() || 'İsimsiz Köpek',
+          photos: photoList,
+          photoUri: photoList[0] || null,
+          breed: (dogData.breed || '').trim() || 'Sokak Köpeği / Melez',
+          location:
+            typeof dogData.location === 'object'
+              ? {
+                  regionName: (dogData.location?.regionName || '').trim() || 'Bilinmeyen Bölge',
+                  latitude: dogData.location?.latitude ?? null,
+                  longitude: dogData.location?.longitude ?? null,
+                }
+              : {
+                  regionName: (dogData.location || '').trim() || 'Bilinmeyen Bölge',
+                  latitude: null,
+                  longitude: null,
+                },
+          locationHistory: dogData.locationHistory || [],
+          vaccinations: dogData.vaccinations || [],
+          scheduledVaccines: dogData.scheduledVaccines || [],
+          notes: (dogData.notes || '').trim(),
+          interactionHistory: initialInteractions,
+          createdAt: now,
+        };
+
         set((state) => ({
-          cats: state.cats.map((cat) =>
-            cat.id === catId ? { ...cat, ...updatedFields } : cat
+          dogs: [newDog, ...(state.dogs || [])],
+        }));
+
+        get().showToast(`"${newDog.name}" başarıyla kaydedildi! 🐶`, 'success');
+        return newDog;
+      },
+
+      updateDogInfo: (dogId, updatedFields) => {
+        const currentDog = (get().dogs || []).find((d) => d.id === dogId);
+        if (!currentDog) return;
+
+        const currentRegion =
+          typeof currentDog.location === 'object'
+            ? currentDog.location?.regionName
+            : currentDog.location;
+
+        let newHistory = Array.isArray(currentDog.locationHistory) ? [...currentDog.locationHistory] : [];
+
+        if (updatedFields.location) {
+          const newRegion =
+            typeof updatedFields.location === 'object'
+              ? updatedFields.location?.regionName
+              : updatedFields.location;
+
+          if (
+            currentRegion &&
+            newRegion &&
+            currentRegion.trim().toLowerCase() !== newRegion.trim().toLowerCase()
+          ) {
+            const historyItem = {
+              id: `loc-hist-${Date.now()}`,
+              regionName: currentRegion.trim(),
+              latitude: typeof currentDog.location === 'object' ? currentDog.location?.latitude ?? null : null,
+              longitude: typeof currentDog.location === 'object' ? currentDog.location?.longitude ?? null : null,
+              changedAt: new Date().toISOString(),
+            };
+            newHistory = [historyItem, ...newHistory];
+          }
+        }
+
+        set((state) => ({
+          dogs: (state.dogs || []).map((dog) => {
+            if (dog.id === dogId) {
+              return {
+                ...dog,
+                ...updatedFields,
+                locationHistory: newHistory,
+              };
+            }
+            return dog;
+          }),
+        }));
+
+        get().showToast(`"${updatedFields.name || currentDog.name}" bilgileri güncellendi ✨`, 'success');
+      },
+
+      updateDogNotes: (id, notes) => {
+        set((state) => ({
+          dogs: (state.dogs || []).map((dog) =>
+            dog.id === id ? { ...dog, notes: (notes || '').trim() } : dog
           ),
         }));
+        get().showToast('Not güncellendi 📝', 'success');
       },
+
+      deleteDog: (id) => {
+        const target = (get().dogs || []).find((dog) => dog.id === id);
+        const dogName = target?.name || 'Köpek';
+
+        set((state) => ({
+          dogs: (state.dogs || []).filter((dog) => dog.id !== id),
+        }));
+
+        get().showToast(`"${dogName}" başarıyla silindi 🗑️`, 'delete');
+      },
+
+      addPhotoToDog: (id, photoUri) => {
+        if (!photoUri) return;
+        set((state) => ({
+          dogs: (state.dogs || []).map((dog) => {
+            if (dog.id === id) {
+              const currentPhotos = dog.photos || (dog.photoUri ? [dog.photoUri] : []);
+              const updatedPhotos = [photoUri, ...currentPhotos];
+              return {
+                ...dog,
+                photos: updatedPhotos,
+                photoUri: updatedPhotos[0],
+              };
+            }
+            return dog;
+          }),
+        }));
+      },
+
+      addDogInteraction: (dogId, interactionDetails = {}) => {
+        const now = new Date().toISOString();
+        const newInteraction = {
+          id: `int-${Date.now()}`,
+          date: interactionDetails.date || now,
+          type: interactionDetails.type || 'feeding',
+          note: interactionDetails.note || 'Sadık dostla ilgilenildi 🐕',
+        };
+
+        set((state) => ({
+          dogs: (state.dogs || []).map((dog) => {
+            if (dog.id === dogId) {
+              return {
+                ...dog,
+                interactionHistory: [newInteraction, ...(dog.interactionHistory || [])],
+              };
+            }
+            return dog;
+          }),
+        }));
+      },
+
+      addDogVaccination: (dogId, vaccinationData) => {
+        const newVac = {
+          id: `vac-${Date.now()}`,
+          name: (vaccinationData.name || '').trim() || 'Aşı',
+          date: vaccinationData.date || new Date().toISOString().split('T')[0],
+          clinic: (vaccinationData.clinic || '').trim(),
+          notes: (vaccinationData.notes || '').trim(),
+        };
+
+        set((state) => ({
+          dogs: (state.dogs || []).map((dog) => {
+            if (dog.id === dogId) {
+              return {
+                ...dog,
+                vaccinations: [newVac, ...(dog.vaccinations || [])],
+              };
+            }
+            return dog;
+          }),
+        }));
+
+        get().showToast(`Aşı kaydı eklendi: ${newVac.name} 💉`, 'success');
+        return newVac;
+      },
+
+      scheduleDogVaccine: (dogId, scheduleData) => {
+        const newSchedule = {
+          id: `sch-${Date.now()}`,
+          name: (scheduleData.name || '').trim() || 'Planlanan Aşı',
+          plannedDate:
+            scheduleData.plannedDate ||
+            new Date(Date.now() + 86400000 * 30).toISOString().split('T')[0],
+          notes: (scheduleData.notes || '').trim(),
+        };
+
+        set((state) => ({
+          dogs: (state.dogs || []).map((dog) => {
+            if (dog.id === dogId) {
+              return {
+                ...dog,
+                scheduledVaccines: [newSchedule, ...(dog.scheduledVaccines || [])],
+              };
+            }
+            return dog;
+          }),
+        }));
+
+        get().showToast(`Gelecek aşı planlandı: ${newSchedule.name} 📅`, 'success');
+        return newSchedule;
+      },
+
+      completeScheduledDogVaccine: (dogId, scheduledId, completionDetails = {}) => {
+        const currentDog = (get().dogs || []).find((d) => d.id === dogId);
+        if (!currentDog) return;
+
+        const targetPlan = (currentDog.scheduledVaccines || []).find((s) => s.id === scheduledId);
+        if (!targetPlan) return;
+
+        const completedVac = {
+          id: `vac-${Date.now()}`,
+          name: targetPlan.name,
+          date: completionDetails.completionDate || new Date().toISOString().split('T')[0],
+          clinic: (completionDetails.clinic || '').trim() || 'Veteriner Kliniği',
+          notes: completionDetails.notes
+            ? `${targetPlan.notes ? targetPlan.notes + ' • ' : ''}${completionDetails.notes}`
+            : targetPlan.notes || 'Planlanan aşı başarıyla uygulandı',
+        };
+
+        set((state) => ({
+          dogs: (state.dogs || []).map((dog) => {
+            if (dog.id === dogId) {
+              return {
+                ...dog,
+                scheduledVaccines: (dog.scheduledVaccines || []).filter((s) => s.id !== scheduledId),
+                vaccinations: [completedVac, ...(dog.vaccinations || [])],
+              };
+            }
+            return dog;
+          }),
+        }));
+
+        get().showToast(`"${targetPlan.name}" tamamlandı olarak kaydedildi! 💉✓`, 'success');
+      },
+
+      deleteDogVaccine: (dogId, vaccineId, isScheduled = false) => {
+        set((state) => ({
+          dogs: (state.dogs || []).map((dog) => {
+            if (dog.id === dogId) {
+              if (isScheduled) {
+                return {
+                  ...dog,
+                  scheduledVaccines: (dog.scheduledVaccines || []).filter((v) => v.id !== vaccineId),
+                };
+              } else {
+                return {
+                  ...dog,
+                  vaccinations: (dog.vaccinations || []).filter((v) => v.id !== vaccineId),
+                };
+              }
+            }
+            return dog;
+          }),
+        }));
+
+        get().showToast('Aşı kaydı silindi 🗑️', 'delete');
+      },
+
+      getDogById: (dogId) => {
+        return (get().dogs || []).find((dog) => dog.id === dogId);
+      },
+
+      clearAllDogs: () => {
+        set({ dogs: [] });
+      },
+
+      // ==========================================
+      // ORTAK / GENEL İŞLEMLER
+      // ==========================================
 
       resetToInitialCats: () => {
         set({ cats: INITIAL_CATS });
@@ -700,10 +958,7 @@ export const useCatStore = create(
       },
 
       /**
-       * Etkileşim sayısına göre seviye hesaplayıcı:
-       * 1-3 etkileşim: Tanışıklık (Level 1)
-       * 4-8 etkileşim: Dost (Level 2)
-       * 9+ etkileşim: Aile (Level 3)
+       * Kediler için Bağ Seviyesi
        */
       getBondLevelInfo: (interactionCount = 0) => {
         const count = typeof interactionCount === 'number' ? interactionCount : (interactionCount?.length || 0);
@@ -758,30 +1013,94 @@ export const useCatStore = create(
           remainingCount: 1,
         };
       },
+
+      /**
+       * Köpekler için Bağ Seviyesi (Özelleştirilmiş Sadakat Dereceleri)
+       */
+      getDogBondLevelInfo: (interactionCount = 0) => {
+        const count = typeof interactionCount === 'number' ? interactionCount : (interactionCount?.length || 0);
+
+        if (count >= 9) {
+          return {
+            level: 3,
+            title: 'Can Yoldaşı 💖',
+            color: Colors.level3,
+            badgeBg: Colors.level3Bg,
+            progressPercent: 100,
+            description: 'Bu sadık dost artık senin ailenden ve canından biri!',
+            nextTargetText: 'En yüksek sadakat ve bağ seviyesine ulaşıldı! 🌟',
+            remainingCount: 0,
+          };
+        } else if (count >= 4) {
+          const progress = Math.min(100, Math.round(33 + ((count - 3) / 5) * 66));
+          const remaining = 9 - count;
+          return {
+            level: 2,
+            title: 'Sadık Dost 🐕',
+            color: Colors.level2,
+            badgeBg: Colors.level2Bg,
+            progressPercent: progress,
+            description: 'Seni görünce neşeyle kuyruk sallıyor, aranızda harika bir bağ var!',
+            nextTargetText: `'Can Yoldaşı' seviyesine ${remaining} etkileşim kaldı.`,
+            remainingCount: remaining,
+          };
+        } else if (count >= 1) {
+          const progress = Math.min(33, Math.round((count / 3) * 33));
+          const remaining = 4 - count;
+          return {
+            level: 1,
+            title: 'Tanışıklık 🐾',
+            color: Colors.level1,
+            badgeBg: Colors.level1Bg,
+            progressPercent: progress,
+            description: 'İlk adımlar atıldı, yavaş yavaş sana ısınıyor.',
+            nextTargetText: `'Sadık Dost' seviyesine ${remaining} etkileşim kaldı.`,
+            remainingCount: remaining,
+          };
+        }
+
+        return {
+          level: 0,
+          title: 'Yeni Tanışma 🌱',
+          color: Colors.green,
+          badgeBg: Colors.greenLight,
+          progressPercent: 5,
+          description: 'Henüz bir etkileşim girilmedi.',
+          nextTargetText: "'Tanışıklık' için ilk mamayı veya yürüyüşü yap!",
+          remainingCount: 1,
+        };
+      },
     }),
     {
-      name: 'street-cat-tracker-v6-storage',
+      name: 'street-paws-tracker-v7-storage',
       storage: createJSONStorage(() => AsyncStorage),
-      partialize: (state) => ({ cats: state.cats }),
+      partialize: (state) => ({
+        cats: state.cats,
+        dogs: state.dogs || [],
+      }),
       onRehydrateStorage: () => (state) => {
-        if (state && Array.isArray(state.cats)) {
-          // Eksik diziler varsa seed verisinden veya boş dizi olarak doldur
-          state.cats = state.cats.map((cat) => {
-            const seedMatch = INITIAL_CATS.find((c) => c.id === cat.id);
-            return {
-              ...cat,
-              locationHistory: cat.locationHistory || seedMatch?.locationHistory || [],
-              vaccinations: cat.vaccinations || seedMatch?.vaccinations || [],
-              scheduledVaccines: cat.scheduledVaccines || seedMatch?.scheduledVaccines || [],
-            };
-          });
+        if (state) {
+          if (!Array.isArray(state.dogs)) {
+            state.dogs = [];
+          }
 
-          // Başlangıç kedilerinin silinmediğinden emin ol
-          INITIAL_CATS.forEach((seedCat) => {
-            if (!state.cats.some((c) => c.id === seedCat.id)) {
-              state.cats.push(seedCat);
-            }
-          });
+          if (Array.isArray(state.cats)) {
+            state.cats = state.cats.map((cat) => {
+              const seedMatch = INITIAL_CATS.find((c) => c.id === cat.id);
+              return {
+                ...cat,
+                locationHistory: cat.locationHistory || seedMatch?.locationHistory || [],
+                vaccinations: cat.vaccinations || seedMatch?.vaccinations || [],
+                scheduledVaccines: cat.scheduledVaccines || seedMatch?.scheduledVaccines || [],
+              };
+            });
+
+            INITIAL_CATS.forEach((seedCat) => {
+              if (!state.cats.some((c) => c.id === seedCat.id)) {
+                state.cats.push(seedCat);
+              }
+            });
+          }
         }
       },
     }

@@ -4,13 +4,15 @@ import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../theme/colors';
 import { getImageSource } from '../utils/imageHelper';
 
-export default function CatMap({ cats = [], location, onSelectCat }) {
+export default function CatMap({ cats = [], animals = null, location, onSelectCat }) {
+  const list = animals || cats;
+
   return (
     <View style={styles.webMapContainer}>
       <View style={styles.headerRow}>
         <View style={styles.titleWithIcon}>
           <Ionicons name="map-outline" size={18} color={Colors.primary} />
-          <Text style={styles.webMapTitle}>Canlı Kedi Haritası</Text>
+          <Text style={styles.webMapTitle}>Canlı Hayvan Haritası</Text>
         </View>
         <View style={styles.liveIndicator}>
           <View style={styles.liveDot} />
@@ -19,39 +21,54 @@ export default function CatMap({ cats = [], location, onSelectCat }) {
       </View>
 
       <Text style={styles.webMapSubtitle}>
-        Patili dostlarımızın güncel konum pinleri aşağıda listelenmiştir. Profiline gitmek istediğiniz kediye tıklayın:
+        Patili dostlarımızın (kedi & köpek) güncel konum pinleri aşağıda listelenmiştir. Profiline gitmek istediğiniz cana tıklayın:
       </Text>
 
-      {/* İnteraktif Kedi Pinleri Izgarası */}
+      {/* İnteraktif Pinler Izgarası */}
       <View style={styles.pinGrid}>
-        {cats.map((cat) => (
-          <TouchableOpacity
-            key={cat.id}
-            style={styles.pinCard}
-            activeOpacity={0.8}
-            onPress={() => onSelectCat && onSelectCat(cat)}
-          >
-            <Image
-              source={getImageSource(cat.photoUri || (cat.photos && cat.photos[0]))}
-              style={styles.catPinAvatar}
-            />
-            <View style={styles.pinInfo}>
-              <View style={styles.pinTitleRow}>
-                <Text style={styles.catPinName}>{cat.name}</Text>
-                <Text style={styles.pinEmoji}>📍</Text>
-              </View>
-              <Text style={styles.catPinLocation}>
-                {typeof cat.location === 'object' ? cat.location?.regionName : cat.location}
-              </Text>
-              <Text style={styles.catPinCoords}>
-                {cat.location?.latitude ? `${cat.location.latitude.toFixed(3)}, ${cat.location.longitude.toFixed(3)}` : 'Konum Kayıtlı'}
-              </Text>
-            </View>
-            <View style={styles.actionArrowCircle}>
-              <Ionicons name="chevron-forward" size={14} color={Colors.primary} />
-            </View>
-          </TouchableOpacity>
-        ))}
+        {list.length === 0 ? (
+          <View style={styles.emptyMapNotice}>
+            <Text style={{ fontSize: 28, marginBottom: 4 }}>📍</Text>
+            <Text style={styles.emptyMapNoticeText}>Bu filtreye uygun konum kaydı bulunamadı.</Text>
+          </View>
+        ) : (
+          list.map((animal) => {
+            const isDog = animal.isDog || animal.id?.startsWith('dog-');
+            const speciesEmoji = isDog ? '🐶' : '🐱';
+            const accentColor = isDog ? '#D97706' : Colors.primary;
+
+            return (
+              <TouchableOpacity
+                key={animal.id}
+                style={[styles.pinCard, isDog && styles.pinCardDog]}
+                activeOpacity={0.8}
+                onPress={() => onSelectCat && onSelectCat(animal)}
+              >
+                <Image
+                  source={getImageSource(animal.photoUri || (animal.photos && animal.photos[0]))}
+                  style={styles.catPinAvatar}
+                />
+                <View style={styles.pinInfo}>
+                  <View style={styles.pinTitleRow}>
+                    <Text style={styles.catPinName}>{animal.name}</Text>
+                    <Text style={styles.pinEmoji}>{speciesEmoji}</Text>
+                  </View>
+                  <Text style={styles.catPinLocation}>
+                    {typeof animal.location === 'object' ? animal.location?.regionName : animal.location}
+                  </Text>
+                  <Text style={styles.catPinCoords}>
+                    {animal.location?.latitude
+                      ? `${animal.location.latitude.toFixed(3)}, ${animal.location.longitude.toFixed(3)}`
+                      : 'Konum Kayıtlı'}
+                  </Text>
+                </View>
+                <View style={[styles.actionArrowCircle, { backgroundColor: isDog ? '#FEF3C7' : '#FFF0EA' }]}>
+                  <Ionicons name="chevron-forward" size={14} color={accentColor} />
+                </View>
+              </TouchableOpacity>
+            );
+          })
+        )}
       </View>
     </View>
   );
@@ -105,34 +122,45 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: Colors.textSecondary,
     marginBottom: 12,
-    lineHeight: 18,
+    lineHeight: 16,
   },
   pinGrid: {
-    flexDirection: 'column',
     gap: 8,
+  },
+  emptyMapNotice: {
+    alignItems: 'center',
+    paddingVertical: 20,
+  },
+  emptyMapNoticeText: {
+    fontSize: 12,
+    color: Colors.textMuted,
   },
   pinCard: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#FFFFFF',
-    padding: 10,
     borderRadius: 16,
+    padding: 10,
     borderWidth: 1,
-    borderColor: Colors.cardBorder,
+    borderColor: '#F3E8E2',
     shadowColor: Colors.cardShadow,
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 6,
+    shadowOpacity: 0.04,
+    shadowRadius: 4,
+    elevation: 1,
+  },
+  pinCardDog: {
+    borderColor: '#FDE68A',
   },
   catPinAvatar: {
-    width: 46,
-    height: 46,
+    width: 44,
+    height: 44,
     borderRadius: 14,
     backgroundColor: Colors.primaryLight,
+    marginRight: 10,
   },
   pinInfo: {
     flex: 1,
-    marginLeft: 10,
   },
   pinTitleRow: {
     flexDirection: 'row',
@@ -145,7 +173,7 @@ const styles = StyleSheet.create({
     color: Colors.text,
   },
   pinEmoji: {
-    fontSize: 12,
+    fontSize: 13,
   },
   catPinLocation: {
     fontSize: 11,
@@ -161,8 +189,8 @@ const styles = StyleSheet.create({
     width: 26,
     height: 26,
     borderRadius: 13,
-    backgroundColor: Colors.primaryLight,
     justifyContent: 'center',
     alignItems: 'center',
+    marginLeft: 6,
   },
 });

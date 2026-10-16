@@ -2,7 +2,9 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import MapView, { Marker, Callout, PROVIDER_DEFAULT } from 'react-native-maps';
 
-export default function CatMap({ cats = [], location, onSelectCat }) {
+export default function CatMap({ cats = [], animals = null, location, onSelectCat }) {
+  const list = animals || cats;
+
   const initialRegion = location || {
     latitude: 40.988,
     longitude: 29.025,
@@ -17,23 +19,27 @@ export default function CatMap({ cats = [], location, onSelectCat }) {
       initialRegion={initialRegion}
       showsUserLocation={true}
     >
-      {cats.map((cat) => {
-        const lat = cat.location?.latitude || 40.988;
-        const lng = cat.location?.longitude || 29.025;
+      {list.map((animal) => {
+        const lat = animal.location?.latitude || 40.988;
+        const lng = animal.location?.longitude || 29.025;
+        const isDog = animal.isDog || animal.id?.startsWith('dog-');
+        const emoji = isDog ? '🐶' : '🐱';
+        const borderColor = isDog ? '#D97706' : '#FF6B6B';
+
         return (
           <Marker
-            key={cat.id}
+            key={animal.id}
             coordinate={{ latitude: lat, longitude: lng }}
-            title={cat.name}
-            description={cat.breed}
+            title={animal.name}
+            description={animal.breed}
           >
-            <View style={styles.customMarker}>
-              <Text style={styles.markerText}>🐱</Text>
+            <View style={[styles.customMarker, { borderColor }]}>
+              <Text style={styles.markerText}>{emoji}</Text>
             </View>
-            <Callout onPress={() => onSelectCat && onSelectCat(cat)}>
+            <Callout onPress={() => onSelectCat && onSelectCat(animal)}>
               <View style={styles.callout}>
-                <Text style={styles.calloutTitle}>{cat.name}</Text>
-                <Text style={styles.calloutSub}>Detaya Git ➔</Text>
+                <Text style={styles.calloutTitle}>{animal.name}</Text>
+                <Text style={[styles.calloutSub, { color: borderColor }]}>Detaya Git ➔</Text>
               </View>
             </Callout>
           </Marker>
@@ -54,7 +60,6 @@ const styles = StyleSheet.create({
     padding: 6,
     borderRadius: 18,
     borderWidth: 2,
-    borderColor: '#FF6B6B',
   },
   markerText: {
     fontSize: 16,
@@ -68,8 +73,8 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   calloutSub: {
-    color: '#FF6B6B',
     fontSize: 12,
     marginTop: 2,
+    fontWeight: '600',
   },
 });
