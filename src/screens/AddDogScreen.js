@@ -15,6 +15,7 @@ import * as Location from 'expo-location';
 import { Ionicons } from '@expo/vector-icons';
 import useCatStore from '../store/catStore';
 import { Colors } from '../theme/colors';
+import ImageViewerModal from '../components/ImageViewerModal';
 
 // Köpeklere Özel Çeşitlendirilmiş İlk Etkileşim Seçenekleri
 const DOG_INTERACTION_OPTIONS = [
@@ -108,6 +109,7 @@ export default function AddDogScreen({ navigation }) {
   const [photoUri, setPhotoUri] = useState(null);
   const [coordinates, setCoordinates] = useState(null);
   const [isGettingLocation, setIsGettingLocation] = useState(false);
+  const [isViewerVisible, setIsViewerVisible] = useState(false);
 
   // Başlangıçta mama ve yürüyüş varsayılan seçili
   const [selectedInteractions, setSelectedInteractions] = useState(['feeding', 'petting']);
@@ -265,7 +267,17 @@ export default function AddDogScreen({ navigation }) {
       <View style={styles.photoContainer}>
         {photoUri ? (
           <View style={styles.imageWrapper}>
-            <Image source={{ uri: photoUri }} style={styles.previewImage} />
+            <TouchableOpacity
+              style={{ width: '100%', height: '100%' }}
+              activeOpacity={0.92}
+              onPress={() => setIsViewerVisible(true)}
+            >
+              <Image source={{ uri: photoUri }} style={styles.previewImage} />
+              <View style={styles.previewZoomBadge}>
+                <Ionicons name="scan-outline" size={13} color="#FFFFFF" />
+                <Text style={styles.previewZoomBadgeText}>Fotoğrafı Büyüt 🔍</Text>
+              </View>
+            </TouchableOpacity>
             <TouchableOpacity
               style={styles.removePhotoButton}
               onPress={() => setPhotoUri(null)}
@@ -484,6 +496,15 @@ export default function AddDogScreen({ navigation }) {
           <Ionicons name="checkmark-circle" size={22} color="#FFFFFF" />
         </TouchableOpacity>
       </View>
+
+      {/* Tam Ekran Fotoğraf Görüntüleyici */}
+      <ImageViewerModal
+        visible={isViewerVisible}
+        images={photoUri ? [photoUri] : []}
+        initialIndex={0}
+        onClose={() => setIsViewerVisible(false)}
+        title={name ? `${name} Fotoğrafı 🐶` : 'Seçilen Fotoğraf 🐶'}
+      />
     </ScrollView>
   );
 }
@@ -524,6 +545,23 @@ const styles = StyleSheet.create({
   previewImage: {
     width: '100%',
     height: '100%',
+  },
+  previewZoomBadge: {
+    position: 'absolute',
+    bottom: 10,
+    right: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: 'rgba(0, 0, 0, 0.65)',
+    paddingHorizontal: 9,
+    paddingVertical: 5,
+    borderRadius: 12,
+  },
+  previewZoomBadgeText: {
+    color: '#FFFFFF',
+    fontSize: 11,
+    fontWeight: '700',
   },
   removePhotoButton: {
     position: 'absolute',

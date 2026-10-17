@@ -18,6 +18,7 @@ import { Ionicons } from '@expo/vector-icons';
 import useCatStore from '../store/catStore';
 import { Colors } from '../theme/colors';
 import { getImageSource } from '../utils/imageHelper';
+import ImageViewerModal from '../components/ImageViewerModal';
 
 const { width } = Dimensions.get('window');
 const PHOTO_SIZE = (width - 36 - 20) / 3;
@@ -135,6 +136,15 @@ export default function CatDetailScreen({ route, navigation }) {
   const [newSchName, setNewSchName] = useState('');
   const [newSchDate, setNewSchDate] = useState('');
   const [newSchNotes, setNewSchNotes] = useState('');
+
+  // Tam Ekran Fotoğraf Görüntüleyici
+  const [isViewerVisible, setIsViewerVisible] = useState(false);
+  const [viewerIndex, setViewerIndex] = useState(0);
+
+  const handleOpenViewer = (index = 0) => {
+    setViewerIndex(index);
+    setIsViewerVisible(true);
+  };
 
   useEffect(() => {
     if (cat?.notes !== undefined) {
@@ -394,7 +404,17 @@ export default function CatDetailScreen({ route, navigation }) {
     <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
       {/* 1. KEDİ KAPAK KARTI VE BİLGİLERİ */}
       <View style={styles.heroCard}>
-        <Image source={getImageSource(coverPhoto)} style={styles.heroImage} />
+        <TouchableOpacity
+          style={styles.heroImageContainer}
+          activeOpacity={0.92}
+          onPress={() => handleOpenViewer(0)}
+        >
+          <Image source={getImageSource(coverPhoto)} style={styles.heroImage} />
+          <View style={styles.heroZoomBadge}>
+            <Ionicons name="scan-outline" size={13} color="#FFFFFF" />
+            <Text style={styles.heroZoomBadgeText}>Fotoğrafı Büyüt 🔍</Text>
+          </View>
+        </TouchableOpacity>
 
         <View style={styles.heroInfo}>
           <View style={styles.nameRow}>
@@ -840,14 +860,22 @@ export default function CatDetailScreen({ route, navigation }) {
         ) : (
           <View style={styles.photoGrid}>
             {catPhotos.map((uri, index) => (
-              <View key={`${uri}-${index}`} style={styles.photoGridItem}>
+              <TouchableOpacity
+                key={`${uri}-${index}`}
+                style={styles.photoGridItem}
+                activeOpacity={0.85}
+                onPress={() => handleOpenViewer(index)}
+              >
                 <Image source={getImageSource(uri)} style={styles.gridImage} />
+                <View style={styles.gridZoomOverlay}>
+                  <Ionicons name="search" size={12} color="#FFFFFF" />
+                </View>
                 {index === 0 && (
                   <View style={styles.coverBadge}>
                     <Text style={styles.coverBadgeText}>Kapak</Text>
                   </View>
                 )}
-              </View>
+              </TouchableOpacity>
             ))}
           </View>
         )}
@@ -1179,6 +1207,15 @@ export default function CatDetailScreen({ route, navigation }) {
           </View>
         </View>
       </Modal>
+
+      {/* 9. TAM EKRAN FOTOĞRAF GÖRÜNTÜLEYİCİ */}
+      <ImageViewerModal
+        visible={isViewerVisible}
+        images={catPhotos.length > 0 ? catPhotos : [coverPhoto]}
+        initialIndex={viewerIndex}
+        onClose={() => setIsViewerVisible(false)}
+        title={`${cat.name} Fotoğrafları 🐱`}
+      />
     </ScrollView>
   );
 }
@@ -1231,11 +1268,34 @@ const styles = StyleSheet.create({
     shadowRadius: 16,
     elevation: 3,
   },
+  heroImageContainer: {
+    position: 'relative',
+    width: '100%',
+    borderRadius: 20,
+    overflow: 'hidden',
+  },
   heroImage: {
     width: '100%',
     height: 240,
     borderRadius: 20,
     backgroundColor: Colors.primaryLight,
+  },
+  heroZoomBadge: {
+    position: 'absolute',
+    bottom: 10,
+    right: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: 'rgba(0, 0, 0, 0.65)',
+    paddingHorizontal: 9,
+    paddingVertical: 5,
+    borderRadius: 12,
+  },
+  heroZoomBadgeText: {
+    color: '#FFFFFF',
+    fontSize: 11,
+    fontWeight: '700',
   },
   heroInfo: {
     marginTop: 14,
@@ -1985,6 +2045,17 @@ const styles = StyleSheet.create({
   gridImage: {
     width: '100%',
     height: '100%',
+  },
+  gridZoomOverlay: {
+    position: 'absolute',
+    top: 6,
+    right: 6,
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    backgroundColor: 'rgba(0, 0, 0, 0.55)',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   coverBadge: {
     position: 'absolute',
