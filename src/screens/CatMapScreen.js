@@ -233,9 +233,6 @@ export default function CatMapScreen({ navigation }) {
     </ScrollView>
   );
 }
-    </ScrollView>
-  );
-}
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.background },

@@ -1317,35 +1317,6 @@ export default function DogDetailScreen({ route, navigation }) {
         </View>
       </Modal>
 
-              <Text style={styles.modalInputLabel}>Hatırlatma Notu (İsteğe bağlı)</Text>
-              <TextInput
-                style={styles.modalInput}
-                value={newSchNotes}
-                onChangeText={setNewSchNotes}
-                placeholder="Örn: Periyodik parazit damlası"
-                placeholderTextColor={Colors.textMuted}
-              />
-
-              <View style={styles.modalActionButtonsRow}>
-                <TouchableOpacity
-                  style={styles.modalCancelBtn}
-                  onPress={() => setIsScheduleModalVisible(false)}
-                >
-                  <Text style={styles.modalCancelBtnText}>Vazgeç</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  style={[styles.modalSaveBtn, { backgroundColor: '#D97706' }]}
-                  onPress={handleSaveSchedule}
-                >
-                  <Text style={styles.modalSaveBtnText}>Aşıyı Planla</Text>
-                </TouchableOpacity>
-              </View>
-            </ScrollView>
-          </View>
-        </View>
-      </Modal>
-
       {/* 9. TAM EKRAN FOTOĞRAF GÖRÜNTÜLEYİCİ */}
       <ImageViewerModal
         visible={isViewerVisible}

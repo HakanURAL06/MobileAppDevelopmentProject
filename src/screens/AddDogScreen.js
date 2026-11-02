@@ -527,18 +527,6 @@ export default function AddDogScreen({ navigation }) {
   );
 }
 
-      {/* Tam Ekran Fotoğraf Görüntüleyici */}
-      <ImageViewerModal
-        visible={isViewerVisible}
-        images={photoUri ? [photoUri] : []}
-        initialIndex={0}
-        onClose={() => setIsViewerVisible(false)}
-        title={name ? `${name} Fotoğrafı 🐶` : 'Seçilen Fotoğraf 🐶'}
-      />
-    </ScrollView>
-  );
-}
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
