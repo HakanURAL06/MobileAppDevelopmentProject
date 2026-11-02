@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   View,
   Text,
@@ -16,91 +16,12 @@ import { Ionicons } from '@expo/vector-icons';
 import useCatStore from '../store/catStore';
 import { Colors } from '../theme/colors';
 import ImageViewerModal from '../components/ImageViewerModal';
-
-// Köpeklere Özel Çeşitlendirilmiş İlk Etkileşim Seçenekleri
-const DOG_INTERACTION_OPTIONS = [
-  {
-    id: 'feeding',
-    type: 'feeding',
-    emoji: '🥣',
-    title: 'Mama Verdim',
-    desc: 'Kuru veya konserve mama ile besledim',
-    note: 'İlk tanışmada mama verildi 🥣',
-    color: Colors.primaryDark,
-    activeBg: '#FFF2EC',
-    activeBorder: '#FFBFA8',
-  },
-  {
-    id: 'walking',
-    type: 'walking',
-    emoji: '🦮',
-    title: 'Birlikte Yürüdük',
-    desc: 'Güvenle yürüdük, etrafı kokladı ve enerjisini attı',
-    note: 'Birlikte keyifle yürüyüş yapıldı 🦮',
-    color: '#0284C7',
-    activeBg: '#F0F9FF',
-    activeBorder: '#BAE6FD',
-  },
-  {
-    id: 'petting',
-    type: 'petting',
-    emoji: '🐕',
-    title: 'Sevdim / Göbüşünü Kaşıdım',
-    desc: 'Kuyruk salladı, sırtüstü yattı ve kendini sevdirdi',
-    note: 'Baş ve göbüş okşandı, neşeyle kuyruk salladı 🐕',
-    color: Colors.secondary,
-    activeBg: '#FFF0F4',
-    activeBorder: '#FFBAC9',
-  },
-  {
-    id: 'playing',
-    type: 'playing',
-    emoji: '🎾',
-    title: 'Top / Oyun Oynadık',
-    desc: 'Top veya nesne yakalama oyunu oynadık',
-    note: 'Top yakalama oyunu oynandı, neşeyle koştu 🎾',
-    color: '#D97706',
-    activeBg: '#FEF9E7',
-    activeBorder: '#FDE68A',
-  },
-  {
-    id: 'water',
-    type: 'feeding',
-    emoji: '💧',
-    title: 'Temiz Su Bıraktım',
-    desc: 'Taze ve serin bir kap su koydum',
-    note: 'Taze ve temiz su bırakıldı 💧',
-    color: Colors.blue,
-    activeBg: '#EDF6FD',
-    activeBorder: '#BCE0FB',
-  },
-  {
-    id: 'treat',
-    type: 'feeding',
-    emoji: '🦴',
-    title: 'Ödül Maması / Kemik',
-    desc: 'Lezzetli ödül bisküvisi veya çiğneme kemiği verdim',
-    note: 'Ödül bisküvisi veya kemik ikram edildi 🦴',
-    color: '#7C3AED',
-    activeBg: '#F5F3FF',
-    activeBorder: '#DDD6FE',
-  },
-  {
-    id: 'health',
-    type: 'other',
-    emoji: '🩺',
-    title: 'Sağlık / Durum Kontrolü',
-    desc: 'Pati, kulak, tüy ve genel sağlık durumunu inceledim',
-    note: 'Pati, kulak ve genel sağlık kontrol edildi 🩺',
-    color: '#059669',
-    activeBg: '#EEFBF3',
-    activeBorder: '#A7F3D0',
-  },
-];
+import useAppTheme from '../theme/useAppTheme';
 
 export default function AddDogScreen({ navigation }) {
   const addDog = useCatStore((state) => state.addDog);
   const showToast = useCatStore((state) => state.showToast);
+  const { isDark, colors, t, language } = useAppTheme();
 
   const [name, setName] = useState('');
   const [breed, setBreed] = useState('');
@@ -110,6 +31,87 @@ export default function AddDogScreen({ navigation }) {
   const [coordinates, setCoordinates] = useState(null);
   const [isGettingLocation, setIsGettingLocation] = useState(false);
   const [isViewerVisible, setIsViewerVisible] = useState(false);
+
+  // Köpeklere Özel Çeşitlendirilmiş İlk Etkileşim Seçenekleri
+  const dogInteractionOptions = useMemo(() => [
+    {
+      id: 'feeding',
+      type: 'feeding',
+      emoji: '🥣',
+      title: t.interactionDogFeeding,
+      desc: language === 'en' ? 'Fed with dry or canned food' : 'Kuru veya konserve mama ile besledim',
+      note: t.interactionDogFeedingNote,
+      color: colors.primary,
+      activeBg: isDark ? '#2C1D18' : '#FFF2EC',
+      activeBorder: isDark ? '#4A2A20' : '#FFBFA8',
+    },
+    {
+      id: 'walking',
+      type: 'walking',
+      emoji: '🦮',
+      title: t.interactionDogWalking,
+      desc: language === 'en' ? 'Walked together safely and happily' : 'Güvenle yürüdük, etrafı kokladı ve enerjisini attı',
+      note: t.interactionDogWalkingNote,
+      color: '#0284C7',
+      activeBg: isDark ? '#142536' : '#F0F9FF',
+      activeBorder: isDark ? '#1E3E5C' : '#BAE6FD',
+    },
+    {
+      id: 'petting',
+      type: 'petting',
+      emoji: '🐕',
+      title: t.interactionDogPetting,
+      desc: language === 'en' ? 'Wagged tail, belly rubbed' : 'Kuyruk salladı, sırtüstü yattı ve kendini sevdirdi',
+      note: t.interactionDogPettingNote,
+      color: '#D946EF',
+      activeBg: isDark ? '#2B142E' : '#FDF4FF',
+      activeBorder: isDark ? '#4A2050' : '#F5D0FE',
+    },
+    {
+      id: 'playing',
+      type: 'playing',
+      emoji: '🎾',
+      title: t.interactionDogPlaying,
+      desc: language === 'en' ? 'Played fetch with ball or toy' : 'Top veya nesne yakalama oyunu oynadık',
+      note: t.interactionDogPlayingNote,
+      color: '#D97706',
+      activeBg: isDark ? '#2C2310' : '#FEF9E7',
+      activeBorder: isDark ? '#4B3F1E' : '#FDE68A',
+    },
+    {
+      id: 'water',
+      type: 'feeding',
+      emoji: '💧',
+      title: t.interactionDogWater,
+      desc: language === 'en' ? 'Placed cool, fresh water' : 'Taze ve serin bir kap su koydum',
+      note: t.interactionDogWaterNote,
+      color: '#0D9488',
+      activeBg: isDark ? '#122826' : '#EDF6FD',
+      activeBorder: isDark ? '#1C4541' : '#BCE0FB',
+    },
+    {
+      id: 'treat',
+      type: 'feeding',
+      emoji: '🦴',
+      title: t.interactionDogTreat,
+      desc: language === 'en' ? 'Treated with delicious chew bone' : 'Lezzetli ödül bisküvisi veya çiğneme kemiği verdim',
+      note: t.interactionDogTreatNote,
+      color: '#7C3AED',
+      activeBg: isDark ? '#23173D' : '#F5F3FF',
+      activeBorder: isDark ? '#3D256D' : '#DDD6FE',
+    },
+    {
+      id: 'health',
+      type: 'other',
+      emoji: '🩺',
+      title: t.interactionDogHealth,
+      desc: language === 'en' ? 'Checked paws, ears, coat and health' : 'Pati, kulak, tüy ve genel sağlık durumunu inceledim',
+      note: t.interactionDogHealthNote,
+      color: '#059669',
+      activeBg: isDark ? '#13281E' : '#EEFBF3',
+      activeBorder: isDark ? '#1C4530' : '#A7F3D0',
+    },
+  ], [t, colors, isDark, language]);
 
   // Başlangıçta mama ve yürüyüş varsayılan seçili
   const [selectedInteractions, setSelectedInteractions] = useState(['feeding', 'petting']);
@@ -121,10 +123,10 @@ export default function AddDogScreen({ navigation }) {
   };
 
   const selectAllInteractions = () => {
-    if (selectedInteractions.length === DOG_INTERACTION_OPTIONS.length) {
+    if (selectedInteractions.length === dogInteractionOptions.length) {
       setSelectedInteractions([]);
     } else {
-      setSelectedInteractions(DOG_INTERACTION_OPTIONS.map((opt) => opt.id));
+      setSelectedInteractions(dogInteractionOptions.map((opt) => opt.id));
     }
   };
 
@@ -216,7 +218,7 @@ export default function AddDogScreen({ navigation }) {
     const now = new Date().toISOString();
 
     const initialInteractionsData = selectedInteractions.map((id) => {
-      const option = DOG_INTERACTION_OPTIONS.find((opt) => opt.id === id);
+      const option = dogInteractionOptions.find((opt) => opt.id === id);
       return {
         type: option?.type || 'feeding',
         note: option?.note || 'İlk etkileşim',
@@ -252,21 +254,21 @@ export default function AddDogScreen({ navigation }) {
     }
   };
 
-  const isAllSelected = selectedInteractions.length === DOG_INTERACTION_OPTIONS.length;
+  const isAllSelected = selectedInteractions.length === dogInteractionOptions.length;
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
+    <ScrollView style={[styles.container, { backgroundColor: colors.background }]} contentContainerStyle={styles.contentContainer}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Yeni Köpek Ekle 🐶</Text>
-        <Text style={styles.headerSubtitle}>
-          Sokakta karşılaştığın sadık dostu kaydet, yürüyüşe çıkar, besle ve bağ kurmaya başla!
+        <Text style={[styles.headerTitle, { color: colors.text }]}>{t.addDogHeaderTitle}</Text>
+        <Text style={[styles.headerSubtitle, { color: colors.textSecondary }]}>
+          {t.addDogHeaderSubtitle}
         </Text>
       </View>
 
       {/* FOTOĞRAF ALANI */}
       <View style={styles.photoContainer}>
         {photoUri ? (
-          <View style={styles.imageWrapper}>
+          <View style={[styles.imageWrapper, { borderColor: colors.border }]}>
             <TouchableOpacity
               style={{ width: '100%', height: '100%' }}
               activeOpacity={0.92}
@@ -275,31 +277,37 @@ export default function AddDogScreen({ navigation }) {
               <Image source={{ uri: photoUri }} style={styles.previewImage} />
               <View style={styles.previewZoomBadge}>
                 <Ionicons name="scan-outline" size={13} color="#FFFFFF" />
-                <Text style={styles.previewZoomBadgeText}>Fotoğrafı Büyüt 🔍</Text>
+                <Text style={styles.previewZoomBadgeText}>{t.enlargePhotoBadge}</Text>
               </View>
             </TouchableOpacity>
             <TouchableOpacity
-              style={styles.removePhotoButton}
+              style={[styles.removePhotoButton, { backgroundColor: colors.card }]}
               onPress={() => setPhotoUri(null)}
             >
               <Ionicons name="close-circle" size={26} color="#FF6B6B" />
             </TouchableOpacity>
           </View>
         ) : (
-          <View style={styles.photoEmptyBox}>
+          <View style={[styles.photoEmptyBox, { backgroundColor: colors.card, borderColor: colors.border }]}>
             <Text style={{ fontSize: 44, marginBottom: 6 }}>🐶</Text>
-            <Text style={styles.photoPromptTitle}>Fotoğraf Seç veya Çek</Text>
-            <Text style={styles.photoPromptSub}>Sadık dostumuzun tatlı bir fotoğrafını ekle!</Text>
+            <Text style={[styles.photoPromptTitle, { color: colors.text }]}>{t.photoPickPromptTitle}</Text>
+            <Text style={[styles.photoPromptSub, { color: colors.textSecondary }]}>{t.photoPickPromptSub}</Text>
 
             <View style={styles.photoButtonsRow}>
-              <TouchableOpacity style={styles.photoOptionBtn} onPress={pickFromGallery}>
+              <TouchableOpacity
+                style={[styles.photoOptionBtn, { backgroundColor: isDark ? '#2D2310' : '#FEF9E7', borderColor: isDark ? '#4B3F1E' : '#FDE68A' }]}
+                onPress={pickFromGallery}
+              >
                 <Ionicons name="images-outline" size={18} color="#D97706" />
-                <Text style={[styles.photoOptionText, { color: '#D97706' }]}>Galeri</Text>
+                <Text style={[styles.photoOptionText, { color: '#D97706' }]}>{t.galleryBtn}</Text>
               </TouchableOpacity>
 
-              <TouchableOpacity style={styles.photoOptionBtn} onPress={takePhotoWithCamera}>
+              <TouchableOpacity
+                style={[styles.photoOptionBtn, { backgroundColor: isDark ? '#2D2310' : '#FEF9E7', borderColor: isDark ? '#4B3F1E' : '#FDE68A' }]}
+                onPress={takePhotoWithCamera}
+              >
                 <Ionicons name="camera-outline" size={18} color="#D97706" />
-                <Text style={[styles.photoOptionText, { color: '#D97706' }]}>Kamera</Text>
+                <Text style={[styles.photoOptionText, { color: '#D97706' }]}>{t.cameraBtn}</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -307,16 +315,16 @@ export default function AddDogScreen({ navigation }) {
       </View>
 
       {/* FORM KARTI */}
-      <View style={styles.formCard}>
+      <View style={[styles.formCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
         {/* Köpek Adı */}
         <View style={styles.inputGroup}>
-          <Text style={styles.label}>Köpeğin İsmi / Lakabı *</Text>
-          <View style={styles.inputBox}>
+          <Text style={[styles.label, { color: colors.text }]}>{t.inputNameLabel} *</Text>
+          <View style={[styles.inputBox, { backgroundColor: colors.inputBackground, borderColor: colors.border }]}>
             <Ionicons name="heart-outline" size={20} color="#D97706" style={styles.inputIcon} />
             <TextInput
-              style={styles.input}
-              placeholder="Örn: Karabaş, Dost, Çomar, Zeytin..."
-              placeholderTextColor={Colors.textMuted}
+              style={[styles.input, { color: colors.text }]}
+              placeholder={t.inputNamePlaceholderDog}
+              placeholderTextColor={colors.textMuted}
               value={name}
               onChangeText={setName}
             />
@@ -325,13 +333,13 @@ export default function AddDogScreen({ navigation }) {
 
         {/* Köpek Cinsi */}
         <View style={styles.inputGroup}>
-          <Text style={styles.label}>Cinsi / Irk Deseni</Text>
-          <View style={styles.inputBox}>
+          <Text style={[styles.label, { color: colors.text }]}>{t.inputBreedLabel}</Text>
+          <View style={[styles.inputBox, { backgroundColor: colors.inputBackground, borderColor: colors.border }]}>
             <Ionicons name="paw-outline" size={20} color="#0284C7" style={styles.inputIcon} />
             <TextInput
-              style={styles.input}
-              placeholder="Örn: Sokak Melezi, Golden Kırması, Kangal Melezi..."
-              placeholderTextColor={Colors.textMuted}
+              style={[styles.input, { color: colors.text }]}
+              placeholder={t.inputBreedPlaceholderDog}
+              placeholderTextColor={colors.textMuted}
               value={breed}
               onChangeText={setBreed}
             />
@@ -341,27 +349,31 @@ export default function AddDogScreen({ navigation }) {
         {/* Konum / Bölge */}
         <View style={styles.inputGroup}>
           <View style={styles.labelWithBadgeRow}>
-            <Text style={styles.label}>Konum / Bölge Adı *</Text>
-            <View style={styles.groupingHintBadge}>
-              <Text style={styles.groupingHintBadgeText}>📍 Gruplamada Kullanılır</Text>
+            <Text style={[styles.label, { color: colors.text }]}>{t.inputRegionLabel} *</Text>
+            <View style={[styles.groupingHintBadge, { backgroundColor: isDark ? '#2C1D18' : '#FFF2EC' }]}>
+              <Text style={[styles.groupingHintBadgeText, { color: colors.primary }]}>📍 {t.filterLocation}</Text>
             </View>
           </View>
-          <Text style={styles.helperText}>
-            GPS koordinatı alsan bile buraya istediğin ismi (örn: Park Girişi, Meydan, Sahil) verebilirsin.
+          <Text style={[styles.helperText, { color: colors.textSecondary }]}>
+            {t.inputRegionHelp}
           </Text>
-          <View style={styles.inputBox}>
-            <Ionicons name="location-outline" size={20} color={Colors.primary} style={styles.inputIcon} />
+          <View style={[styles.inputBox, { backgroundColor: colors.inputBackground, borderColor: colors.border }]}>
+            <Ionicons name="location-outline" size={20} color={colors.primary} style={styles.inputIcon} />
             <TextInput
-              style={styles.input}
-              placeholder="Örn: Bebek Parkı, Üniversite Kampüsü, Meydan..."
-              placeholderTextColor={Colors.textMuted}
+              style={[styles.input, { color: colors.text }]}
+              placeholder={t.inputRegionPlaceholder}
+              placeholderTextColor={colors.textMuted}
               value={regionName}
               onChangeText={setRegionName}
             />
           </View>
 
           <TouchableOpacity
-            style={[styles.locationBtn, coordinates && styles.locationBtnActive]}
+            style={[
+              styles.locationBtn,
+              { backgroundColor: isDark ? '#2D2310' : '#FEF9E7', borderColor: isDark ? '#4B3F1E' : '#FDE68A' },
+              coordinates && (isDark ? { backgroundColor: '#143022', borderColor: '#1F4E36' } : styles.locationBtnActive),
+            ]}
             onPress={handleGetLocation}
             disabled={isGettingLocation}
           >
@@ -372,12 +384,12 @@ export default function AddDogScreen({ navigation }) {
                 <Ionicons
                   name={coordinates ? 'checkmark-circle' : 'navigate-circle-outline'}
                   size={18}
-                  color={coordinates ? Colors.green : '#D97706'}
+                  color={coordinates ? colors.green : '#D97706'}
                 />
                 <Text style={[styles.locationBtnText, coordinates && styles.locationBtnTextActive]}>
                   {coordinates
-                    ? `GPS Alındı (${coordinates.latitude.toFixed(3)}, ${coordinates.longitude.toFixed(3)}) ✓`
-                    : '📍 Mevcut GPS Konumumu Al'}
+                    ? `${t.locationAcquired} (${coordinates.latitude.toFixed(3)}, ${coordinates.longitude.toFixed(3)})`
+                    : t.getLocationBtn}
                 </Text>
               </>
             )}
@@ -386,11 +398,11 @@ export default function AddDogScreen({ navigation }) {
 
         {/* Notlar */}
         <View style={styles.inputGroup}>
-          <Text style={styles.label}>Hakkında Notlar & Bilgiler 📝</Text>
-          <Text style={styles.helperText}>
-            Karakteri, tasması var mı, aşı durumu veya sevdiği oyunlar
+          <Text style={[styles.label, { color: colors.text }]}>{t.inputNotesLabel} 📝</Text>
+          <Text style={[styles.helperText, { color: colors.textSecondary }]}>
+            {t.notesTitle}
           </Text>
-          <View style={[styles.inputBox, styles.notesInputBox]}>
+          <View style={[styles.inputBox, styles.notesInputBox, { backgroundColor: colors.inputBackground, borderColor: colors.border }]}>
             <Ionicons
               name="create-outline"
               size={20}
@@ -398,9 +410,9 @@ export default function AddDogScreen({ navigation }) {
               style={[styles.inputIcon, { marginTop: 12, alignSelf: 'flex-start' }]}
             />
             <TextInput
-              style={[styles.input, styles.notesInput]}
-              placeholder="Örn: Tasması mavi, top oynamayı çok seviyor, yabancılara karşı uysal ve sıcakkanlı..."
-              placeholderTextColor={Colors.textMuted}
+              style={[styles.input, styles.notesInput, { color: colors.text }]}
+              placeholder={t.inputNotesPlaceholderDog}
+              placeholderTextColor={colors.textMuted}
               value={notes}
               onChangeText={setNotes}
               multiline
@@ -411,36 +423,39 @@ export default function AddDogScreen({ navigation }) {
         </View>
 
         {/* KÖPEKLERE ÖZEL İLK ETKİLEŞİM SEÇENEKLERİ */}
-        <View style={styles.interactionSection}>
+        <View style={[styles.interactionSection, { borderTopColor: colors.border }]}>
           <View style={styles.interactionHeaderRow}>
             <View style={{ flex: 1 }}>
               <View style={styles.interactionTitleBox}>
                 <Ionicons name="sparkles" size={18} color="#D97706" />
-                <Text style={styles.interactionMainTitle}>İlk Tanışma & Etkileşimler</Text>
+                <Text style={[styles.interactionMainTitle, { color: colors.text }]}>{t.initialInteractionsTitle}</Text>
               </View>
-              <Text style={styles.interactionMainSubtitle}>
-                Bu sadık dostla karşılaştığında hangilerini yaptın?
+              <Text style={[styles.interactionMainSubtitle, { color: colors.textSecondary }]}>
+                {t.initialInteractionsHelp}
               </Text>
             </View>
 
-            <TouchableOpacity style={styles.toggleAllBtn} onPress={selectAllInteractions}>
-              <Text style={styles.toggleAllBtnText}>
-                {isAllSelected ? 'Temizle' : 'Tümünü Seç'}
+            <TouchableOpacity
+              style={[styles.toggleAllBtn, { backgroundColor: isDark ? '#2D3748' : '#FAF5F0' }]}
+              onPress={selectAllInteractions}
+            >
+              <Text style={[styles.toggleAllBtnText, { color: colors.textSecondary }]}>
+                {isAllSelected ? t.clearAll : t.selectAll}
               </Text>
             </TouchableOpacity>
           </View>
 
-          <View style={styles.selectionCountBar}>
+          <View style={[styles.selectionCountBar, { backgroundColor: isDark ? '#2D2310' : '#FFFBEB' }]}>
             <Ionicons name="heart" size={14} color="#D97706" />
             <Text style={styles.selectionCountText}>
               {selectedInteractions.length > 0
-                ? `${selectedInteractions.length} Etkileşim Seçildi (+${selectedInteractions.length} Sadakat Puanı)`
-                : 'Henüz bir etkileşim seçilmedi'}
+                ? `${selectedInteractions.length} ${t.recordsCount}`
+                : '...'}
             </Text>
           </View>
 
           <View style={styles.optionsList}>
-            {DOG_INTERACTION_OPTIONS.map((option) => {
+            {dogInteractionOptions.map((option) => {
               const isSelected = selectedInteractions.includes(option.id);
 
               return (
@@ -448,6 +463,7 @@ export default function AddDogScreen({ navigation }) {
                   key={option.id}
                   style={[
                     styles.optionCard,
+                    { backgroundColor: isDark ? colors.card : '#FFFDF9', borderColor: colors.border },
                     isSelected && {
                       backgroundColor: option.activeBg,
                       borderColor: option.activeBorder,
@@ -456,7 +472,7 @@ export default function AddDogScreen({ navigation }) {
                   activeOpacity={0.8}
                   onPress={() => toggleInteraction(option.id)}
                 >
-                  <View style={styles.optionEmojiBox}>
+                  <View style={[styles.optionEmojiBox, { backgroundColor: isDark ? '#2D3748' : '#FFFFFF' }]}>
                     <Text style={styles.optionEmoji}>{option.emoji}</Text>
                   </View>
 
@@ -464,17 +480,19 @@ export default function AddDogScreen({ navigation }) {
                     <Text
                       style={[
                         styles.optionTitle,
+                        { color: colors.text },
                         isSelected && { color: option.color, fontWeight: '800' },
                       ]}
                     >
                       {option.title}
                     </Text>
-                    <Text style={styles.optionDesc}>{option.desc}</Text>
+                    <Text style={[styles.optionDesc, { color: colors.textSecondary }]}>{option.desc}</Text>
                   </View>
 
                   <View
                     style={[
                       styles.checkboxCircle,
+                      { borderColor: colors.border, backgroundColor: isDark ? '#2D3748' : '#FFFFFF' },
                       isSelected && {
                         backgroundColor: option.color,
                         borderColor: option.color,
@@ -492,10 +510,22 @@ export default function AddDogScreen({ navigation }) {
         {/* KAYDET BUTONU */}
         <TouchableOpacity style={styles.submitButton} onPress={handleSubmit} activeOpacity={0.88}>
           <Text style={styles.submitButtonEmoji}>🐶</Text>
-          <Text style={styles.submitButtonText}>Köpeği Kaydet</Text>
+          <Text style={styles.submitButtonText}>{t.submitAddDogBtn}</Text>
           <Ionicons name="checkmark-circle" size={22} color="#FFFFFF" />
         </TouchableOpacity>
       </View>
+
+      {/* Tam Ekran Fotoğraf Görüntüleyici */}
+      <ImageViewerModal
+        visible={isViewerVisible}
+        images={photoUri ? [photoUri] : []}
+        initialIndex={0}
+        onClose={() => setIsViewerVisible(false)}
+        title={name ? `${name} Fotoğrafı 🐶` : 'Seçilen Fotoğraf 🐶'}
+      />
+    </ScrollView>
+  );
+}
 
       {/* Tam Ekran Fotoğraf Görüntüleyici */}
       <ImageViewerModal

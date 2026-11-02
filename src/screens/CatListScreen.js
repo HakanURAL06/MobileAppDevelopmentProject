@@ -15,6 +15,7 @@ import { Ionicons } from '@expo/vector-icons';
 import useCatStore from '../store/catStore';
 import { Colors } from '../theme/colors';
 import { getImageSource } from '../utils/imageHelper';
+import useAppTheme from '../theme/useAppTheme';
 
 const GROUP_OPTIONS = [
   { id: 'all', title: 'Tümü', emoji: '📋' },
@@ -27,6 +28,14 @@ export default function CatListScreen({ navigation }) {
   const cats = useCatStore((state) => state.cats);
   const deleteCat = useCatStore((state) => state.deleteCat);
   const getBondLevelInfo = useCatStore((state) => state.getBondLevelInfo);
+  const { isDark, colors, t, language } = useAppTheme();
+
+  const groupOptions = useMemo(() => [
+    { id: 'all', title: t.filterAll, emoji: '📋' },
+    { id: 'location', title: t.filterLocation, emoji: '📍' },
+    { id: 'breed', title: t.filterBreed, emoji: '🐾' },
+    { id: 'bond', title: language === 'en' ? 'By Bond Level' : 'Bağ Seviyesine Göre', emoji: '💖' },
+  ], [t, language]);
 
   // Arama metni
   const [searchQuery, setSearchQuery] = useState('');
@@ -156,7 +165,7 @@ export default function CatListScreen({ navigation }) {
 
     const photoCount = item.photos?.length || (item.photoUri ? 1 : 0);
     const interactionCount = item.interactionHistory?.length || 0;
-    const bondInfo = getBondLevelInfo(interactionCount);
+    const bondInfo = getBondLevelInfo(interactionCount, language);
     const locationName =
       typeof item.location === 'object' ? item.location?.regionName : item.location;
     const vacCount = item.vaccinations?.length || 0;
@@ -164,7 +173,7 @@ export default function CatListScreen({ navigation }) {
 
     return (
       <TouchableOpacity
-        style={styles.catCard}
+        style={[styles.catCard, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}
         activeOpacity={0.85}
         onPress={() =>
           navigation.navigate('CatDetail', {
@@ -177,7 +186,7 @@ export default function CatListScreen({ navigation }) {
 
         <View style={styles.catInfo}>
           <View style={styles.catTopRow}>
-            <Text style={styles.catName} numberOfLines={1}>
+            <Text style={[styles.catName, { color: colors.text }]} numberOfLines={1}>
               {item.name}
             </Text>
             {/* SİL BUTONU */}
@@ -190,18 +199,18 @@ export default function CatListScreen({ navigation }) {
             </TouchableOpacity>
           </View>
 
-          <Text style={styles.catBreed} numberOfLines={1}>
-            🐾 {item.breed}
+          <Text style={[styles.catBreed, { color: colors.textSecondary }]} numberOfLines={1}>
+            🐾 {item.breed || t.breedUnknown}
           </Text>
-          <Text style={styles.catLocation} numberOfLines={1}>
-            📍 {locationName || 'Bölge Belirtilmedi'}
+          <Text style={[styles.catLocation, { color: colors.textMuted }]} numberOfLines={1}>
+            📍 {locationName || t.locationUnknown}
           </Text>
 
           {/* HAKKINDA / NOT ÖNİZLEMESİ (Varsa) */}
           {item.notes && item.notes.trim().length > 0 ? (
-            <View style={styles.notePreviewBox}>
-              <Ionicons name="document-text-outline" size={12} color={Colors.primaryDark} />
-              <Text style={styles.notePreviewText} numberOfLines={1}>
+            <View style={[styles.notePreviewBox, { backgroundColor: isDark ? colors.cardBorder : '#FFF8F4' }]}>
+              <Ionicons name="document-text-outline" size={12} color={colors.primary} />
+              <Text style={[styles.notePreviewText, { color: colors.textSecondary }]} numberOfLines={1}>
                 {item.notes}
               </Text>
             </View>
@@ -218,20 +227,20 @@ export default function CatListScreen({ navigation }) {
             {vacCount > 0 && (
               <View style={styles.vaccineBadge}>
                 <Ionicons name="shield-checkmark" size={11} color="#059669" />
-                <Text style={styles.vaccineBadgeText}>{vacCount} Aşı</Text>
+                <Text style={styles.vaccineBadgeText}>{vacCount} {t.badgeVaccine}</Text>
               </View>
             )}
 
             {schCount > 0 && (
               <View style={styles.scheduledBadge}>
                 <Ionicons name="calendar-outline" size={11} color="#D97706" />
-                <Text style={styles.scheduledBadgeText}>{schCount} Plan</Text>
+                <Text style={styles.scheduledBadgeText}>{schCount} {t.badgePlan}</Text>
               </View>
             )}
 
             <View style={styles.metaBadge}>
-              <Ionicons name="images-outline" size={12} color={Colors.textSecondary} />
-              <Text style={styles.metaBadgeText}>{photoCount} Foto</Text>
+              <Ionicons name="images-outline" size={12} color={colors.textSecondary} />
+              <Text style={[styles.metaBadgeText, { color: colors.textSecondary }]}>{photoCount} {t.badgePhoto}</Text>
             </View>
           </View>
         </View>
@@ -255,30 +264,32 @@ export default function CatListScreen({ navigation }) {
   );
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
       {/* BAŞLIK VE ÖZET BAR */}
       <View style={styles.headerBar}>
         <View>
-          <Text style={styles.headerTitle}>Kayıtlı Kedilerim 🐾</Text>
-          <Text style={styles.headerSub}>Takip ettiğin tüm patili dostlar</Text>
+          <Text style={[styles.headerTitle, { color: colors.text }]}>{t.navCats} 🐾</Text>
+          <Text style={[styles.headerSub, { color: colors.textSecondary }]}>
+            {language === 'en' ? 'All street paw friends you track' : 'Takip ettiğin tüm patili dostlar'}
+          </Text>
         </View>
-        <View style={styles.countPill}>
-          <Text style={styles.countPillText}>
+        <View style={[styles.countPill, { backgroundColor: isDark ? colors.card : colors.primaryLight }]}>
+          <Text style={[styles.countPillText, { color: colors.primary }]}>
             {searchQuery.trim().length > 0
-              ? `${filteredCats.length} / ${cats.length} Kedi`
-              : `${cats.length} Kedi`}
+              ? `${filteredCats.length} / ${cats.length} ${t.homeStatCats}`
+              : `${cats.length} ${t.homeStatCats}`}
           </Text>
         </View>
       </View>
 
       {/* ARAMA ÇUBUĞU (SEARCH BAR) */}
       <View style={styles.searchContainer}>
-        <View style={styles.searchBarBox}>
-          <Ionicons name="search" size={18} color={Colors.primary} style={styles.searchIcon} />
+        <View style={[styles.searchBarBox, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}>
+          <Ionicons name="search" size={18} color={colors.primary} style={styles.searchIcon} />
           <TextInput
-            style={styles.searchInput}
-            placeholder="Kedi adı veya konum ara (örn: Avcı, Kocatepe)..."
-            placeholderTextColor={Colors.textMuted}
+            style={[styles.searchInput, { color: colors.text }]}
+            placeholder={t.searchPlaceholderCats}
+            placeholderTextColor={colors.textMuted}
             value={searchQuery}
             onChangeText={setSearchQuery}
             autoCapitalize="none"
@@ -290,7 +301,7 @@ export default function CatListScreen({ navigation }) {
               style={styles.clearSearchBtn}
               hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
             >
-              <Ionicons name="close-circle" size={18} color={Colors.textMuted} />
+              <Ionicons name="close-circle" size={18} color={colors.textMuted} />
             </TouchableOpacity>
           )}
         </View>
@@ -304,12 +315,16 @@ export default function CatListScreen({ navigation }) {
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.filterScroll}
           >
-            {GROUP_OPTIONS.map((opt) => {
+            {groupOptions.map((opt) => {
               const isActive = groupBy === opt.id;
               return (
                 <TouchableOpacity
                   key={opt.id}
-                  style={[styles.filterChip, isActive && styles.filterChipActive]}
+                  style={[
+                    styles.filterChip,
+                    { backgroundColor: colors.card, borderColor: colors.cardBorder },
+                    isActive && { backgroundColor: colors.primary, borderColor: colors.primary },
+                  ]}
                   onPress={() => setGroupBy(opt.id)}
                   activeOpacity={0.8}
                 >
@@ -317,6 +332,7 @@ export default function CatListScreen({ navigation }) {
                   <Text
                     style={[
                       styles.filterChipText,
+                      { color: colors.textSecondary },
                       isActive && styles.filterChipTextActive,
                     ]}
                   >
@@ -332,38 +348,38 @@ export default function CatListScreen({ navigation }) {
       {/* KEDİ LİSTESİ VEYA DURUM EKRANLARI */}
       {cats.length === 0 ? (
         <View style={styles.emptyContainer}>
-          <View style={styles.emptyIconCircle}>
+          <View style={[styles.emptyIconCircle, { backgroundColor: isDark ? colors.card : '#FFF0EA' }]}>
             <Text style={styles.emptyIconEmoji}>🐱</Text>
           </View>
-          <Text style={styles.emptyTitle}>Henüz hiç patili dost eklemedin 🐾</Text>
-          <Text style={styles.emptySubtitle}>
-            Sokaktaki sevimli dostlarını kaydetmek için aşağıdaki butona dokunabilirsin!
+          <Text style={[styles.emptyTitle, { color: colors.text }]}>{t.noCatsYetTitle}</Text>
+          <Text style={[styles.emptySubtitle, { color: colors.textSecondary }]}>
+            {t.noCatsYetSub}
           </Text>
 
           <TouchableOpacity
-            style={styles.emptyAddBtn}
+            style={[styles.emptyAddBtn, { backgroundColor: colors.primary }]}
             onPress={() => navigation.navigate('AddCat')}
           >
             <Ionicons name="add-circle" size={20} color="#FFFFFF" />
-            <Text style={styles.emptyAddBtnText}>İlk Kedini Ekle</Text>
+            <Text style={styles.emptyAddBtnText}>{t.addNewCatBtn}</Text>
           </TouchableOpacity>
         </View>
       ) : filteredCats.length === 0 ? (
         /* ARAMA SONUCU BULUNAMADIĞINDA GÖRÜNTÜLENEN EKRAN */
         <View style={styles.emptySearchContainer}>
-          <View style={styles.emptySearchCircle}>
+          <View style={[styles.emptySearchCircle, { backgroundColor: isDark ? colors.card : '#FFF0EA' }]}>
             <Text style={styles.emptySearchEmoji}>🔍</Text>
           </View>
-          <Text style={styles.emptySearchTitle}>Eşleşen Kedi Bulunamadı</Text>
-          <Text style={styles.emptySearchSub}>
-            "{searchQuery}" aramasına uygun kedi ismi veya konum bulunamadı.
+          <Text style={[styles.emptySearchTitle, { color: colors.text }]}>{t.noCatsFound}</Text>
+          <Text style={[styles.emptySearchSub, { color: colors.textSecondary }]}>
+            "{searchQuery}"
           </Text>
           <TouchableOpacity
-            style={styles.clearSearchActionButton}
+            style={[styles.clearSearchActionButton, { backgroundColor: colors.primary }]}
             onPress={() => setSearchQuery('')}
           >
             <Ionicons name="refresh" size={16} color="#FFFFFF" />
-            <Text style={styles.clearSearchActionButtonText}>Aramayı Temizle</Text>
+            <Text style={styles.clearSearchActionButtonText}>{language === 'en' ? 'Clear Search' : 'Aramayı Temizle'}</Text>
           </TouchableOpacity>
         </View>
       ) : groupBy === 'all' ? (
@@ -388,12 +404,12 @@ export default function CatListScreen({ navigation }) {
 
       {/* SAĞ ALTA FLOATING ACTION BUTTON (FAB) */}
       <TouchableOpacity
-        style={styles.fabButton}
+        style={[styles.fabButton, { backgroundColor: colors.primary }]}
         activeOpacity={0.88}
         onPress={() => navigation.navigate('AddCat')}
       >
         <Ionicons name="add" size={26} color="#FFFFFF" />
-        <Text style={styles.fabText}>Yeni Kedi</Text>
+        <Text style={styles.fabText}>{t.homeStatCats}</Text>
       </TouchableOpacity>
 
       {/* SİLME ONAY POP-UP MODALI */}
@@ -404,21 +420,21 @@ export default function CatListScreen({ navigation }) {
         onRequestClose={() => setCatToDelete(null)}
       >
         <View style={styles.modalOverlay}>
-          <View style={styles.confirmModalBox}>
+          <View style={[styles.confirmModalBox, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}>
             <View style={styles.confirmEmojiCircle}>
               <Text style={styles.confirmEmoji}>😿</Text>
             </View>
-            <Text style={styles.confirmTitle}>Kediyi Sil</Text>
-            <Text style={styles.confirmDesc}>
-              "{catToDelete?.name}" adlı patili dostumuzu silmek istediğine emin misin?
+            <Text style={[styles.confirmTitle, { color: colors.text }]}>{t.deleteModalTitle}</Text>
+            <Text style={[styles.confirmDesc, { color: colors.textSecondary }]}>
+              "{catToDelete?.name}" {t.deleteModalSub}
             </Text>
             <View style={styles.confirmButtonsRow}>
               <TouchableOpacity
-                style={styles.confirmCancelBtn}
+                style={[styles.confirmCancelBtn, { backgroundColor: isDark ? colors.cardBorder : '#F3F4F6' }]}
                 activeOpacity={0.8}
                 onPress={() => setCatToDelete(null)}
               >
-                <Text style={styles.confirmCancelText}>Vazgeç</Text>
+                <Text style={[styles.confirmCancelText, { color: colors.text }]}>{t.deleteCancel}</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.confirmDeleteBtn}
@@ -431,7 +447,7 @@ export default function CatListScreen({ navigation }) {
                 }}
               >
                 <Ionicons name="trash" size={15} color="#FFFFFF" />
-                <Text style={styles.confirmDeleteText}>Evet, Sil</Text>
+                <Text style={styles.confirmDeleteText}>{t.deleteConfirm}</Text>
               </TouchableOpacity>
             </View>
           </View>

@@ -3,25 +3,29 @@ import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../theme/colors';
 import { getImageSource } from '../utils/imageHelper';
+import useAppTheme from '../theme/useAppTheme';
 
 export default function CatMap({ cats = [], animals = null, location, onSelectCat }) {
   const list = animals || cats;
+  const { isDark, colors, t, language } = useAppTheme();
 
   return (
-    <View style={styles.webMapContainer}>
+    <View style={[styles.webMapContainer, { backgroundColor: isDark ? colors.card : '#FFFBF9', borderColor: colors.border }]}>
       <View style={styles.headerRow}>
         <View style={styles.titleWithIcon}>
-          <Ionicons name="map-outline" size={18} color={Colors.primary} />
-          <Text style={styles.webMapTitle}>Canlı Hayvan Haritası</Text>
+          <Ionicons name="map-outline" size={18} color={colors.primary} />
+          <Text style={[styles.webMapTitle, { color: colors.text }]}>{t.mapTitle}</Text>
         </View>
-        <View style={styles.liveIndicator}>
+        <View style={[styles.liveIndicator, { backgroundColor: isDark ? '#143022' : Colors.greenLight }]}>
           <View style={styles.liveDot} />
-          <Text style={styles.liveText}>GPS Aktif</Text>
+          <Text style={[styles.liveText, { color: colors.green }]}>GPS {language === 'en' ? 'Active' : 'Aktif'}</Text>
         </View>
       </View>
 
-      <Text style={styles.webMapSubtitle}>
-        Patili dostlarımızın (kedi & köpek) güncel konum pinleri aşağıda listelenmiştir. Profiline gitmek istediğiniz cana tıklayın:
+      <Text style={[styles.webMapSubtitle, { color: colors.textSecondary }]}>
+        {language === 'en'
+          ? 'Live location pins of our street furry friends. Tap on an animal to view profile:'
+          : 'Patili dostlarımızın (kedi & köpek) güncel konum pinleri aşağıda listelenmiştir. Profiline gitmek istediğiniz cana tıklayın:'}
       </Text>
 
       {/* İnteraktif Pinler Izgarası */}
@@ -29,18 +33,22 @@ export default function CatMap({ cats = [], animals = null, location, onSelectCa
         {list.length === 0 ? (
           <View style={styles.emptyMapNotice}>
             <Text style={{ fontSize: 28, marginBottom: 4 }}>📍</Text>
-            <Text style={styles.emptyMapNoticeText}>Bu filtreye uygun konum kaydı bulunamadı.</Text>
+            <Text style={[styles.emptyMapNoticeText, { color: colors.textMuted }]}>{t.mapNoLocation}</Text>
           </View>
         ) : (
           list.map((animal) => {
             const isDog = animal.isDog || animal.id?.startsWith('dog-');
             const speciesEmoji = isDog ? '🐶' : '🐱';
-            const accentColor = isDog ? '#D97706' : Colors.primary;
+            const accentColor = isDog ? '#D97706' : colors.primary;
 
             return (
               <TouchableOpacity
                 key={animal.id}
-                style={[styles.pinCard, isDog && styles.pinCardDog]}
+                style={[
+                  styles.pinCard,
+                  { backgroundColor: isDark ? '#1E293B' : '#FFFFFF', borderColor: colors.border },
+                  isDog && (isDark ? { borderColor: '#4A331A' } : styles.pinCardDog),
+                ]}
                 activeOpacity={0.8}
                 onPress={() => onSelectCat && onSelectCat(animal)}
               >
@@ -50,19 +58,19 @@ export default function CatMap({ cats = [], animals = null, location, onSelectCa
                 />
                 <View style={styles.pinInfo}>
                   <View style={styles.pinTitleRow}>
-                    <Text style={styles.catPinName}>{animal.name}</Text>
+                    <Text style={[styles.catPinName, { color: colors.text }]}>{animal.name}</Text>
                     <Text style={styles.pinEmoji}>{speciesEmoji}</Text>
                   </View>
-                  <Text style={styles.catPinLocation}>
+                  <Text style={[styles.catPinLocation, { color: colors.textSecondary }]}>
                     {typeof animal.location === 'object' ? animal.location?.regionName : animal.location}
                   </Text>
-                  <Text style={styles.catPinCoords}>
+                  <Text style={[styles.catPinCoords, { color: colors.textMuted }]}>
                     {animal.location?.latitude
                       ? `${animal.location.latitude.toFixed(3)}, ${animal.location.longitude.toFixed(3)}`
-                      : 'Konum Kayıtlı'}
+                      : (language === 'en' ? 'Location Saved' : 'Konum Kayıtlı')}
                   </Text>
                 </View>
-                <View style={[styles.actionArrowCircle, { backgroundColor: isDog ? '#FEF3C7' : '#FFF0EA' }]}>
+                <View style={[styles.actionArrowCircle, { backgroundColor: isDog ? (isDark ? '#2D2310' : '#FEF3C7') : (isDark ? '#2D201A' : '#FFF0EA') }]}>
                   <Ionicons name="chevron-forward" size={14} color={accentColor} />
                 </View>
               </TouchableOpacity>

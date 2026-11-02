@@ -9,57 +9,101 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import useCatStore from '../store/catStore';
-import { Colors } from '../theme/colors';
+import useAppTheme from '../theme/useAppTheme';
+import ThemeLanguageBar from '../components/ThemeLanguageBar';
 
 export default function HomeScreen({ navigation }) {
   const cats = useCatStore((state) => state.cats || []);
   const dogs = useCatStore((state) => state.dogs || []);
+  const { isDark, colors, t, language } = useAppTheme();
 
   const totalAnimals = cats.length + dogs.length;
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
-      <StatusBar barStyle="dark-content" backgroundColor={Colors.background} />
+    <ScrollView
+      style={[styles.container, { backgroundColor: colors.background }]}
+      contentContainerStyle={styles.contentContainer}
+    >
+      <StatusBar
+        barStyle={isDark ? 'light-content' : 'dark-content'}
+        backgroundColor={colors.background}
+      />
+
+      {/* 0. TEMA VE DİL DEĞİŞTİRME ÇUBUĞU */}
+      <ThemeLanguageBar />
 
       {/* 1. SEVİMLİ VE MİNİMALİST KARŞILAMA ALANI */}
       <View style={styles.welcomeSection}>
         <View style={styles.avatarRow}>
-          <View style={styles.avatarCircle}>
+          <View style={[styles.avatarCircle, { backgroundColor: isDark ? colors.card : '#FFF2EC', borderColor: isDark ? colors.cardBorder : '#FFFFFF' }]}>
             <Text style={styles.avatarEmoji}>🐱</Text>
           </View>
-          <View style={[styles.avatarCircle, { backgroundColor: '#FEF3C7', marginLeft: -16 }]}>
+          <View
+            style={[
+              styles.avatarCircle,
+              { backgroundColor: isDark ? '#2C2310' : '#FEF3C7', borderColor: isDark ? colors.cardBorder : '#FFFFFF', marginLeft: -16 },
+            ]}
+          >
             <Text style={styles.avatarEmoji}>🐶</Text>
           </View>
         </View>
 
-        <Text style={styles.greetingTitle}>Sokak Hayvanları Takibi 🐾</Text>
-        <Text style={styles.greetingSubtitle}>
-          Şehrindeki patili dostları keşfet, besle, yürüyüşe çıkar ve aranızdaki bağı büyüt! ✨
+        <Text style={[styles.greetingTitle, { color: colors.text }]}>
+          {t.homeGreetingTitle}
+        </Text>
+        <Text style={[styles.greetingSubtitle, { color: colors.textSecondary }]}>
+          {t.homeGreetingSubtitle}
         </Text>
 
         {/* İstatistik Rozetleri */}
         <View style={styles.statsRow}>
           <TouchableOpacity
-            style={styles.statChip}
+            style={[
+              styles.statChip,
+              {
+                backgroundColor: colors.card,
+                borderColor: isDark ? colors.cardBorder : colors.cardBorder,
+              },
+            ]}
             onPress={() => navigation.navigate('CatList')}
             activeOpacity={0.8}
           >
             <Text style={styles.statChipEmoji}>🐱</Text>
-            <Text style={styles.statChipText}>{cats.length} Kedi</Text>
+            <Text style={[styles.statChipText, { color: colors.text }]}>
+              {cats.length} {t.homeStatCats}
+            </Text>
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={[styles.statChip, { borderColor: '#FDE68A' }]}
+            style={[
+              styles.statChip,
+              {
+                backgroundColor: colors.card,
+                borderColor: isDark ? '#4B3F1E' : '#FDE68A',
+              },
+            ]}
             onPress={() => navigation.navigate('DogList')}
             activeOpacity={0.8}
           >
             <Text style={styles.statChipEmoji}>🐶</Text>
-            <Text style={[styles.statChipText, { color: '#D97706' }]}>{dogs.length} Köpek</Text>
+            <Text style={[styles.statChipText, { color: '#D97706' }]}>
+              {dogs.length} {t.homeStatDogs}
+            </Text>
           </TouchableOpacity>
 
-          <View style={[styles.statChip, { backgroundColor: '#FAF5F0' }]}>
-            <Ionicons name="heart" size={14} color={Colors.secondary} />
-            <Text style={styles.statChipText}>{totalAnimals} Toplam Can</Text>
+          <View
+            style={[
+              styles.statChip,
+              {
+                backgroundColor: isDark ? colors.card : '#FAF5F0',
+                borderColor: isDark ? colors.cardBorder : colors.cardBorder,
+              },
+            ]}
+          >
+            <Ionicons name="heart" size={14} color={colors.secondary} />
+            <Text style={[styles.statChipText, { color: colors.text }]}>
+              {totalAnimals} {t.homeStatTotal}
+            </Text>
           </View>
         </View>
       </View>
@@ -68,71 +112,96 @@ export default function HomeScreen({ navigation }) {
       <View style={styles.buttonsContainer}>
         {/* Buton 1: Kayıtlı Kedilerim */}
         <TouchableOpacity
-          style={[styles.navCard, styles.navCardPeach]}
+          style={[
+            styles.navCard,
+            isDark
+              ? { backgroundColor: colors.card, borderColor: colors.cardBorder }
+              : styles.navCardPeach,
+          ]}
           activeOpacity={0.88}
           onPress={() => navigation.navigate('CatList')}
         >
-          <View style={[styles.iconCircle, styles.iconCirclePeach]}>
+          <View style={[styles.iconCircle, { backgroundColor: isDark ? colors.primaryLight : '#FFF0EA' }]}>
             <Text style={{ fontSize: 30 }}>🐱</Text>
           </View>
           <View style={styles.navCardTexts}>
             <View style={styles.cardTitleBadgeRow}>
-              <Text style={styles.navCardTitle}>Kayıtlı Kedilerim</Text>
-              <View style={styles.counterBadgePeach}>
-                <Text style={styles.counterBadgeTextPeach}>{cats.length} Kedi</Text>
+              <Text style={[styles.navCardTitle, { color: colors.text }]}>
+                {t.homeCardCatsTitle}
+              </Text>
+              <View style={[styles.counterBadgePeach, { backgroundColor: isDark ? colors.primaryLight : '#FFF0EA' }]}>
+                <Text style={styles.counterBadgeTextPeach}>
+                  {cats.length} {t.homeStatCats}
+                </Text>
               </View>
             </View>
-            <Text style={styles.navCardDesc}>
-              Tüm kedi dostlarını gör, fotoğraflarına bak, besle ve aşılarını takip et
+            <Text style={[styles.navCardDesc, { color: colors.textSecondary }]}>
+              {t.homeCardCatsDesc}
             </Text>
           </View>
-          <View style={styles.arrowCircle}>
-            <Ionicons name="chevron-forward" size={20} color={Colors.primaryDark} />
+          <View style={[styles.arrowCircle, { backgroundColor: isDark ? colors.cardBorder : '#FFFFFF' }]}>
+            <Ionicons name="chevron-forward" size={20} color={colors.primary} />
           </View>
         </TouchableOpacity>
 
         {/* Buton 2: Kayıtlı Köpeklerim */}
         <TouchableOpacity
-          style={[styles.navCard, styles.navCardAmber]}
+          style={[
+            styles.navCard,
+            isDark
+              ? { backgroundColor: colors.card, borderColor: colors.cardBorder }
+              : styles.navCardAmber,
+          ]}
           activeOpacity={0.88}
           onPress={() => navigation.navigate('DogList')}
         >
-          <View style={[styles.iconCircle, styles.iconCircleAmber]}>
+          <View style={[styles.iconCircle, { backgroundColor: isDark ? '#2C2310' : '#FEF3C7' }]}>
             <Text style={{ fontSize: 30 }}>🐶</Text>
           </View>
           <View style={styles.navCardTexts}>
             <View style={styles.cardTitleBadgeRow}>
-              <Text style={styles.navCardTitle}>Kayıtlı Köpeklerim</Text>
-              <View style={styles.counterBadgeAmber}>
-                <Text style={styles.counterBadgeTextAmber}>{dogs.length} Köpek</Text>
+              <Text style={[styles.navCardTitle, { color: colors.text }]}>
+                {t.homeCardDogsTitle}
+              </Text>
+              <View style={[styles.counterBadgeAmber, { backgroundColor: isDark ? '#3D2F14' : '#FEF3C7' }]}>
+                <Text style={styles.counterBadgeTextAmber}>
+                  {dogs.length} {t.homeStatDogs}
+                </Text>
               </View>
             </View>
-            <Text style={styles.navCardDesc}>
-              Sadık köpek dostlarını gör, yürüyüşe çıkar, oyun oyna ve aşılarını planla
+            <Text style={[styles.navCardDesc, { color: colors.textSecondary }]}>
+              {t.homeCardDogsDesc}
             </Text>
           </View>
-          <View style={styles.arrowCircle}>
+          <View style={[styles.arrowCircle, { backgroundColor: isDark ? colors.cardBorder : '#FFFFFF' }]}>
             <Ionicons name="chevron-forward" size={20} color="#D97706" />
           </View>
         </TouchableOpacity>
 
         {/* Buton 3: Canlı Haritada Gör */}
         <TouchableOpacity
-          style={[styles.navCard, styles.navCardBlue]}
+          style={[
+            styles.navCard,
+            isDark
+              ? { backgroundColor: colors.card, borderColor: colors.cardBorder }
+              : styles.navCardBlue,
+          ]}
           activeOpacity={0.88}
           onPress={() => navigation.navigate('CatMap')}
         >
-          <View style={[styles.iconCircle, styles.iconCircleBlue]}>
-            <Ionicons name="map" size={28} color={Colors.blue} />
+          <View style={[styles.iconCircle, { backgroundColor: isDark ? colors.blueLight : '#EDF6FD' }]}>
+            <Ionicons name="map" size={28} color={colors.blue} />
           </View>
           <View style={styles.navCardTexts}>
-            <Text style={styles.navCardTitle}>Canlı Hayvan Haritası</Text>
-            <Text style={styles.navCardDesc}>
-              Bölgelerindeki kedi ve köpekleri harita üzerinde canlı incele
+            <Text style={[styles.navCardTitle, { color: colors.text }]}>
+              {t.homeExploreMap}
+            </Text>
+            <Text style={[styles.navCardDesc, { color: colors.textSecondary }]}>
+              {t.homeExploreMapSub}
             </Text>
           </View>
-          <View style={styles.arrowCircle}>
-            <Ionicons name="chevron-forward" size={20} color={Colors.blue} />
+          <View style={[styles.arrowCircle, { backgroundColor: isDark ? colors.cardBorder : '#FFFFFF' }]}>
+            <Ionicons name="chevron-forward" size={20} color={colors.blue} />
           </View>
         </TouchableOpacity>
       </View>
@@ -140,29 +209,47 @@ export default function HomeScreen({ navigation }) {
       {/* 3. HIZLI EKLEME BUTONLARI (KEDİ & KÖPEK) */}
       <View style={styles.quickAddRow}>
         <TouchableOpacity
-          style={styles.quickAddBtnCat}
+          style={[
+            styles.quickAddBtnCat,
+            {
+              backgroundColor: isDark ? colors.card : '#FFF2EC',
+              borderColor: isDark ? colors.primary : '#FFD9CB',
+            },
+          ]}
           activeOpacity={0.85}
           onPress={() => navigation.navigate('AddCat')}
         >
-          <Ionicons name="add-circle" size={20} color={Colors.primary} />
-          <Text style={styles.quickAddBtnTextCat}>+ Yeni Kedi Ekle 🐱</Text>
+          <Ionicons name="add-circle" size={20} color={colors.primary} />
+          <Text style={[styles.quickAddBtnTextCat, { color: colors.primary }]}>
+            + {t.homeQuickAddCat} 🐱
+          </Text>
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={styles.quickAddBtnDog}
+          style={[
+            styles.quickAddBtnDog,
+            {
+              backgroundColor: isDark ? colors.card : '#FEF3C7',
+              borderColor: isDark ? '#D97706' : '#FDE68A',
+            },
+          ]}
           activeOpacity={0.85}
           onPress={() => navigation.navigate('AddDog')}
         >
           <Ionicons name="add-circle" size={20} color="#D97706" />
-          <Text style={styles.quickAddBtnTextDog}>+ Yeni Köpek Ekle 🐶</Text>
+          <Text style={styles.quickAddBtnTextDog}>
+            + {t.homeQuickAddDog} 🐶
+          </Text>
         </TouchableOpacity>
       </View>
 
       {/* 4. GÜNÜN NOTU */}
-      <View style={styles.noteBox}>
+      <View style={[styles.noteBox, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}>
         <Text style={styles.noteEmoji}>🥣</Text>
-        <Text style={styles.noteText}>
-          "Bir kap mama, bir kap temiz su ve biraz sevgi her sokak canının gününü güzelleştirir."
+        <Text style={[styles.noteText, { color: colors.textSecondary }]}>
+          {language === 'en'
+            ? '"A bowl of food, a bowl of clean water and a little affection brighten any street animal\'s day."'
+            : '"Bir kap mama, bir kap temiz su ve biraz sevgi her sokak canının gününü güzelleştirir."'}
         </Text>
       </View>
     </ScrollView>
@@ -172,17 +259,16 @@ export default function HomeScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.background,
   },
   contentContainer: {
     paddingHorizontal: 20,
-    paddingTop: 20,
+    paddingTop: 16,
     paddingBottom: 40,
     alignItems: 'center',
   },
   welcomeSection: {
     alignItems: 'center',
-    marginBottom: 22,
+    marginBottom: 20,
   },
   avatarRow: {
     flexDirection: 'row',
@@ -192,12 +278,9 @@ const styles = StyleSheet.create({
     width: 68,
     height: 68,
     borderRadius: 34,
-    backgroundColor: '#FFF2EC',
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 3,
-    borderColor: '#FFFFFF',
-    shadowColor: Colors.cardShadow,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.12,
     shadowRadius: 8,
@@ -209,16 +292,14 @@ const styles = StyleSheet.create({
   greetingTitle: {
     fontSize: 24,
     fontWeight: '800',
-    color: Colors.text,
     letterSpacing: -0.5,
     marginBottom: 6,
   },
   greetingSubtitle: {
     fontSize: 13,
-    color: Colors.textSecondary,
     textAlign: 'center',
     lineHeight: 19,
-    maxWidth: 300,
+    maxWidth: 320,
     marginBottom: 12,
   },
   statsRow: {
@@ -230,14 +311,11 @@ const styles = StyleSheet.create({
   statChip: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
     paddingHorizontal: 11,
     paddingVertical: 6,
     borderRadius: 16,
     gap: 5,
     borderWidth: 1,
-    borderColor: Colors.cardBorder,
-    shadowColor: Colors.cardShadow,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
     shadowRadius: 4,
@@ -249,7 +327,6 @@ const styles = StyleSheet.create({
   statChipText: {
     fontSize: 12,
     fontWeight: '700',
-    color: Colors.text,
   },
   buttonsContainer: {
     width: '100%',
@@ -271,7 +348,7 @@ const styles = StyleSheet.create({
   navCardPeach: {
     backgroundColor: '#FFFBF7',
     borderColor: '#FFE8DF',
-    shadowColor: Colors.primary,
+    shadowColor: '#FF9A76',
   },
   navCardAmber: {
     backgroundColor: '#FFFCF5',
@@ -281,7 +358,7 @@ const styles = StyleSheet.create({
   navCardBlue: {
     backgroundColor: '#F8FCFF',
     borderColor: '#E2F0FD',
-    shadowColor: Colors.blue,
+    shadowColor: '#6CB4EE',
   },
   iconCircle: {
     width: 56,
@@ -290,15 +367,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 14,
-  },
-  iconCirclePeach: {
-    backgroundColor: '#FFF0EA',
-  },
-  iconCircleAmber: {
-    backgroundColor: '#FEF3C7',
-  },
-  iconCircleBlue: {
-    backgroundColor: '#EDF6FD',
   },
   navCardTexts: {
     flex: 1,
@@ -313,10 +381,8 @@ const styles = StyleSheet.create({
   navCardTitle: {
     fontSize: 16,
     fontWeight: '800',
-    color: Colors.text,
   },
   counterBadgePeach: {
-    backgroundColor: '#FFF0EA',
     paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: 8,
@@ -324,10 +390,9 @@ const styles = StyleSheet.create({
   counterBadgeTextPeach: {
     fontSize: 11,
     fontWeight: '800',
-    color: Colors.primaryDark,
+    color: '#F08055',
   },
   counterBadgeAmber: {
-    backgroundColor: '#FEF3C7',
     paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: 8,
@@ -339,14 +404,12 @@ const styles = StyleSheet.create({
   },
   navCardDesc: {
     fontSize: 12,
-    color: Colors.textSecondary,
     lineHeight: 16,
   },
   arrowCircle: {
     width: 30,
     height: 30,
     borderRadius: 15,
-    backgroundColor: '#FFFFFF',
     justifyContent: 'center',
     alignItems: 'center',
     marginLeft: 8,
@@ -362,9 +425,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#FFF2EC',
     borderWidth: 1.5,
-    borderColor: '#FFD9CB',
     paddingVertical: 12,
     borderRadius: 16,
     gap: 6,
@@ -372,16 +433,13 @@ const styles = StyleSheet.create({
   quickAddBtnTextCat: {
     fontSize: 12,
     fontWeight: '800',
-    color: Colors.primaryDark,
   },
   quickAddBtnDog: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#FEF3C7',
     borderWidth: 1.5,
-    borderColor: '#FDE68A',
     paddingVertical: 12,
     borderRadius: 16,
     gap: 6,
@@ -394,11 +452,9 @@ const styles = StyleSheet.create({
   noteBox: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
     borderRadius: 18,
     padding: 14,
     borderWidth: 1,
-    borderColor: Colors.cardBorder,
     gap: 10,
     width: '100%',
   },
@@ -408,7 +464,6 @@ const styles = StyleSheet.create({
   noteText: {
     flex: 1,
     fontSize: 12,
-    color: Colors.textSecondary,
     fontStyle: 'italic',
     lineHeight: 17,
   },

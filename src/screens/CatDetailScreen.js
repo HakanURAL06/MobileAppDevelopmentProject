@@ -19,6 +19,7 @@ import useCatStore from '../store/catStore';
 import { Colors } from '../theme/colors';
 import { getImageSource } from '../utils/imageHelper';
 import ImageViewerModal from '../components/ImageViewerModal';
+import useAppTheme from '../theme/useAppTheme';
 
 const { width } = Dimensions.get('window');
 const PHOTO_SIZE = (width - 36 - 20) / 3;
@@ -141,10 +142,75 @@ export default function CatDetailScreen({ route, navigation }) {
   const [isViewerVisible, setIsViewerVisible] = useState(false);
   const [viewerIndex, setViewerIndex] = useState(0);
 
+  const { isDark, colors, t, language } = useAppTheme();
+
   const handleOpenViewer = (index = 0) => {
     setViewerIndex(index);
     setIsViewerVisible(true);
   };
+
+  const quickInteractions = useMemo(() => [
+    {
+      id: 'feeding',
+      type: 'feeding',
+      emoji: '🥣',
+      title: t.interactionCatFeeding,
+      note: t.interactionCatFeedingNote,
+      color: '#E06D53',
+      bg: isDark ? '#2C1D18' : '#FFF2EC',
+      border: isDark ? '#4A2A20' : '#FFD9CB',
+    },
+    {
+      id: 'petting',
+      type: 'petting',
+      emoji: '🐾',
+      title: t.interactionCatPetting,
+      note: t.interactionCatPettingNote,
+      color: '#D946EF',
+      bg: isDark ? '#2B142E' : '#FDF4FF',
+      border: isDark ? '#4A2050' : '#F5D0FE',
+    },
+    {
+      id: 'treat',
+      type: 'feeding',
+      emoji: '🥫',
+      title: t.interactionCatTreat,
+      note: t.interactionCatTreatNote,
+      color: '#D97706',
+      bg: isDark ? '#2C2310' : '#FFFBEB',
+      border: isDark ? '#4B3F1E' : '#FDE68A',
+    },
+    {
+      id: 'playing',
+      type: 'playing',
+      emoji: '🪶',
+      title: t.interactionCatPlaying,
+      note: t.interactionCatPlayingNote,
+      color: '#0284C7',
+      bg: isDark ? '#142536' : '#F0F9FF',
+      border: isDark ? '#1E3E5C' : '#BAE6FD',
+    },
+    {
+      id: 'water',
+      type: 'feeding',
+      emoji: '💧',
+      title: t.interactionCatWater,
+      note: t.interactionCatWaterNote,
+      color: '#0D9488',
+      bg: isDark ? '#122826' : '#F0FDFA',
+      border: isDark ? '#1C4541' : '#CCFBF1',
+    },
+    {
+      id: 'health',
+      type: 'other',
+      emoji: '🩺',
+      title: t.interactionCatHealth,
+      note: t.interactionCatHealthNote,
+      color: '#059669',
+      bg: isDark ? '#13281E' : '#EEFBF3',
+      border: isDark ? '#1C4530' : '#A7F3D0',
+    },
+  ], [t, isDark]);
 
   useEffect(() => {
     if (cat?.notes !== undefined) {
@@ -166,7 +232,7 @@ export default function CatDetailScreen({ route, navigation }) {
 
   const interactions = cat.interactionHistory || [];
   const interactionCount = interactions.length;
-  const bondInfo = getBondLevelInfo(interactionCount);
+  const bondInfo = getBondLevelInfo(interactionCount, language);
 
   const completedVaccines = Array.isArray(cat.vaccinations) ? cat.vaccinations : [];
   const scheduledVaccines = Array.isArray(cat.scheduledVaccines) ? cat.scheduledVaccines : [];
@@ -401,9 +467,9 @@ export default function CatDetailScreen({ route, navigation }) {
   };
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
+    <ScrollView style={[styles.container, { backgroundColor: colors.background }]} contentContainerStyle={styles.contentContainer}>
       {/* 1. KEDİ KAPAK KARTI VE BİLGİLERİ */}
-      <View style={styles.heroCard}>
+      <View style={[styles.heroCard, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}>
         <TouchableOpacity
           style={styles.heroImageContainer}
           activeOpacity={0.92}
@@ -496,17 +562,17 @@ export default function CatDetailScreen({ route, navigation }) {
       </View>
 
       {/* 3. ÇEŞİTLENDİRİLMİŞ HIZLI ETKİLEŞİM BUTONLARI (KEDİYİ BESLE / SEV / OYNA) */}
-      <View style={styles.quickInteractionsCard}>
+      <View style={[styles.quickInteractionsCard, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}>
         <View style={styles.sectionHeaderBox}>
           <Ionicons name="sparkles" size={18} color={Colors.primary} />
-          <Text style={styles.sectionTitle}>Hızlı Etkileşimler & İlgi 🐾</Text>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>{t.quickInteractionsTitle || 'Hızlı Etkileşimler & İlgi 🐾'}</Text>
         </View>
-        <Text style={styles.sectionSubtitle}>
+        <Text style={[styles.sectionSubtitle, { color: colors.textSecondary }]}>
           Dokunarak minik dostunla yaptığın aktiviteyi anında kaydet ve bağınızı güçlendir:
         </Text>
 
         <View style={styles.interactionGrid}>
-          {QUICK_INTERACTIONS.map((option) => (
+          {quickInteractions.map((option) => (
             <TouchableOpacity
               key={option.id}
               style={[
@@ -526,11 +592,11 @@ export default function CatDetailScreen({ route, navigation }) {
       </View>
 
       {/* 4. KONUM & ESKİ KONUM GEÇMİŞİ KARTI */}
-      <View style={styles.locationHistoryCard}>
+      <View style={[styles.locationHistoryCard, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}>
         <View style={styles.sectionHeaderBetween}>
           <View style={styles.sectionHeaderBox}>
             <Ionicons name="navigate-circle" size={20} color={Colors.blue} />
-            <Text style={styles.sectionTitle}>Konum & Hareket Geçmişi 📍</Text>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>{t.locationHistoryTitle || 'Konum & Hareket Geçmişi 📍'}</Text>
           </View>
           <TouchableOpacity style={styles.editLocationShortBtn} onPress={handleOpenEditModal}>
             <Text style={styles.editLocationShortText}>Konumu Değiştir</Text>
@@ -538,7 +604,7 @@ export default function CatDetailScreen({ route, navigation }) {
         </View>
 
         {/* Mevcut Konum */}
-        <View style={styles.currentLocationBox}>
+        <View style={[styles.currentLocationBox, { backgroundColor: isDark ? '#1E293B' : '#F0F9FF', borderColor: isDark ? '#334155' : '#BAE6FD' }]}>
           <View style={styles.currentLocationPin}>
             <Ionicons name="location" size={18} color="#FFFFFF" />
           </View>
@@ -549,16 +615,16 @@ export default function CatDetailScreen({ route, navigation }) {
                 <Text style={styles.activeLocBadgeText}>Aktif</Text>
               </View>
             </View>
-            <Text style={styles.currentLocTitle}>{locationName}</Text>
+            <Text style={[styles.currentLocTitle, { color: colors.text }]}>{locationName}</Text>
           </View>
         </View>
 
         {/* Eski Konumlar */}
-        <Text style={styles.pastLocHeaderTitle}>Önceki Konum Kayıtları</Text>
+        <Text style={[styles.pastLocHeaderTitle, { color: colors.textSecondary }]}>Önceki Konum Kayıtları</Text>
         {locationHistory.length === 0 ? (
           <View style={styles.emptyHistoryLocBox}>
-            <Text style={styles.emptyHistoryLocText}>
-              Henüz eski bir konum kaydı bulunmuyor. Konumu güncellediğinde önceki yerler burada otomatik listelenir.
+            <Text style={[styles.emptyHistoryLocText, { color: colors.textMuted }]}>
+              {t.noLocationHistory}
             </Text>
           </View>
         ) : (
@@ -566,8 +632,8 @@ export default function CatDetailScreen({ route, navigation }) {
             <View key={item.id || idx} style={styles.historyLocRow}>
               <View style={styles.historyLocDot} />
               <View style={{ flex: 1 }}>
-                <Text style={styles.historyLocName}>{item.regionName}</Text>
-                <Text style={styles.historyLocDate}>{formatDate(item.changedAt)} tarihine kadar buradaydı</Text>
+                <Text style={[styles.historyLocName, { color: colors.text }]}>{item.regionName}</Text>
+                <Text style={[styles.historyLocDate, { color: colors.textMuted }]}>{formatDate(item.changedAt)} tarihine kadar buradaydı</Text>
               </View>
             </View>
           ))
@@ -575,11 +641,11 @@ export default function CatDetailScreen({ route, navigation }) {
       </View>
 
       {/* 5. AŞI TAKİBİ & GELECEK AŞI PLANLAMA KARTI */}
-      <View style={styles.vaccineCard}>
+      <View style={[styles.vaccineCard, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}>
         <View style={styles.sectionHeaderBetween}>
           <View style={styles.sectionHeaderBox}>
             <Ionicons name="shield-checkmark" size={20} color="#059669" />
-            <Text style={styles.sectionTitle}>Aşı Takibi & Sağlık Takvimi 💉</Text>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>{t.vaccineTrackerTitle || 'Aşı Takibi & Sağlık Takvimi 💉'}</Text>
           </View>
 
           <View style={styles.vaccineActionButtonsRow}>
@@ -589,7 +655,7 @@ export default function CatDetailScreen({ route, navigation }) {
               activeOpacity={0.8}
             >
               <Ionicons name="add" size={14} color="#FFFFFF" />
-              <Text style={styles.addVaccineHeaderBtnText}>Aşı Ekle</Text>
+              <Text style={styles.addVaccineHeaderBtnText}>{t.addVaccineBtn}</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -598,7 +664,7 @@ export default function CatDetailScreen({ route, navigation }) {
               activeOpacity={0.8}
             >
               <Ionicons name="calendar-outline" size={13} color="#D97706" />
-              <Text style={styles.scheduleHeaderBtnText}>Planla</Text>
+              <Text style={styles.scheduleHeaderBtnText}>{t.scheduleVaccineBtn}</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -739,22 +805,22 @@ export default function CatDetailScreen({ route, navigation }) {
       </View>
 
       {/* 6. HAKKINDA & ÖZEL NOTLAR BÖLÜMÜ */}
-      <View style={styles.notesCard}>
+      <View style={[styles.notesCard, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}>
         <View style={styles.notesHeader}>
           <View style={styles.notesTitleBox}>
-            <Ionicons name="document-text" size={20} color={Colors.primary} />
-            <Text style={styles.notesTitle}>Hakkında & Notlar 📝</Text>
+            <Ionicons name="document-text" size={20} color={colors.primary} />
+            <Text style={[styles.notesTitle, { color: colors.text }]}>{t.notesTitle}</Text>
           </View>
 
           {!isEditingNote && (
             <TouchableOpacity
-              style={styles.editNoteBtn}
+              style={[styles.editNoteBtn, { backgroundColor: isDark ? '#2D201A' : '#FFF2EC', borderColor: isDark ? '#4A2A20' : '#FFD9CB' }]}
               onPress={() => setIsEditingNote(true)}
               activeOpacity={0.8}
             >
-              <Ionicons name="create-outline" size={15} color={Colors.primaryDark} />
-              <Text style={styles.editNoteBtnText}>
-                {cat.notes && cat.notes.trim().length > 0 ? 'Düzenle' : 'Not Ekle'}
+              <Ionicons name="create-outline" size={15} color={colors.primary} />
+              <Text style={[styles.editNoteBtnText, { color: colors.primary }]}>
+                {cat.notes && cat.notes.trim().length > 0 ? t.editProfileBtn : t.notesTitle}
               </Text>
             </TouchableOpacity>
           )}
@@ -763,9 +829,9 @@ export default function CatDetailScreen({ route, navigation }) {
         {isEditingNote ? (
           <View style={styles.editNoteBox}>
             <TextInput
-              style={styles.noteTextInput}
-              placeholder={`${cat.name} hakkında notlar al (karakteri, huyları, sevdiği şeyler)...`}
-              placeholderTextColor={Colors.textMuted}
+              style={[styles.noteTextInput, { backgroundColor: colors.inputBackground, borderColor: colors.border, color: colors.text }]}
+              placeholder={t.editNotesPlaceholder}
+              placeholderTextColor={colors.textMuted}
               value={noteText}
               onChangeText={setNoteText}
               multiline
@@ -776,51 +842,51 @@ export default function CatDetailScreen({ route, navigation }) {
 
             <View style={styles.noteActionsRow}>
               <TouchableOpacity
-                style={styles.cancelNoteBtn}
+                style={[styles.cancelNoteBtn, { backgroundColor: isDark ? '#2D3748' : '#FAF5F0' }]}
                 onPress={() => {
                   setNoteText(cat?.notes || '');
                   setIsEditingNote(false);
                 }}
                 activeOpacity={0.8}
               >
-                <Text style={styles.cancelNoteBtnText}>Vazgeç</Text>
+                <Text style={[styles.cancelNoteBtnText, { color: colors.textSecondary }]}>{t.deleteCancel}</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
-                style={styles.saveNoteBtn}
+                style={[styles.saveNoteBtn, { backgroundColor: colors.primary }]}
                 onPress={handleSaveNotes}
                 activeOpacity={0.85}
               >
                 <Ionicons name="save-outline" size={16} color="#FFFFFF" />
-                <Text style={styles.saveNoteBtnText}>Notu Kaydet</Text>
+                <Text style={styles.saveNoteBtnText}>{t.saveNotesBtn}</Text>
               </TouchableOpacity>
             </View>
           </View>
         ) : (
           <View>
             {cat.notes && cat.notes.trim().length > 0 ? (
-              <View style={styles.noteDisplayBox}>
+              <View style={[styles.noteDisplayBox, { backgroundColor: isDark ? '#1E293B' : '#FFFDF9', borderColor: colors.border }]}>
                 <Ionicons
                   name="chatbubble-ellipses-outline"
                   size={18}
-                  color={Colors.primary}
+                  color={colors.primary}
                   style={styles.noteQuoteIcon}
                 />
-                <Text style={styles.noteDisplayText}>{cat.notes}</Text>
+                <Text style={[styles.noteDisplayText, { color: colors.text }]}>{cat.notes}</Text>
               </View>
             ) : (
               <TouchableOpacity
-                style={styles.emptyNotePromptBox}
+                style={[styles.emptyNotePromptBox, { backgroundColor: isDark ? '#1E293B' : '#FFFDF9', borderColor: colors.border }]}
                 onPress={() => setIsEditingNote(true)}
                 activeOpacity={0.8}
               >
-                <Ionicons name="create-outline" size={28} color={Colors.primary} />
-                <Text style={styles.emptyNotePromptTitle}>Henüz bir not yazılmadı</Text>
-                <Text style={styles.emptyNotePromptSub}>
+                <Ionicons name="create-outline" size={28} color={colors.primary} />
+                <Text style={[styles.emptyNotePromptTitle, { color: colors.text }]}>Henüz bir not yazılmadı</Text>
+                <Text style={[styles.emptyNotePromptSub, { color: colors.textSecondary }]}>
                   {cat.name} dostumuzun huyları veya sevdiği şeyler hakkında buraya not alabilirsin.
                 </Text>
-                <View style={styles.addNotePill}>
-                  <Text style={styles.addNotePillText}>+ Not Ekle</Text>
+                <View style={[styles.addNotePill, { backgroundColor: isDark ? '#2D201A' : '#FFF2EC' }]}>
+                  <Text style={[styles.addNotePillText, { color: colors.primary }]}>+ {t.notesTitle}</Text>
                 </View>
               </TouchableOpacity>
             )}
@@ -829,32 +895,32 @@ export default function CatDetailScreen({ route, navigation }) {
       </View>
 
       {/* 7. FOTOĞRAF ALBÜMÜ BÖLÜMÜ (GRID VIEW) */}
-      <View style={styles.albumCard}>
+      <View style={[styles.albumCard, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}>
         <View style={styles.albumHeader}>
           <View style={styles.albumTitleBox}>
-            <Ionicons name="images" size={20} color={Colors.primary} />
-            <Text style={styles.albumTitle}>Fotoğraf Albümü</Text>
+            <Ionicons name="images" size={20} color={colors.primary} />
+            <Text style={[styles.albumTitle, { color: colors.text }]}>{t.photoAlbumTitle}</Text>
             <View style={styles.albumCountBadge}>
               <Text style={styles.albumCountText}>{catPhotos.length}</Text>
             </View>
           </View>
 
           <TouchableOpacity
-            style={styles.addPhotoBtn}
+            style={[styles.addPhotoBtn, { backgroundColor: colors.primary }]}
             onPress={handlePickNewPhoto}
             activeOpacity={0.85}
           >
             <Ionicons name="camera" size={16} color="#FFFFFF" />
-            <Text style={styles.addPhotoBtnText}>Fotoğraf Ekle</Text>
+            <Text style={styles.addPhotoBtnText}>{t.addPhotoBtn}</Text>
           </TouchableOpacity>
         </View>
 
         {catPhotos.length === 0 ? (
           <View style={styles.emptyAlbumBox}>
-            <Ionicons name="image-outline" size={36} color={Colors.textMuted} />
-            <Text style={styles.emptyAlbumText}>Henüz albümde fotoğraf yok.</Text>
-            <TouchableOpacity style={styles.emptyAlbumAddBtn} onPress={handlePickNewPhoto}>
-              <Text style={styles.emptyAlbumAddBtnText}>İlk Fotoğrafı Çek / Seç 📷</Text>
+            <Ionicons name="image-outline" size={36} color={colors.textMuted} />
+            <Text style={[styles.emptyAlbumText, { color: colors.textSecondary }]}>{t.emptyAlbumText}</Text>
+            <TouchableOpacity style={[styles.emptyAlbumAddBtn, { backgroundColor: isDark ? '#2D201A' : '#FFF2EC' }]} onPress={handlePickNewPhoto}>
+              <Text style={[styles.emptyAlbumAddBtnText, { color: colors.primary }]}>{t.firstPhotoBtn}</Text>
             </TouchableOpacity>
           </View>
         ) : (
@@ -872,7 +938,7 @@ export default function CatDetailScreen({ route, navigation }) {
                 </View>
                 {index === 0 && (
                   <View style={styles.coverBadge}>
-                    <Text style={styles.coverBadgeText}>Kapak</Text>
+                    <Text style={styles.coverBadgeText}>{t.coverBadge}</Text>
                   </View>
                 )}
               </TouchableOpacity>
@@ -882,11 +948,11 @@ export default function CatDetailScreen({ route, navigation }) {
       </View>
 
       {/* 8. GEÇMİŞ ETKİLEŞİM TARİHLERİ */}
-      <View style={styles.historyCard}>
+      <View style={[styles.historyCard, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}>
         <View style={styles.historyHeader}>
-          <Text style={styles.historyTitle}>📅 Geçmiş Etkileşim Tarihleri</Text>
-          <View style={styles.historyCountPill}>
-            <Text style={styles.historyCountPillText}>{interactions.length} Kayıt</Text>
+          <Text style={[styles.historyTitle, { color: colors.text }]}>{t.historyTitle}</Text>
+          <View style={[styles.historyCountPill, { backgroundColor: isDark ? '#2D201A' : '#FFF2EC' }]}>
+            <Text style={[styles.historyCountPillText, { color: colors.primary }]}>{interactions.length} {t.recordsCount}</Text>
           </View>
         </View>
 
@@ -938,83 +1004,87 @@ export default function CatDetailScreen({ route, navigation }) {
         onRequestClose={() => setIsEditModalVisible(false)}
       >
         <View style={styles.modalOverlay}>
-          <View style={styles.editModalContent}>
+          <View style={[styles.editModalContent, { backgroundColor: colors.card }]}>
             <View style={styles.modalHeaderRow}>
-              <Text style={styles.modalTitle}>Kedi Bilgilerini Düzenle ✏️</Text>
+              <Text style={[styles.modalTitle, { color: colors.text }]}>Kedi Bilgilerini Düzenle ✏️</Text>
               <TouchableOpacity
                 onPress={() => setIsEditModalVisible(false)}
                 hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
               >
-                <Ionicons name="close" size={24} color={Colors.textSecondary} />
+                <Ionicons name="close" size={24} color={colors.textSecondary} />
               </TouchableOpacity>
             </View>
 
             <ScrollView showsVerticalScrollIndicator={false}>
               {/* İsim */}
-              <Text style={styles.modalInputLabel}>Kedinin İsmi *</Text>
+              <Text style={[styles.modalInputLabel, { color: colors.text }]}>{t.inputNameLabel} *</Text>
               <TextInput
-                style={styles.modalInput}
+                style={[styles.modalInput, { backgroundColor: colors.inputBackground, borderColor: colors.border, color: colors.text }]}
                 value={editName}
                 onChangeText={setEditName}
-                placeholder="Kedinin ismi"
-                placeholderTextColor={Colors.textMuted}
+                placeholder={t.inputNamePlaceholderCat}
+                placeholderTextColor={colors.textMuted}
               />
 
               {/* Cins */}
-              <Text style={styles.modalInputLabel}>Cinsi / Renk Deseni</Text>
+              <Text style={[styles.modalInputLabel, { color: colors.text }]}>{t.inputBreedLabel}</Text>
               <TextInput
-                style={styles.modalInput}
+                style={[styles.modalInput, { backgroundColor: colors.inputBackground, borderColor: colors.border, color: colors.text }]}
                 value={editBreed}
                 onChangeText={setEditBreed}
-                placeholder="Örn: Tekir, Calico, Sarman"
-                placeholderTextColor={Colors.textMuted}
+                placeholder={t.inputBreedPlaceholderCat}
+                placeholderTextColor={colors.textMuted}
               />
 
               {/* Konum / Bölge */}
-              <Text style={styles.modalInputLabel}>Konum / Bölge Adı *</Text>
-              <Text style={styles.modalHelperText}>
-                💡 Konumu değiştirdiğinde eski konum otomatik olarak geçmişe kaydedilir.
+              <Text style={[styles.modalInputLabel, { color: colors.text }]}>{t.inputRegionLabel} *</Text>
+              <Text style={[styles.modalHelperText, { color: colors.textSecondary }]}>
+                {t.inputRegionHelp}
               </Text>
               <TextInput
-                style={styles.modalInput}
+                style={[styles.modalInput, { backgroundColor: colors.inputBackground, borderColor: colors.border, color: colors.text }]}
                 value={editRegionName}
                 onChangeText={setEditRegionName}
-                placeholder="Örn: Kocatepe Metrosu, Moda Parkı..."
-                placeholderTextColor={Colors.textMuted}
+                placeholder={t.inputRegionPlaceholder}
+                placeholderTextColor={colors.textMuted}
               />
 
               {/* GPS Al Butonu */}
               <TouchableOpacity
-                style={[styles.modalGpsBtn, editCoordinates && styles.modalGpsBtnActive]}
+                style={[
+                  styles.modalGpsBtn,
+                  { backgroundColor: isDark ? '#2D201A' : Colors.primaryLight },
+                  editCoordinates && { backgroundColor: isDark ? '#143022' : Colors.greenLight }
+                ]}
                 onPress={handleGetLocationInEdit}
                 disabled={isGettingLocation}
               >
                 {isGettingLocation ? (
-                  <ActivityIndicator size="small" color={Colors.primary} />
+                  <ActivityIndicator size="small" color={colors.primary} />
                 ) : (
                   <>
                     <Ionicons
                       name={editCoordinates ? 'checkmark-circle' : 'navigate-circle-outline'}
                       size={18}
-                      color={editCoordinates ? Colors.green : Colors.primary}
+                      color={editCoordinates ? colors.green : colors.primary}
                     />
-                    <Text style={styles.modalGpsBtnText}>
+                    <Text style={[styles.modalGpsBtnText, { color: colors.primary }, editCoordinates && { color: colors.green }]}>
                       {editCoordinates
-                        ? `GPS Alındı (${editCoordinates.latitude.toFixed(3)}, ${editCoordinates.longitude.toFixed(3)}) ✓`
-                        : '📍 Güncel GPS Konumumu Al'}
+                        ? `${t.locationAcquired} (${editCoordinates.latitude.toFixed(3)}, ${editCoordinates.longitude.toFixed(3)}) ✓`
+                        : t.getLocationBtn}
                     </Text>
                   </>
                 )}
               </TouchableOpacity>
 
               {/* Notlar */}
-              <Text style={styles.modalInputLabel}>Hakkında Notlar & Bilgiler</Text>
+              <Text style={[styles.modalInputLabel, { color: colors.text }]}>{t.notesTitle}</Text>
               <TextInput
-                style={[styles.modalInput, styles.modalMultilineInput]}
+                style={[styles.modalInput, styles.modalMultilineInput, { backgroundColor: colors.inputBackground, borderColor: colors.border, color: colors.text }]}
                 value={editNotes}
                 onChangeText={setEditNotes}
-                placeholder="Kedi hakkında notlar..."
-                placeholderTextColor={Colors.textMuted}
+                placeholder={t.editNotesPlaceholder}
+                placeholderTextColor={colors.textMuted}
                 multiline
                 numberOfLines={3}
                 textAlignVertical="top"
@@ -1022,14 +1092,14 @@ export default function CatDetailScreen({ route, navigation }) {
 
               <View style={styles.modalActionButtonsRow}>
                 <TouchableOpacity
-                  style={styles.modalCancelBtn}
+                  style={[styles.modalCancelBtn, { backgroundColor: isDark ? '#2D3748' : '#FAF5F0' }]}
                   onPress={() => setIsEditModalVisible(false)}
                 >
-                  <Text style={styles.modalCancelBtnText}>Vazgeç</Text>
+                  <Text style={[styles.modalCancelBtnText, { color: colors.textSecondary }]}>{t.deleteCancel}</Text>
                 </TouchableOpacity>
 
-                <TouchableOpacity style={styles.modalSaveBtn} onPress={handleSaveEditModal}>
-                  <Text style={styles.modalSaveBtnText}>Güncellemeleri Kaydet</Text>
+                <TouchableOpacity style={[styles.modalSaveBtn, { backgroundColor: colors.primary }]} onPress={handleSaveEditModal}>
+                  <Text style={styles.modalSaveBtnText}>{t.toastUpdated}</Text>
                 </TouchableOpacity>
               </View>
             </ScrollView>
@@ -1045,26 +1115,31 @@ export default function CatDetailScreen({ route, navigation }) {
         onRequestClose={() => setIsAddVaccineModalVisible(false)}
       >
         <View style={styles.modalOverlay}>
-          <View style={styles.editModalContent}>
+          <View style={[styles.editModalContent, { backgroundColor: colors.card }]}>
             <View style={styles.modalHeaderRow}>
-              <Text style={styles.modalTitle}>Tamamlanan Aşı Ekle 💉</Text>
+              <Text style={[styles.modalTitle, { color: colors.text }]}>{t.tabCompletedVaccines} 💉</Text>
               <TouchableOpacity onPress={() => setIsAddVaccineModalVisible(false)}>
-                <Ionicons name="close" size={24} color={Colors.textSecondary} />
+                <Ionicons name="close" size={24} color={colors.textSecondary} />
               </TouchableOpacity>
             </View>
 
             <ScrollView showsVerticalScrollIndicator={false}>
-              <Text style={styles.modalInputLabel}>Hızlı Aşı Seç</Text>
+              <Text style={[styles.modalInputLabel, { color: colors.text }]}>Hızlı Aşı Seç</Text>
               <View style={styles.quickTagsWrap}>
                 {QUICK_VACCINE_SUGGESTIONS.map((sug) => (
                   <TouchableOpacity
                     key={sug}
-                    style={[styles.quickTagBtn, newVacName === sug && styles.quickTagBtnActive]}
+                    style={[
+                      styles.quickTagBtn,
+                      { backgroundColor: isDark ? '#2D3748' : '#F3F4F6' },
+                      newVacName === sug && (isDark ? { backgroundColor: '#143022', borderColor: '#1F4E36' } : styles.quickTagBtnActive)
+                    ]}
                     onPress={() => setNewVacName(sug)}
                   >
                     <Text
                       style={[
                         styles.quickTagBtnText,
+                        { color: colors.textSecondary },
                         newVacName === sug && styles.quickTagBtnTextActive,
                       ]}
                     >
@@ -1074,52 +1149,52 @@ export default function CatDetailScreen({ route, navigation }) {
                 ))}
               </View>
 
-              <Text style={styles.modalInputLabel}>Aşı Adı *</Text>
+              <Text style={[styles.modalInputLabel, { color: colors.text }]}>Aşı Adı *</Text>
               <TextInput
-                style={styles.modalInput}
+                style={[styles.modalInput, { backgroundColor: colors.inputBackground, borderColor: colors.border, color: colors.text }]}
                 value={newVacName}
                 onChangeText={setNewVacName}
                 placeholder="Örn: Kuduz Aşısı"
-                placeholderTextColor={Colors.textMuted}
+                placeholderTextColor={colors.textMuted}
               />
 
-              <Text style={styles.modalInputLabel}>Uygulanma Tarihi (YYYY-MM-DD)</Text>
+              <Text style={[styles.modalInputLabel, { color: colors.text }]}>Uygulanma Tarihi (YYYY-MM-DD)</Text>
               <TextInput
-                style={styles.modalInput}
+                style={[styles.modalInput, { backgroundColor: colors.inputBackground, borderColor: colors.border, color: colors.text }]}
                 value={newVacDate}
                 onChangeText={setNewVacDate}
                 placeholder="2026-10-11"
-                placeholderTextColor={Colors.textMuted}
+                placeholderTextColor={colors.textMuted}
               />
 
-              <Text style={styles.modalInputLabel}>Klinik / Veteriner (İsteğe bağlı)</Text>
+              <Text style={[styles.modalInputLabel, { color: colors.text }]}>Klinik / Veteriner (İsteğe bağlı)</Text>
               <TextInput
-                style={styles.modalInput}
+                style={[styles.modalInput, { backgroundColor: colors.inputBackground, borderColor: colors.border, color: colors.text }]}
                 value={newVacClinic}
                 onChangeText={setNewVacClinic}
                 placeholder="Örn: Kadıköy Belediye Vet."
-                placeholderTextColor={Colors.textMuted}
+                placeholderTextColor={colors.textMuted}
               />
 
-              <Text style={styles.modalInputLabel}>Notlar (İsteğe bağlı)</Text>
+              <Text style={[styles.modalInputLabel, { color: colors.text }]}>Notlar (İsteğe bağlı)</Text>
               <TextInput
-                style={styles.modalInput}
+                style={[styles.modalInput, { backgroundColor: colors.inputBackground, borderColor: colors.border, color: colors.text }]}
                 value={newVacNotes}
                 onChangeText={setNewVacNotes}
                 placeholder="Örn: Ense damlası uygulandı"
-                placeholderTextColor={Colors.textMuted}
+                placeholderTextColor={colors.textMuted}
               />
 
               <View style={styles.modalActionButtonsRow}>
                 <TouchableOpacity
-                  style={styles.modalCancelBtn}
+                  style={[styles.modalCancelBtn, { backgroundColor: isDark ? '#2D3748' : '#FAF5F0' }]}
                   onPress={() => setIsAddVaccineModalVisible(false)}
                 >
-                  <Text style={styles.modalCancelBtnText}>Vazgeç</Text>
+                  <Text style={[styles.modalCancelBtnText, { color: colors.textSecondary }]}>{t.deleteCancel}</Text>
                 </TouchableOpacity>
 
-                <TouchableOpacity style={styles.modalSaveBtn} onPress={handleSaveVaccine}>
-                  <Text style={styles.modalSaveBtnText}>Aşıyı Kaydet</Text>
+                <TouchableOpacity style={[styles.modalSaveBtn, { backgroundColor: '#059669' }]} onPress={handleSaveVaccine}>
+                  <Text style={styles.modalSaveBtnText}>{t.addVaccineBtn}</Text>
                 </TouchableOpacity>
               </View>
             </ScrollView>
@@ -1135,26 +1210,31 @@ export default function CatDetailScreen({ route, navigation }) {
         onRequestClose={() => setIsScheduleModalVisible(false)}
       >
         <View style={styles.modalOverlay}>
-          <View style={styles.editModalContent}>
+          <View style={[styles.editModalContent, { backgroundColor: colors.card }]}>
             <View style={styles.modalHeaderRow}>
-              <Text style={styles.modalTitle}>Gelecek Aşı Planla 📅</Text>
+              <Text style={[styles.modalTitle, { color: colors.text }]}>{t.tabScheduledVaccines} 📅</Text>
               <TouchableOpacity onPress={() => setIsScheduleModalVisible(false)}>
-                <Ionicons name="close" size={24} color={Colors.textSecondary} />
+                <Ionicons name="close" size={24} color={colors.textSecondary} />
               </TouchableOpacity>
             </View>
 
             <ScrollView showsVerticalScrollIndicator={false}>
-              <Text style={styles.modalInputLabel}>Hızlı Öneri Seç</Text>
+              <Text style={[styles.modalInputLabel, { color: colors.text }]}>Hızlı Öneri Seç</Text>
               <View style={styles.quickTagsWrap}>
                 {QUICK_SCHEDULE_SUGGESTIONS.map((sug) => (
                   <TouchableOpacity
                     key={sug}
-                    style={[styles.quickTagBtn, newSchName === sug && styles.quickTagBtnActive]}
+                    style={[
+                      styles.quickTagBtn,
+                      { backgroundColor: isDark ? '#2D3748' : '#F3F4F6' },
+                      newSchName === sug && (isDark ? { backgroundColor: '#2C2310', borderColor: '#4B3F1E' } : styles.quickTagBtnActive)
+                    ]}
                     onPress={() => setNewSchName(sug)}
                   >
                     <Text
                       style={[
                         styles.quickTagBtnText,
+                        { color: colors.textSecondary },
                         newSchName === sug && styles.quickTagBtnTextActive,
                       ]}
                     >
@@ -1164,43 +1244,43 @@ export default function CatDetailScreen({ route, navigation }) {
                 ))}
               </View>
 
-              <Text style={styles.modalInputLabel}>Planlanan Aşı Adı *</Text>
+              <Text style={[styles.modalInputLabel, { color: colors.text }]}>Planlanan Aşı Adı *</Text>
               <TextInput
-                style={styles.modalInput}
+                style={[styles.modalInput, { backgroundColor: colors.inputBackground, borderColor: colors.border, color: colors.text }]}
                 value={newSchName}
                 onChangeText={setNewSchName}
                 placeholder="Örn: İç-Dış Parazit Tekrarı"
-                placeholderTextColor={Colors.textMuted}
+                placeholderTextColor={colors.textMuted}
               />
 
-              <Text style={styles.modalInputLabel}>Planlanan Tarih (YYYY-MM-DD) *</Text>
+              <Text style={[styles.modalInputLabel, { color: colors.text }]}>Planlanan Tarih (YYYY-MM-DD) *</Text>
               <TextInput
-                style={styles.modalInput}
+                style={[styles.modalInput, { backgroundColor: colors.inputBackground, borderColor: colors.border, color: colors.text }]}
                 value={newSchDate}
                 onChangeText={setNewSchDate}
                 placeholder="2026-11-15"
-                placeholderTextColor={Colors.textMuted}
+                placeholderTextColor={colors.textMuted}
               />
 
-              <Text style={styles.modalInputLabel}>Hatırlatma Notu (İsteğe bağlı)</Text>
+              <Text style={[styles.modalInputLabel, { color: colors.text }]}>Hatırlatma Notu (İsteğe bağlı)</Text>
               <TextInput
-                style={styles.modalInput}
+                style={[styles.modalInput, { backgroundColor: colors.inputBackground, borderColor: colors.border, color: colors.text }]}
                 value={newSchNotes}
                 onChangeText={setNewSchNotes}
                 placeholder="Örn: 3 aylık periyot için ense damlası"
-                placeholderTextColor={Colors.textMuted}
+                placeholderTextColor={colors.textMuted}
               />
 
               <View style={styles.modalActionButtonsRow}>
                 <TouchableOpacity
-                  style={styles.modalCancelBtn}
+                  style={[styles.modalCancelBtn, { backgroundColor: isDark ? '#2D3748' : '#FAF5F0' }]}
                   onPress={() => setIsScheduleModalVisible(false)}
                 >
-                  <Text style={styles.modalCancelBtnText}>Vazgeç</Text>
+                  <Text style={[styles.modalCancelBtnText, { color: colors.textSecondary }]}>{t.deleteCancel}</Text>
                 </TouchableOpacity>
 
-                <TouchableOpacity style={styles.modalSaveBtn} onPress={handleSaveSchedule}>
-                  <Text style={styles.modalSaveBtnText}>Aşıyı Planla</Text>
+                <TouchableOpacity style={[styles.modalSaveBtn, { backgroundColor: '#D97706' }]} onPress={handleSaveSchedule}>
+                  <Text style={styles.modalSaveBtnText}>{t.scheduleVaccineBtn}</Text>
                 </TouchableOpacity>
               </View>
             </ScrollView>

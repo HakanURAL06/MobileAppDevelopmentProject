@@ -1,11 +1,11 @@
 import React from 'react';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
-import { Text } from 'react-native';
 
 import HomeScreen from './src/screens/HomeScreen';
 import CatListScreen from './src/screens/CatListScreen';
@@ -16,19 +16,64 @@ import AddDogScreen from './src/screens/AddDogScreen';
 import CatDetailScreen from './src/screens/CatDetailScreen';
 import DogDetailScreen from './src/screens/DogDetailScreen';
 import ToastBanner from './src/components/ToastBanner';
-import { Colors } from './src/theme/colors';
+import useCatStore from './src/store/catStore';
+import { getThemeColors, Colors } from './src/theme/colors';
+import { getTranslation } from './src/i18n/translations';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
 
+/**
+ * Üst Başlık Hızlı Tema ve Dil Değiştirici Butonları
+ */
+function HeaderPreferencesButtons() {
+  const theme = useCatStore((state) => state.theme || 'light');
+  const language = useCatStore((state) => state.language || 'tr');
+  const toggleTheme = useCatStore((state) => state.toggleTheme);
+  const toggleLanguage = useCatStore((state) => state.toggleLanguage);
+  const isDark = theme === 'dark';
+
+  return (
+    <View style={styles.headerBtnGroup}>
+      {/* Tema Butonu */}
+      <TouchableOpacity
+        style={[styles.headerIconBtn, { backgroundColor: isDark ? '#272C3D' : 'rgba(255,255,255,0.25)' }]}
+        onPress={toggleTheme}
+        activeOpacity={0.8}
+        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+      >
+        <Text style={styles.headerBtnEmoji}>{isDark ? '🌙' : '☀️'}</Text>
+      </TouchableOpacity>
+
+      {/* Dil Butonu */}
+      <TouchableOpacity
+        style={[styles.headerLangBtn, { backgroundColor: isDark ? '#272C3D' : 'rgba(255,255,255,0.25)' }]}
+        onPress={toggleLanguage}
+        activeOpacity={0.8}
+        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+      >
+        <Text style={styles.headerLangText}>
+          {language === 'tr' ? '🇹🇷 TR' : '🇬🇧 EN'}
+        </Text>
+      </TouchableOpacity>
+    </View>
+  );
+}
+
 // 1. Alt Sekmeler (Ana Sayfa, Kedilerim, Köpeklerim, Harita)
 function BottomTabs() {
+  const theme = useCatStore((state) => state.theme || 'light');
+  const language = useCatStore((state) => state.language || 'tr');
+  const isDark = theme === 'dark';
+  const colors = getThemeColors(theme);
+  const t = getTranslation(language);
+
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
         headerShown: true,
         headerStyle: {
-          backgroundColor: Colors.primary,
+          backgroundColor: isDark ? colors.card : Colors.primary,
           shadowColor: 'transparent',
           elevation: 0,
         },
@@ -37,18 +82,19 @@ function BottomTabs() {
           fontWeight: '800',
           fontSize: 18,
         },
-        tabBarActiveTintColor: Colors.primary,
-        tabBarInactiveTintColor: Colors.textMuted,
+        headerRight: () => <HeaderPreferencesButtons />,
+        tabBarActiveTintColor: colors.primary,
+        tabBarInactiveTintColor: isDark ? colors.textMuted : Colors.textMuted,
         tabBarStyle: {
-          backgroundColor: '#FFFFFF',
+          backgroundColor: isDark ? colors.card : '#FFFFFF',
           borderTopWidth: 1,
-          borderTopColor: '#F5ECE6',
+          borderTopColor: isDark ? colors.cardBorder : '#F5ECE6',
           paddingBottom: 8,
           paddingTop: 8,
           height: 64,
-          shadowColor: Colors.cardShadow,
+          shadowColor: '#000000',
           shadowOffset: { width: 0, height: -4 },
-          shadowOpacity: 0.04,
+          shadowOpacity: isDark ? 0.2 : 0.04,
           shadowRadius: 10,
           elevation: 4,
         },
@@ -74,22 +120,22 @@ function BottomTabs() {
       <Tab.Screen
         name="Home"
         component={HomeScreen}
-        options={{ title: 'Ana Sayfa 🏠' }}
+        options={{ title: t.navHome }}
       />
       <Tab.Screen
         name="CatList"
         component={CatListScreen}
-        options={{ title: 'Kedilerim 🐱' }}
+        options={{ title: t.navCats }}
       />
       <Tab.Screen
         name="DogList"
         component={DogListScreen}
-        options={{ title: 'Köpeklerim 🐶' }}
+        options={{ title: t.navDogs }}
       />
       <Tab.Screen
         name="CatMap"
         component={CatMapScreen}
-        options={{ title: 'Harita 📍' }}
+        options={{ title: t.navMap }}
       />
     </Tab.Navigator>
   );
@@ -97,20 +143,27 @@ function BottomTabs() {
 
 // 2. Ana Uygulama Stack Navigasyonu
 export default function App() {
+  const theme = useCatStore((state) => state.theme || 'light');
+  const language = useCatStore((state) => state.language || 'tr');
+  const isDark = theme === 'dark';
+  const colors = getThemeColors(theme);
+  const t = getTranslation(language);
+
   return (
     <SafeAreaProvider>
       <NavigationContainer>
-        <StatusBar style="light" />
+        <StatusBar style={isDark ? 'light' : 'dark'} />
         <Stack.Navigator
           screenOptions={{
             headerStyle: {
-              backgroundColor: Colors.primary,
+              backgroundColor: isDark ? colors.card : Colors.primary,
             },
             headerTintColor: '#FFFFFF',
             headerTitleStyle: {
               fontWeight: '800',
               fontSize: 18,
             },
+            headerRight: () => <HeaderPreferencesButtons />,
           }}
         >
           {/* Ana Sekmeler */}
@@ -125,8 +178,10 @@ export default function App() {
             name="CatDetail"
             component={CatDetailScreen}
             options={({ route }) => ({
-              title: route.params?.catName ? `${route.params.catName} Profili 🐱` : 'Kedi Detayı',
-              headerBackTitle: 'Geri',
+              title: route.params?.catName
+                ? `${route.params.catName} ${t.profileTitleSuffixCat}`
+                : t.navCatDetail,
+              headerBackTitle: t.navBack,
             })}
           />
 
@@ -135,10 +190,12 @@ export default function App() {
             name="DogDetail"
             component={DogDetailScreen}
             options={({ route }) => ({
-              title: route.params?.dogName ? `${route.params.dogName} Profili 🐶` : 'Köpek Detayı',
-              headerBackTitle: 'Geri',
+              title: route.params?.dogName
+                ? `${route.params.dogName} ${t.profileTitleSuffixDog}`
+                : t.navDogDetail,
+              headerBackTitle: t.navBack,
               headerStyle: {
-                backgroundColor: '#D97706',
+                backgroundColor: isDark ? colors.card : '#D97706',
               },
             })}
           />
@@ -148,8 +205,8 @@ export default function App() {
             name="AddCat"
             component={AddCatScreen}
             options={{
-              title: 'Yeni Kedi Ekle 🐾',
-              headerBackTitle: 'Geri',
+              title: t.navAddCat,
+              headerBackTitle: t.navBack,
             }}
           />
 
@@ -158,10 +215,10 @@ export default function App() {
             name="AddDog"
             component={AddDogScreen}
             options={{
-              title: 'Yeni Köpek Ekle 🐶',
-              headerBackTitle: 'Geri',
+              title: t.navAddDog,
+              headerBackTitle: t.navBack,
               headerStyle: {
-                backgroundColor: '#D97706',
+                backgroundColor: isDark ? colors.card : '#D97706',
               },
             }}
           />
@@ -171,3 +228,34 @@ export default function App() {
     </SafeAreaProvider>
   );
 }
+
+const styles = StyleSheet.create({
+  headerBtnGroup: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginRight: 12,
+  },
+  headerIconBtn: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 14,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  headerBtnEmoji: {
+    fontSize: 14,
+  },
+  headerLangBtn: {
+    paddingHorizontal: 9,
+    paddingVertical: 4,
+    borderRadius: 14,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  headerLangText: {
+    fontSize: 11,
+    fontWeight: '800',
+    color: '#FFFFFF',
+  },
+});

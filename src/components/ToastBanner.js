@@ -9,10 +9,12 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import useCatStore from '../store/catStore';
+import useAppTheme from '../theme/useAppTheme';
 
 export default function ToastBanner() {
   const toast = useCatStore((state) => state.toast);
   const hideToast = useCatStore((state) => state.hideToast);
+  const { isDark, language } = useAppTheme();
 
   const translateY = useRef(new Animated.Value(-100)).current;
   const opacity = useRef(new Animated.Value(0)).current;
@@ -56,29 +58,29 @@ export default function ToastBanner() {
 
   const config = isDelete
     ? {
-        bg: '#FFF1F2',
-        border: '#FECDD3',
+        bg: isDark ? '#2D1B22' : '#FFF1F2',
+        border: isDark ? '#4C2430' : '#FECDD3',
         icon: 'trash',
-        iconColor: '#E11D48',
-        iconBg: '#FFE4E6',
-        title: 'Kedi Silindi',
+        iconColor: isDark ? '#FB7185' : '#E11D48',
+        iconBg: isDark ? '#3D2028' : '#FFE4E6',
+        title: language === 'en' ? 'Removed 🗑️' : 'Kayıt Silindi 🗑️',
       }
     : isInfo
     ? {
-        bg: '#FFF7ED',
-        border: '#FED7AA',
+        bg: isDark ? '#2C2214' : '#FFF7ED',
+        border: isDark ? '#4A3720' : '#FED7AA',
         icon: 'information-circle',
-        iconColor: '#EA580C',
-        iconBg: '#FFEDD5',
-        title: 'Bilgi',
+        iconColor: isDark ? '#FDBA74' : '#EA580C',
+        iconBg: isDark ? '#3B2A15' : '#FFEDD5',
+        title: language === 'en' ? 'Information ℹ️' : 'Bilgi ℹ️',
       }
     : {
-        bg: '#F0FDF4',
-        border: '#BBF7D0',
+        bg: isDark ? '#142C1E' : '#F0FDF4',
+        border: isDark ? '#204A32' : '#BBF7D0',
         icon: 'checkmark-circle',
-        iconColor: '#16A34A',
-        iconBg: '#DCFCE7',
-        title: 'İşlem Başarılı',
+        iconColor: isDark ? '#4ADE80' : '#16A34A',
+        iconBg: isDark ? '#1A3B28' : '#DCFCE7',
+        title: language === 'en' ? 'Success ✓' : 'İşlem Başarılı ✓',
       };
 
   return (
@@ -111,7 +113,7 @@ export default function ToastBanner() {
           <Text style={[styles.title, { color: config.iconColor }]}>
             {config.title}
           </Text>
-          <Text style={styles.message} numberOfLines={2}>
+          <Text style={[styles.message, { color: isDark ? '#F3F4F6' : '#374151' }]} numberOfLines={2}>
             {toast.message}
           </Text>
         </View>
@@ -121,7 +123,7 @@ export default function ToastBanner() {
           onPress={hideToast}
           hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
         >
-          <Ionicons name="close" size={18} color="#9CA3AF" />
+          <Ionicons name="close" size={18} color={isDark ? '#9CA3AF' : '#6B7280'} />
         </TouchableOpacity>
       </TouchableOpacity>
     </Animated.View>

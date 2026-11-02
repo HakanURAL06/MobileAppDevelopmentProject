@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   View,
   Text,
@@ -17,6 +17,7 @@ import { Ionicons } from '@expo/vector-icons';
 import useCatStore from '../store/catStore';
 import { Colors } from '../theme/colors';
 import ImageViewerModal from '../components/ImageViewerModal';
+import useAppTheme from '../theme/useAppTheme';
 
 // Çeşitlendirilmiş İlk Etkileşim Seçenekleri
 const INTERACTION_OPTIONS = [
@@ -80,6 +81,7 @@ const INTERACTION_OPTIONS = [
 export default function AddCatScreen({ navigation }) {
   const addCat = useCatStore((state) => state.addCat);
   const showToast = useCatStore((state) => state.showToast);
+  const { isDark, colors, t, language } = useAppTheme();
 
   const [name, setName] = useState('');
   const [breed, setBreed] = useState('');
@@ -89,6 +91,75 @@ export default function AddCatScreen({ navigation }) {
   const [coordinates, setCoordinates] = useState(null);
   const [isGettingLocation, setIsGettingLocation] = useState(false);
   const [isViewerVisible, setIsViewerVisible] = useState(false);
+
+  const interactionOptions = useMemo(() => [
+    {
+      id: 'feeding',
+      type: 'feeding',
+      emoji: '🥣',
+      title: t.interactionCatFeeding,
+      desc: language === 'en' ? 'Fed with dry or wet food' : 'Kuru veya yaş mama ile besledim',
+      note: t.interactionCatFeedingNote,
+      color: colors.primary,
+      activeBg: isDark ? '#2C1D18' : '#FFF2EC',
+      activeBorder: isDark ? '#4A2A20' : '#FFBFA8',
+    },
+    {
+      id: 'petting',
+      type: 'petting',
+      emoji: '🐾',
+      title: t.interactionCatPetting,
+      desc: language === 'en' ? 'Pet head and chin, purred gently' : 'Başını, çenesini okşadım, kendini sevdirdi',
+      note: t.interactionCatPettingNote,
+      color: '#D946EF',
+      activeBg: isDark ? '#2B142E' : '#FDF4FF',
+      activeBorder: isDark ? '#4A2050' : '#F5D0FE',
+    },
+    {
+      id: 'treat',
+      type: 'feeding',
+      emoji: '🥫',
+      title: t.interactionCatTreat,
+      desc: language === 'en' ? 'Treated with delicious snacks' : 'Ödül krakeri / kreması ikram ettim',
+      note: t.interactionCatTreatNote,
+      color: '#D97706',
+      activeBg: isDark ? '#2C2310' : '#FFFBEB',
+      activeBorder: isDark ? '#4B3F1E' : '#FDE68A',
+    },
+    {
+      id: 'playing',
+      type: 'playing',
+      emoji: '🪶',
+      title: t.interactionCatPlaying,
+      desc: language === 'en' ? 'Played with yarn or toy' : 'İp veya oyuncakla oynadık',
+      note: t.interactionCatPlayingNote,
+      color: '#0284C7',
+      activeBg: isDark ? '#142536' : '#F0F9FF',
+      activeBorder: isDark ? '#1E3E5C' : '#BAE6FD',
+    },
+    {
+      id: 'water',
+      type: 'feeding',
+      emoji: '💧',
+      title: t.interactionCatWater,
+      desc: language === 'en' ? 'Placed fresh clean water' : 'Temiz içme suyu koydum',
+      note: t.interactionCatWaterNote,
+      color: '#0D9488',
+      activeBg: isDark ? '#122826' : '#F0FDFA',
+      activeBorder: isDark ? '#1C4541' : '#CCFBF1',
+    },
+    {
+      id: 'health',
+      type: 'other',
+      emoji: '🩺',
+      title: t.interactionCatHealth,
+      desc: language === 'en' ? 'Checked general health' : 'Göz, kulak, pati ve genel durumuna baktım',
+      note: t.interactionCatHealthNote,
+      color: '#059669',
+      activeBg: isDark ? '#13281E' : '#EEFBF3',
+      activeBorder: isDark ? '#1C4530' : '#A7F3D0',
+    },
+  ], [t, isDark, colors, language]);
 
   // Çoklu seçim: Başlangıçta mama ve sevme varsayılan seçili
   const [selectedInteractions, setSelectedInteractions] = useState(['feeding', 'petting']);
@@ -102,10 +173,10 @@ export default function AddCatScreen({ navigation }) {
 
   // Hepsini Seç / Temizle
   const selectAllInteractions = () => {
-    if (selectedInteractions.length === INTERACTION_OPTIONS.length) {
+    if (selectedInteractions.length === interactionOptions.length) {
       setSelectedInteractions([]);
     } else {
-      setSelectedInteractions(INTERACTION_OPTIONS.map((opt) => opt.id));
+      setSelectedInteractions(interactionOptions.map((opt) => opt.id));
     }
   };
 
@@ -206,7 +277,7 @@ export default function AddCatScreen({ navigation }) {
 
     // Seçilen etkileşimlerin detaylarını hazırla
     const initialInteractionsData = selectedInteractions.map((id) => {
-      const option = INTERACTION_OPTIONS.find((opt) => opt.id === id);
+      const option = interactionOptions.find((opt) => opt.id === id);
       return {
         type: option?.type || 'feeding',
         note: option?.note || 'İlk etkileşim',
@@ -244,22 +315,22 @@ export default function AddCatScreen({ navigation }) {
     }
   };
 
-  const isAllSelected = selectedInteractions.length === INTERACTION_OPTIONS.length;
+  const isAllSelected = selectedInteractions.length === interactionOptions.length;
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
+    <ScrollView style={[styles.container, { backgroundColor: colors.background }]} contentContainerStyle={styles.contentContainer}>
       {/* Başlık Alanı */}
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Yeni Kedi Ekle 🐾</Text>
-        <Text style={styles.headerSubtitle}>
-          Sokakta karşılaştığın minik dostu kaydet, besle ve bağ kurmaya başla!
+        <Text style={[styles.headerTitle, { color: colors.text }]}>{t.addCatHeaderTitle}</Text>
+        <Text style={[styles.headerSubtitle, { color: colors.textSecondary }]}>
+          {t.addCatHeaderSubtitle}
         </Text>
       </View>
 
       {/* FOTOĞRAF ALANI */}
       <View style={styles.photoContainer}>
         {photoUri ? (
-          <View style={styles.imageWrapper}>
+          <View style={[styles.imageWrapper, { borderColor: colors.border }]}>
             <TouchableOpacity
               style={{ width: '100%', height: '100%' }}
               activeOpacity={0.92}
@@ -268,31 +339,31 @@ export default function AddCatScreen({ navigation }) {
               <Image source={{ uri: photoUri }} style={styles.previewImage} />
               <View style={styles.previewZoomBadge}>
                 <Ionicons name="scan-outline" size={13} color="#FFFFFF" />
-                <Text style={styles.previewZoomBadgeText}>Fotoğrafı Büyüt 🔍</Text>
+                <Text style={styles.previewZoomBadgeText}>{t.enlargePhotoBadge}</Text>
               </View>
             </TouchableOpacity>
             <TouchableOpacity
-              style={styles.removePhotoButton}
+              style={[styles.removePhotoButton, { backgroundColor: colors.card }]}
               onPress={() => setPhotoUri(null)}
             >
               <Ionicons name="close-circle" size={26} color="#FF6B6B" />
             </TouchableOpacity>
           </View>
         ) : (
-          <View style={styles.photoEmptyBox}>
-            <Ionicons name="paw" size={44} color={Colors.primary} />
-            <Text style={styles.photoPromptTitle}>Fotoğraf Seç veya Çek</Text>
-            <Text style={styles.photoPromptSub}>Tatlı bir portre eklemek harika olur!</Text>
+          <View style={[styles.photoEmptyBox, { backgroundColor: colors.card, borderColor: isDark ? colors.border : '#FED7D7' }]}>
+            <Ionicons name="paw" size={44} color={colors.primary} />
+            <Text style={[styles.photoPromptTitle, { color: colors.text }]}>{t.photoPickPromptTitle}</Text>
+            <Text style={[styles.photoPromptSub, { color: colors.textSecondary }]}>{t.photoPickPromptSub}</Text>
 
             <View style={styles.photoButtonsRow}>
-              <TouchableOpacity style={styles.photoOptionBtn} onPress={pickFromGallery}>
-                <Ionicons name="images-outline" size={18} color={Colors.primary} />
-                <Text style={styles.photoOptionText}>Galeri</Text>
+              <TouchableOpacity style={[styles.photoOptionBtn, { backgroundColor: isDark ? '#2D201A' : Colors.primaryLight }]} onPress={pickFromGallery}>
+                <Ionicons name="images-outline" size={18} color={colors.primary} />
+                <Text style={[styles.photoOptionText, { color: colors.primary }]}>{t.galleryBtn}</Text>
               </TouchableOpacity>
 
-              <TouchableOpacity style={styles.photoOptionBtn} onPress={takePhotoWithCamera}>
-                <Ionicons name="camera-outline" size={18} color={Colors.primary} />
-                <Text style={styles.photoOptionText}>Kamera</Text>
+              <TouchableOpacity style={[styles.photoOptionBtn, { backgroundColor: isDark ? '#2D201A' : Colors.primaryLight }]} onPress={takePhotoWithCamera}>
+                <Ionicons name="camera-outline" size={18} color={colors.primary} />
+                <Text style={[styles.photoOptionText, { color: colors.primary }]}>{t.cameraBtn}</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -300,16 +371,16 @@ export default function AddCatScreen({ navigation }) {
       </View>
 
       {/* FORM KARTI */}
-      <View style={styles.formCard}>
+      <View style={[styles.formCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
         {/* Kedi Adı */}
         <View style={styles.inputGroup}>
-          <Text style={styles.label}>Kedinin İsmi / Lakabı *</Text>
-          <View style={styles.inputBox}>
-            <Ionicons name="heart-outline" size={20} color={Colors.primary} style={styles.inputIcon} />
+          <Text style={[styles.label, { color: colors.text }]}>{t.inputNameLabel} *</Text>
+          <View style={[styles.inputBox, { backgroundColor: colors.inputBackground, borderColor: colors.border }]}>
+            <Ionicons name="heart-outline" size={20} color={colors.primary} style={styles.inputIcon} />
             <TextInput
-              style={styles.input}
-              placeholder="Örn: Pamuk, Şımarık, Karamel..."
-              placeholderTextColor={Colors.textMuted}
+              style={[styles.input, { color: colors.text }]}
+              placeholder={t.inputNamePlaceholderCat}
+              placeholderTextColor={colors.textMuted}
               value={name}
               onChangeText={setName}
             />
@@ -318,13 +389,13 @@ export default function AddCatScreen({ navigation }) {
 
         {/* Kedi Cinsi */}
         <View style={styles.inputGroup}>
-          <Text style={styles.label}>Cinsi / Renk Deseni</Text>
-          <View style={styles.inputBox}>
-            <Ionicons name="color-palette-outline" size={20} color={Colors.blue} style={styles.inputIcon} />
+          <Text style={[styles.label, { color: colors.text }]}>{t.inputBreedLabel}</Text>
+          <View style={[styles.inputBox, { backgroundColor: colors.inputBackground, borderColor: colors.border }]}>
+            <Ionicons name="color-palette-outline" size={20} color={colors.blue} style={styles.inputIcon} />
             <TextInput
-              style={styles.input}
-              placeholder="Örn: Tekir, Sarman, Calico, Beyaz..."
-              placeholderTextColor={Colors.textMuted}
+              style={[styles.input, { color: colors.text }]}
+              placeholder={t.inputBreedPlaceholderCat}
+              placeholderTextColor={colors.textMuted}
               value={breed}
               onChangeText={setBreed}
             />
@@ -334,20 +405,20 @@ export default function AddCatScreen({ navigation }) {
         {/* Konum / Bölge */}
         <View style={styles.inputGroup}>
           <View style={styles.labelWithBadgeRow}>
-            <Text style={styles.label}>Konum / Bölge Adı *</Text>
-            <View style={styles.groupingHintBadge}>
-              <Text style={styles.groupingHintBadgeText}>📍 Gruplamada Kullanılır</Text>
+            <Text style={[styles.label, { color: colors.text }]}>{t.inputRegionLabel} *</Text>
+            <View style={[styles.groupingHintBadge, { backgroundColor: isDark ? '#2C1D18' : '#FFF2EC' }]}>
+              <Text style={[styles.groupingHintBadgeText, { color: colors.primary }]}>📍 {t.filterLocation}</Text>
             </View>
           </View>
-          <Text style={styles.helperText}>
-            GPS koordinatı alsan bile buraya istediğin ismi (örn: Moda Parkı, Evimin Önü) verebilirsin. Kediler bu isme göre gruplanır.
+          <Text style={[styles.helperText, { color: colors.textSecondary }]}>
+            {t.inputRegionHelp}
           </Text>
-          <View style={styles.inputBox}>
-            <Ionicons name="location-outline" size={20} color={Colors.primary} style={styles.inputIcon} />
+          <View style={[styles.inputBox, { backgroundColor: colors.inputBackground, borderColor: colors.border }]}>
+            <Ionicons name="location-outline" size={20} color={colors.primary} style={styles.inputIcon} />
             <TextInput
-              style={styles.input}
-              placeholder="Örn: Kadıköy Moda Sahili, Kampüs Kantini..."
-              placeholderTextColor={Colors.textMuted}
+              style={[styles.input, { color: colors.text }]}
+              placeholder={t.inputRegionPlaceholder}
+              placeholderTextColor={colors.textMuted}
               value={regionName}
               onChangeText={setRegionName}
             />
@@ -355,51 +426,59 @@ export default function AddCatScreen({ navigation }) {
 
           {/* GPS Konumu Otomatik Alma Butonu */}
           <TouchableOpacity
-            style={[styles.locationBtn, coordinates && styles.locationBtnActive]}
+            style={[
+              styles.locationBtn,
+              { backgroundColor: isDark ? '#2D201A' : Colors.primaryLight },
+              coordinates && { backgroundColor: isDark ? '#143022' : Colors.greenLight }
+            ]}
             onPress={handleGetLocation}
             disabled={isGettingLocation}
           >
             {isGettingLocation ? (
-              <ActivityIndicator size="small" color={Colors.primary} />
+              <ActivityIndicator size="small" color={colors.primary} />
             ) : (
               <>
                 <Ionicons
                   name={coordinates ? 'checkmark-circle' : 'navigate-circle-outline'}
                   size={18}
-                  color={coordinates ? Colors.green : Colors.primary}
+                  color={coordinates ? colors.green : colors.primary}
                 />
-                <Text style={[styles.locationBtnText, coordinates && styles.locationBtnTextActive]}>
+                <Text style={[
+                  styles.locationBtnText,
+                  { color: colors.primary },
+                  coordinates && { color: colors.green }
+                ]}>
                   {coordinates
-                    ? `GPS Alındı (${coordinates.latitude.toFixed(3)}, ${coordinates.longitude.toFixed(3)}) ✓`
-                    : '📍 Mevcut GPS Konumumu Al'}
+                    ? `${t.locationAcquired} (${coordinates.latitude.toFixed(3)}, ${coordinates.longitude.toFixed(3)})`
+                    : t.getLocationBtn}
                 </Text>
               </>
             )}
           </TouchableOpacity>
           {coordinates && (
-            <Text style={styles.gpsSuccessHint}>
-              💡 GPS koordinatları kaydedildi. Yukarıdaki bölge adını istediğin gibi düzenleyebilirsin.
+            <Text style={[styles.gpsSuccessHint, { color: colors.green }]}>
+              💡 {t.locationAcquired}
             </Text>
           )}
         </View>
 
         {/* Kedi Hakkında Notlar & Bilgiler */}
         <View style={styles.inputGroup}>
-          <Text style={styles.label}>Hakkında Notlar & Özel Bilgiler 📝</Text>
-          <Text style={styles.helperText}>
-            Karakteri, aşı durumu, sevdiği mamalar veya dikkat edilmesi gereken huyları (İsteğe bağlı)
+          <Text style={[styles.label, { color: colors.text }]}>{t.inputNotesLabel} 📝</Text>
+          <Text style={[styles.helperText, { color: colors.textSecondary }]}>
+            {t.notesTitle}
           </Text>
-          <View style={[styles.inputBox, styles.notesInputBox]}>
+          <View style={[styles.inputBox, styles.notesInputBox, { backgroundColor: colors.inputBackground, borderColor: colors.border }]}>
             <Ionicons
               name="create-outline"
               size={20}
-              color={Colors.primary}
+              color={colors.primary}
               style={[styles.inputIcon, { marginTop: 12, alignSelf: 'flex-start' }]}
             />
             <TextInput
-              style={[styles.input, styles.notesInput]}
-              placeholder="Örn: Sol kulağında çentik var, somonlu yaş mamayı çok seviyor, çok uysal ve kucak istiyor..."
-              placeholderTextColor={Colors.textMuted}
+              style={[styles.input, styles.notesInput, { color: colors.text }]}
+              placeholder={t.inputNotesPlaceholderCat}
+              placeholderTextColor={colors.textMuted}
               value={notes}
               onChangeText={setNotes}
               multiline
@@ -410,39 +489,39 @@ export default function AddCatScreen({ navigation }) {
         </View>
 
         {/* ÇEŞİTLENDİRİLMİŞ İLK ETKİLEŞİM SEÇENEKLERİ ALANI */}
-        <View style={styles.interactionSection}>
+        <View style={[styles.interactionSection, { borderTopColor: colors.border }]}>
           <View style={styles.interactionHeaderRow}>
             <View style={{ flex: 1 }}>
               <View style={styles.interactionTitleBox}>
-                <Ionicons name="sparkles" size={18} color={Colors.primary} />
-                <Text style={styles.interactionMainTitle}>İlk Tanışma & Etkileşimler</Text>
+                <Ionicons name="sparkles" size={18} color={colors.primary} />
+                <Text style={[styles.interactionMainTitle, { color: colors.text }]}>{t.initialInteractionsTitle}</Text>
               </View>
-              <Text style={styles.interactionMainSubtitle}>
-                Bu sevimli dostla ilk karşılaştığında hangilerini yaptın?
+              <Text style={[styles.interactionMainSubtitle, { color: colors.textSecondary }]}>
+                {t.initialInteractionsHelp}
               </Text>
             </View>
 
             {/* Hepsini Seç / Temizle Butonu */}
-            <TouchableOpacity style={styles.toggleAllBtn} onPress={selectAllInteractions}>
-              <Text style={styles.toggleAllBtnText}>
-                {isAllSelected ? 'Temizle' : 'Tümünü Seç'}
+            <TouchableOpacity style={[styles.toggleAllBtn, { backgroundColor: isDark ? '#2D3748' : '#FAF5F0' }]} onPress={selectAllInteractions}>
+              <Text style={[styles.toggleAllBtnText, { color: colors.textSecondary }]}>
+                {isAllSelected ? t.clearAll : t.selectAll}
               </Text>
             </TouchableOpacity>
           </View>
 
           {/* Seçim Sayacı Rozeti */}
-          <View style={styles.selectionCountBar}>
-            <Ionicons name="heart" size={14} color={Colors.primaryDark} />
-            <Text style={styles.selectionCountText}>
+          <View style={[styles.selectionCountBar, { backgroundColor: isDark ? '#2C1D18' : '#FFF7F2' }]}>
+            <Ionicons name="heart" size={14} color={colors.primary} />
+            <Text style={[styles.selectionCountText, { color: colors.primary }]}>
               {selectedInteractions.length > 0
-                ? `${selectedInteractions.length} Etkileşim Seçildi (+${selectedInteractions.length} Bağ Puanı)`
-                : 'Henüz bir etkileşim seçilmedi'}
+                ? `${selectedInteractions.length} ${t.recordsCount}`
+                : '...'}
             </Text>
           </View>
 
           {/* Etkileşim Seçenek Kartları */}
           <View style={styles.optionsList}>
-            {INTERACTION_OPTIONS.map((option) => {
+            {interactionOptions.map((option) => {
               const isSelected = selectedInteractions.includes(option.id);
 
               return (
@@ -450,6 +529,7 @@ export default function AddCatScreen({ navigation }) {
                   key={option.id}
                   style={[
                     styles.optionCard,
+                    { backgroundColor: isDark ? colors.card : '#FFFDF9', borderColor: colors.border },
                     isSelected && {
                       backgroundColor: option.activeBg,
                       borderColor: option.activeBorder,
@@ -458,7 +538,7 @@ export default function AddCatScreen({ navigation }) {
                   activeOpacity={0.8}
                   onPress={() => toggleInteraction(option.id)}
                 >
-                  <View style={styles.optionEmojiBox}>
+                  <View style={[styles.optionEmojiBox, { backgroundColor: isDark ? '#2D3748' : '#FFFFFF' }]}>
                     <Text style={styles.optionEmoji}>{option.emoji}</Text>
                   </View>
 
@@ -466,18 +546,20 @@ export default function AddCatScreen({ navigation }) {
                     <Text
                       style={[
                         styles.optionTitle,
-                        isSelected && { color: Colors.text, fontWeight: '800' },
+                        { color: colors.text },
+                        isSelected && { color: colors.text, fontWeight: '800' },
                       ]}
                     >
                       {option.title}
                     </Text>
-                    <Text style={styles.optionDesc}>{option.desc}</Text>
+                    <Text style={[styles.optionDesc, { color: colors.textSecondary }]}>{option.desc}</Text>
                   </View>
 
                   {/* Seçim Göstergesi (Checkbox / Checkmark) */}
                   <View
                     style={[
                       styles.checkCircle,
+                      { borderColor: colors.border, backgroundColor: isDark ? '#2D3748' : '#FFFFFF' },
                       isSelected && {
                         backgroundColor: option.color,
                         borderColor: option.color,
@@ -495,8 +577,8 @@ export default function AddCatScreen({ navigation }) {
         </View>
 
         {/* KAYDET BUTONU */}
-        <TouchableOpacity style={styles.submitButton} onPress={handleSubmit} activeOpacity={0.88}>
-          <Text style={styles.submitButtonText}>Patili Dostu Kaydet 🐾</Text>
+        <TouchableOpacity style={[styles.submitButton, { backgroundColor: colors.primary }]} onPress={handleSubmit} activeOpacity={0.88}>
+          <Text style={styles.submitButtonText}>{t.submitAddCatBtn}</Text>
         </TouchableOpacity>
       </View>
 

@@ -13,12 +13,14 @@ import useCatStore from '../store/catStore';
 import CatMap from '../components/CatMap';
 import { Colors } from '../theme/colors';
 import { getImageSource } from '../utils/imageHelper';
+import useAppTheme from '../theme/useAppTheme';
 
 export default function CatMapScreen({ navigation }) {
   const cats = useCatStore((state) => state.cats || []);
   const dogs = useCatStore((state) => state.dogs || []);
   const getBondLevelInfo = useCatStore((state) => state.getBondLevelInfo);
   const getDogBondLevelInfo = useCatStore((state) => state.getDogBondLevelInfo);
+  const { isDark, colors, t, language } = useAppTheme();
 
   const [speciesFilter, setSpeciesFilter] = useState('all'); // all | cats | dogs
   const [location, setLocation] = useState(null);
@@ -62,7 +64,7 @@ export default function CatMapScreen({ navigation }) {
       const region =
         (typeof animal.location === 'object'
           ? animal.location?.regionName
-          : animal.location) || 'Genel Bölge';
+          : animal.location) || (language === 'en' ? 'General Region' : 'Genel Bölge');
       if (!groups[region]) groups[region] = [];
       groups[region].push(animal);
     });
@@ -70,7 +72,7 @@ export default function CatMapScreen({ navigation }) {
       regionName,
       animalList,
     }));
-  }, [allAnimals]);
+  }, [allAnimals, language]);
 
   const handleSelectAnimal = (animal) => {
     if (animal.isDog || animal.id?.startsWith('dog-')) {
@@ -87,44 +89,74 @@ export default function CatMapScreen({ navigation }) {
   };
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
+    <ScrollView style={[styles.container, { backgroundColor: colors.background }]} contentContainerStyle={styles.contentContainer}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Canlı Hayvan Haritası 📍</Text>
-        <Text style={styles.headerSub}>Bölgelerdeki kedi ve köpek dostların konumları</Text>
+        <Text style={[styles.headerTitle, { color: colors.text }]}>{t.mapTitle}</Text>
+        <Text style={[styles.headerSub, { color: colors.textSecondary }]}>{t.mapSub}</Text>
       </View>
 
       {/* TÜR FİLTRESİ (TÜMÜ, KEDİLER, KÖPEKLER) */}
       <View style={styles.filterRow}>
         <TouchableOpacity
-          style={[styles.filterChip, speciesFilter === 'all' && styles.filterChipActive]}
+          style={[
+            styles.filterChip,
+            { backgroundColor: isDark ? colors.card : '#FFFFFF', borderColor: colors.border },
+            speciesFilter === 'all' && { backgroundColor: colors.text, borderColor: colors.text },
+          ]}
           onPress={() => setSpeciesFilter('all')}
         >
-          <Text style={[styles.filterChipText, speciesFilter === 'all' && styles.filterChipTextActive]}>
-            Tümü 🐾 ({cats.length + dogs.length})
+          <Text
+            style={[
+              styles.filterChipText,
+              { color: colors.textSecondary },
+              speciesFilter === 'all' && { color: isDark ? '#000000' : '#FFFFFF' },
+            ]}
+          >
+            {t.filterAll} 🐾 ({cats.length + dogs.length})
           </Text>
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={[styles.filterChip, speciesFilter === 'cats' && styles.filterChipActiveCat]}
+          style={[
+            styles.filterChip,
+            { backgroundColor: isDark ? colors.card : '#FFFFFF', borderColor: colors.border },
+            speciesFilter === 'cats' && styles.filterChipActiveCat,
+          ]}
           onPress={() => setSpeciesFilter('cats')}
         >
-          <Text style={[styles.filterChipText, speciesFilter === 'cats' && styles.filterChipTextActive]}>
-            Kediler 🐱 ({cats.length})
+          <Text
+            style={[
+              styles.filterChipText,
+              { color: colors.textSecondary },
+              speciesFilter === 'cats' && styles.filterChipTextActive,
+            ]}
+          >
+            {t.homeStatCats} 🐱 ({cats.length})
           </Text>
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={[styles.filterChip, speciesFilter === 'dogs' && styles.filterChipActiveDog]}
+          style={[
+            styles.filterChip,
+            { backgroundColor: isDark ? colors.card : '#FFFFFF', borderColor: colors.border },
+            speciesFilter === 'dogs' && styles.filterChipActiveDog,
+          ]}
           onPress={() => setSpeciesFilter('dogs')}
         >
-          <Text style={[styles.filterChipText, speciesFilter === 'dogs' && styles.filterChipTextActive]}>
-            Köpekler 🐶 ({dogs.length})
+          <Text
+            style={[
+              styles.filterChipText,
+              { color: colors.textSecondary },
+              speciesFilter === 'dogs' && styles.filterChipTextActive,
+            ]}
+          >
+            {t.homeStatDogs} 🐶 ({dogs.length})
           </Text>
         </TouchableOpacity>
       </View>
 
       {/* Harita Kartı */}
-      <View style={styles.mapCard}>
+      <View style={[styles.mapCard, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}>
         <CatMap
           animals={allAnimals}
           location={location}
@@ -133,25 +165,25 @@ export default function CatMapScreen({ navigation }) {
       </View>
 
       {/* Bölgelere Göre Hayvanlar */}
-      <Text style={styles.sectionTitle}>🏘️ Bölgelere Göre Patili Dostlar</Text>
+      <Text style={[styles.sectionTitle, { color: colors.text }]}>🏘️ {t.filterLocation}</Text>
       {groupedAnimals.length === 0 ? (
-        <View style={styles.emptyMapListBox}>
+        <View style={[styles.emptyMapListBox, { backgroundColor: colors.card, borderColor: colors.border }]}>
           <Text style={styles.emptyMapEmoji}>🐾</Text>
-          <Text style={styles.emptyMapTitle}>Henüz haritada gösterilecek can yok</Text>
-          <Text style={styles.emptyMapSub}>
-            Yeni bir kedi veya köpek eklediğinde burada bölgesi ve harita üzerindeki konumu belirecektir.
+          <Text style={[styles.emptyMapTitle, { color: colors.text }]}>{t.mapNoLocation}</Text>
+          <Text style={[styles.emptyMapSub, { color: colors.textSecondary }]}>
+            {t.homeGreetingSubtitle}
           </Text>
         </View>
       ) : (
         groupedAnimals.map((group) => (
-          <View key={group.regionName} style={styles.groupCard}>
-            <View style={styles.groupHeader}>
+          <View key={group.regionName} style={[styles.groupCard, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}>
+            <View style={[styles.groupHeader, { borderBottomColor: colors.border }]}>
               <View style={styles.groupTitleBox}>
-                <Ionicons name="location" size={16} color={Colors.primary} />
-                <Text style={styles.groupTitleText}>{group.regionName}</Text>
+                <Ionicons name="location" size={16} color={colors.primary} />
+                <Text style={[styles.groupTitleText, { color: colors.text }]}>{group.regionName}</Text>
               </View>
-              <View style={styles.groupCountChip}>
-                <Text style={styles.groupCountText}>{group.animalList.length} Can</Text>
+              <View style={[styles.groupCountChip, { backgroundColor: isDark ? '#2D3748' : '#FAF5F0' }]}>
+                <Text style={[styles.groupCountText, { color: colors.textSecondary }]}>{group.animalList.length} {t.homeStatTotal}</Text>
               </View>
             </View>
 
@@ -164,36 +196,43 @@ export default function CatMapScreen({ navigation }) {
 
               const isDog = animal.isDog || animal.id?.startsWith('dog-');
               const bond = isDog
-                ? getDogBondLevelInfo(animal.interactionHistory?.length || 0)
-                : getBondLevelInfo(animal.interactionHistory?.length || 0);
+                ? getDogBondLevelInfo(animal.interactionHistory?.length || 0, language)
+                : getBondLevelInfo(animal.interactionHistory?.length || 0, language);
 
               return (
                 <TouchableOpacity
                   key={animal.id}
-                  style={[styles.animalCard, isDog && styles.animalCardDog]}
+                  style={[
+                    styles.animalCard,
+                    { backgroundColor: isDark ? '#1E293B' : '#FFFBF9', borderColor: colors.border },
+                    isDog && { backgroundColor: isDark ? '#261C14' : '#FFFDF5', borderColor: isDark ? '#4A331A' : '#FEF3C7' },
+                  ]}
                   activeOpacity={0.85}
                   onPress={() => handleSelectAnimal(animal)}
                 >
                   <Image source={getImageSource(photo)} style={styles.animalAvatar} />
                   <View style={styles.animalInfo}>
                     <View style={styles.nameRow}>
-                      <Text style={styles.animalName}>{animal.name}</Text>
+                      <Text style={[styles.animalName, { color: colors.text }]}>{animal.name}</Text>
                       <Text style={{ fontSize: 13, marginLeft: 4 }}>{isDog ? '🐶' : '🐱'}</Text>
                     </View>
-                    <Text style={styles.animalBreed}>{animal.breed}</Text>
+                    <Text style={[styles.animalBreed, { color: colors.textSecondary }]}>{animal.breed}</Text>
                   </View>
                   <View style={[styles.bondBadge, { backgroundColor: bond.badgeBg }]}>
                     <Text style={[styles.bondBadgeText, { color: bond.color }]}>
                       {bond.title}
                     </Text>
                   </View>
-                  <Ionicons name="chevron-forward" size={16} color={isDog ? '#D97706' : Colors.primary} />
+                  <Ionicons name="chevron-forward" size={16} color={isDog ? '#D97706' : colors.primary} />
                 </TouchableOpacity>
               );
             })}
           </View>
         ))
       )}
+    </ScrollView>
+  );
+}
     </ScrollView>
   );
 }

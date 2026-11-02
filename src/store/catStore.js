@@ -58,10 +58,10 @@ export const INITIAL_CATS = [
     id: 'cat-avci',
     name: 'Avcı',
     photos: [
-      require('../../assets/cats/avci1.jpg'),
-      require('../../assets/cats/avci3.jpg'),
+      'avci1.jpg',
+      'avci3.jpg',
     ],
-    photoUri: require('../../assets/cats/avci1.jpg'),
+    photoUri: 'avci1.jpg',
     breed: 'Tekir',
     location: {
       latitude: 41.0475,
@@ -134,10 +134,10 @@ export const INITIAL_CATS = [
     id: 'cat-habes',
     name: 'Habeş',
     photos: [
-      require('../../assets/cats/habes1.jpg'),
-      require('../../assets/cats/habes2.jpg'),
+      'habes1.jpg',
+      'habes2.jpg',
     ],
-    photoUri: require('../../assets/cats/habes1.jpg'),
+    photoUri: 'habes1.jpg',
     breed: 'Uzun Tüylü Calico',
     location: {
       latitude: 41.025,
@@ -225,11 +225,11 @@ export const INITIAL_CATS = [
     id: 'cat-prenses',
     name: 'Prenses',
     photos: [
-      require('../../assets/cats/prenses1.jpg'),
-      require('../../assets/cats/prenses2.jpg'),
-      require('../../assets/cats/prenses3.jpg'),
+      'prenses1.jpg',
+      'prenses2.jpg',
+      'prenses3.jpg',
     ],
-    photoUri: require('../../assets/cats/prenses1.jpg'),
+    photoUri: 'prenses1.jpg',
     breed: 'Gri-Beyaz',
     location: {
       latitude: 41.0125,
@@ -284,11 +284,11 @@ export const INITIAL_CATS = [
     id: 'cat-puskul',
     name: 'Püskül',
     photos: [
-      require('../../assets/cats/puskul1.jpg'),
-      require('../../assets/cats/puskul2.jpg'),
-      require('../../assets/cats/puskul3.jpg'),
+      'puskul1.jpg',
+      'puskul2.jpg',
+      'puskul3.jpg',
     ],
-    photoUri: require('../../assets/cats/puskul1.jpg'),
+    photoUri: 'puskul1.jpg',
     breed: 'Uzun Tüylü Calico',
     location: {
       latitude: 41.0138,
@@ -344,6 +344,35 @@ export const useCatStore = create(
       dogs: INITIAL_DOGS,
       isLoading: false,
       toast: null, // { message: string, type: 'success' | 'delete' | 'info', id: number }
+
+      // Uygulama Tercihleri (Tema & Dil)
+      theme: 'light', // 'light' | 'dark'
+      language: 'tr', // 'tr' | 'en'
+
+      setTheme: (theme) => set({ theme }),
+      toggleTheme: () => {
+        const nextTheme = get().theme === 'dark' ? 'light' : 'dark';
+        set({ theme: nextTheme });
+        const isEn = get().language === 'en';
+        get().showToast(
+          nextTheme === 'dark'
+            ? (isEn ? 'Dark mode activated 🌙' : 'Koyu tema aktif edildi 🌙')
+            : (isEn ? 'Light mode activated ☀️' : 'Açık tema aktif edildi ☀️'),
+          'info'
+        );
+      },
+
+      setLanguage: (language) => set({ language }),
+      toggleLanguage: () => {
+        const nextLang = get().language === 'tr' ? 'en' : 'tr';
+        set({ language: nextLang });
+        get().showToast(
+          nextLang === 'tr'
+            ? 'Uygulama dili Türkçe olarak ayarlandı 🇹🇷'
+            : 'Language switched to English 🇬🇧',
+          'info'
+        );
+      },
 
       /**
        * Toast Bildirimi Gösterme
@@ -960,18 +989,19 @@ export const useCatStore = create(
       /**
        * Kediler için Bağ Seviyesi
        */
-      getBondLevelInfo: (interactionCount = 0) => {
+      getBondLevelInfo: (interactionCount = 0, langParam = null) => {
         const count = typeof interactionCount === 'number' ? interactionCount : (interactionCount?.length || 0);
+        const isEn = (langParam || get().language) === 'en';
 
         if (count >= 9) {
           return {
             level: 3,
-            title: 'Aile 💖',
+            title: isEn ? 'Family 💖' : 'Aile 💖',
             color: Colors.level3,
             badgeBg: Colors.level3Bg,
             progressPercent: 100,
-            description: 'Bu kedi artık senin ailenden biri!',
-            nextTargetText: 'En yüksek bağ seviyesine ulaşıldı! 🌟',
+            description: isEn ? 'This cat is now part of your family!' : 'Bu kedi artık senin ailenden biri!',
+            nextTargetText: isEn ? 'Highest bond level achieved! 🌟' : 'En yüksek bağ seviyesine ulaşıldı! 🌟',
             remainingCount: 0,
           };
         } else if (count >= 4) {
@@ -979,12 +1009,12 @@ export const useCatStore = create(
           const remaining = 9 - count;
           return {
             level: 2,
-            title: 'Dost 😺',
+            title: isEn ? 'Friend 😺' : 'Dost 😺',
             color: Colors.level2,
             badgeBg: Colors.level2Bg,
             progressPercent: progress,
-            description: 'Artık birbirinizi çok iyi tanıyorsunuz!',
-            nextTargetText: `'Aile' seviyesine ${remaining} etkileşim kaldı.`,
+            description: isEn ? 'You know each other very well now!' : 'Artık birbirinizi çok iyi tanıyorsunuz!',
+            nextTargetText: isEn ? `${remaining} more interactions to 'Family' level.` : `'Aile' seviyesine ${remaining} etkileşim kaldı.`,
             remainingCount: remaining,
           };
         } else if (count >= 1) {
@@ -992,24 +1022,24 @@ export const useCatStore = create(
           const remaining = 4 - count;
           return {
             level: 1,
-            title: 'Tanışıklık 🐾',
+            title: isEn ? 'Acquaintance 🐾' : 'Tanışıklık 🐾',
             color: Colors.level1,
             badgeBg: Colors.level1Bg,
             progressPercent: progress,
-            description: 'İlk adımlar atıldı, bağınız güçleniyor.',
-            nextTargetText: `'Dost' seviyesine ${remaining} etkileşim kaldı.`,
+            description: isEn ? 'First steps taken, your bond is growing.' : 'İlk adımlar atıldı, bağınız güçleniyor.',
+            nextTargetText: isEn ? `${remaining} more interactions to 'Friend' level.` : `'Dost' seviyesine ${remaining} etkileşim kaldı.`,
             remainingCount: remaining,
           };
         }
 
         return {
           level: 0,
-          title: 'Yeni Tanışma 🌱',
+          title: isEn ? 'New Encounter 🌱' : 'Yeni Tanışma 🌱',
           color: Colors.green,
           badgeBg: Colors.greenLight,
           progressPercent: 5,
-          description: 'Henüz bir etkileşim girilmedi.',
-          nextTargetText: "'Tanışıklık' için ilk mamayı veya sevgiyi ver!",
+          description: isEn ? 'No interactions recorded yet.' : 'Henüz bir etkileşim girilmedi.',
+          nextTargetText: isEn ? "Give some food or affection for 'Acquaintance'!" : "'Tanışıklık' için ilk mamayı veya sevgiyi ver!",
           remainingCount: 1,
         };
       },
@@ -1017,18 +1047,19 @@ export const useCatStore = create(
       /**
        * Köpekler için Bağ Seviyesi (Özelleştirilmiş Sadakat Dereceleri)
        */
-      getDogBondLevelInfo: (interactionCount = 0) => {
+      getDogBondLevelInfo: (interactionCount = 0, langParam = null) => {
         const count = typeof interactionCount === 'number' ? interactionCount : (interactionCount?.length || 0);
+        const isEn = (langParam || get().language) === 'en';
 
         if (count >= 9) {
           return {
             level: 3,
-            title: 'Can Yoldaşı 💖',
+            title: isEn ? 'Soul Companion 💖' : 'Can Yoldaşı 💖',
             color: Colors.level3,
             badgeBg: Colors.level3Bg,
             progressPercent: 100,
-            description: 'Bu sadık dost artık senin ailenden ve canından biri!',
-            nextTargetText: 'En yüksek sadakat ve bağ seviyesine ulaşıldı! 🌟',
+            description: isEn ? 'This loyal friend is now part of your heart and family!' : 'Bu sadık dost artık senin ailenden ve canından biri!',
+            nextTargetText: isEn ? 'Highest loyalty and bond level achieved! 🌟' : 'En yüksek sadakat ve bağ seviyesine ulaşıldı! 🌟',
             remainingCount: 0,
           };
         } else if (count >= 4) {
@@ -1036,12 +1067,12 @@ export const useCatStore = create(
           const remaining = 9 - count;
           return {
             level: 2,
-            title: 'Sadık Dost 🐕',
+            title: isEn ? 'Loyal Friend 🐕' : 'Sadık Dost 🐕',
             color: Colors.level2,
             badgeBg: Colors.level2Bg,
             progressPercent: progress,
-            description: 'Seni görünce neşeyle kuyruk sallıyor, aranızda harika bir bağ var!',
-            nextTargetText: `'Can Yoldaşı' seviyesine ${remaining} etkileşim kaldı.`,
+            description: isEn ? 'Wags tail happily when seeing you, you have a great bond!' : 'Seni görünce neşeyle kuyruk sallıyor, aranızda harika bir bağ var!',
+            nextTargetText: isEn ? `${remaining} more interactions to 'Soul Companion'.` : `'Can Yoldaşı' seviyesine ${remaining} etkileşim kaldı.`,
             remainingCount: remaining,
           };
         } else if (count >= 1) {
@@ -1049,24 +1080,24 @@ export const useCatStore = create(
           const remaining = 4 - count;
           return {
             level: 1,
-            title: 'Tanışıklık 🐾',
+            title: isEn ? 'Acquaintance 🐾' : 'Tanışıklık 🐾',
             color: Colors.level1,
             badgeBg: Colors.level1Bg,
             progressPercent: progress,
-            description: 'İlk adımlar atıldı, yavaş yavaş sana ısınıyor.',
-            nextTargetText: `'Sadık Dost' seviyesine ${remaining} etkileşim kaldı.`,
+            description: isEn ? 'First steps taken, slowly getting warm to you.' : 'İlk adımlar atıldı, yavaş yavaş sana ısınıyor.',
+            nextTargetText: isEn ? `${remaining} more interactions to 'Loyal Friend'.` : `'Sadık Dost' seviyesine ${remaining} etkileşim kaldı.`,
             remainingCount: remaining,
           };
         }
 
         return {
           level: 0,
-          title: 'Yeni Tanışma 🌱',
+          title: isEn ? 'New Encounter 🌱' : 'Yeni Tanışma 🌱',
           color: Colors.green,
           badgeBg: Colors.greenLight,
           progressPercent: 5,
-          description: 'Henüz bir etkileşim girilmedi.',
-          nextTargetText: "'Tanışıklık' için ilk mamayı veya yürüyüşü yap!",
+          description: isEn ? 'No interactions recorded yet.' : 'Henüz bir etkileşim girilmedi.',
+          nextTargetText: isEn ? "Give some food or take a walk for 'Acquaintance'!" : "'Tanışıklık' için ilk mamayı veya yürüyüşü yap!",
           remainingCount: 1,
         };
       },
@@ -1077,18 +1108,33 @@ export const useCatStore = create(
       partialize: (state) => ({
         cats: state.cats,
         dogs: state.dogs || [],
+        theme: state.theme || 'light',
+        language: state.language || 'tr',
       }),
       onRehydrateStorage: () => (state) => {
         if (state) {
           if (!Array.isArray(state.dogs)) {
             state.dogs = [];
           }
+          if (!state.theme) state.theme = 'light';
+          if (!state.language) state.language = 'tr';
 
           if (Array.isArray(state.cats)) {
             state.cats = state.cats.map((cat) => {
               const seedMatch = INITIAL_CATS.find((c) => c.id === cat.id);
+              let photos = cat.photos;
+              if (!Array.isArray(photos) || photos.length === 0 || typeof photos[0] === 'number') {
+                photos = seedMatch ? [...seedMatch.photos] : (cat.photoUri ? [cat.photoUri] : []);
+              }
+              let photoUri = cat.photoUri;
+              if (!photoUri || typeof photoUri === 'number') {
+                photoUri = seedMatch?.photoUri || photos[0] || null;
+              }
+
               return {
                 ...cat,
+                photos,
+                photoUri,
                 locationHistory: cat.locationHistory || seedMatch?.locationHistory || [],
                 vaccinations: cat.vaccinations || seedMatch?.vaccinations || [],
                 scheduledVaccines: cat.scheduledVaccines || seedMatch?.scheduledVaccines || [],

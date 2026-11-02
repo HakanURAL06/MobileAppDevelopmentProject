@@ -15,6 +15,7 @@ import { Ionicons } from '@expo/vector-icons';
 import useCatStore from '../store/catStore';
 import { Colors } from '../theme/colors';
 import { getImageSource } from '../utils/imageHelper';
+import useAppTheme from '../theme/useAppTheme';
 
 const GROUP_OPTIONS = [
   { id: 'all', title: 'Tümü', emoji: '📋' },
@@ -27,6 +28,14 @@ export default function DogListScreen({ navigation }) {
   const dogs = useCatStore((state) => state.dogs || []);
   const deleteDog = useCatStore((state) => state.deleteDog);
   const getDogBondLevelInfo = useCatStore((state) => state.getDogBondLevelInfo);
+  const { isDark, colors, t, language } = useAppTheme();
+
+  const groupOptions = useMemo(() => [
+    { id: 'all', title: t.filterAll, emoji: '📋' },
+    { id: 'location', title: t.filterLocation, emoji: '📍' },
+    { id: 'breed', title: t.filterBreed, emoji: '🐾' },
+    { id: 'bond', title: language === 'en' ? 'By Loyalty Level' : 'Sadakat Seviyesine Göre', emoji: '💖' },
+  ], [t, language]);
 
   const [searchQuery, setSearchQuery] = useState('');
   const [groupBy, setGroupBy] = useState('all');
@@ -144,7 +153,7 @@ export default function DogListScreen({ navigation }) {
 
     const photoCount = item.photos?.length || (item.photoUri ? 1 : 0);
     const interactionCount = item.interactionHistory?.length || 0;
-    const bondInfo = getDogBondLevelInfo(interactionCount);
+    const bondInfo = getDogBondLevelInfo(interactionCount, language);
     const locationName =
       typeof item.location === 'object' ? item.location?.regionName : item.location;
     const vacCount = item.vaccinations?.length || 0;
@@ -152,7 +161,7 @@ export default function DogListScreen({ navigation }) {
 
     return (
       <TouchableOpacity
-        style={styles.dogCard}
+        style={[styles.dogCard, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}
         activeOpacity={0.85}
         onPress={() =>
           navigation.navigate('DogDetail', {
@@ -165,7 +174,7 @@ export default function DogListScreen({ navigation }) {
 
         <View style={styles.dogInfo}>
           <View style={styles.dogTopRow}>
-            <Text style={styles.dogName} numberOfLines={1}>
+            <Text style={[styles.dogName, { color: colors.text }]} numberOfLines={1}>
               {item.name}
             </Text>
             <TouchableOpacity
@@ -177,17 +186,17 @@ export default function DogListScreen({ navigation }) {
             </TouchableOpacity>
           </View>
 
-          <Text style={styles.dogBreed} numberOfLines={1}>
-            🐕 {item.breed}
+          <Text style={[styles.dogBreed, { color: colors.textSecondary }]} numberOfLines={1}>
+            🐕 {item.breed || t.breedUnknown}
           </Text>
-          <Text style={styles.dogLocation} numberOfLines={1}>
-            📍 {locationName || 'Bölge Belirtilmedi'}
+          <Text style={[styles.dogLocation, { color: colors.textMuted }]} numberOfLines={1}>
+            📍 {locationName || t.locationUnknown}
           </Text>
 
           {item.notes && item.notes.trim().length > 0 ? (
-            <View style={styles.notePreviewBox}>
+            <View style={[styles.notePreviewBox, { backgroundColor: isDark ? colors.cardBorder : '#FFFDF5' }]}>
               <Ionicons name="document-text-outline" size={12} color="#D97706" />
-              <Text style={styles.notePreviewText} numberOfLines={1}>
+              <Text style={[styles.notePreviewText, { color: colors.textSecondary }]} numberOfLines={1}>
                 {item.notes}
               </Text>
             </View>
@@ -203,20 +212,20 @@ export default function DogListScreen({ navigation }) {
             {vacCount > 0 && (
               <View style={styles.vaccineBadge}>
                 <Ionicons name="shield-checkmark" size={11} color="#059669" />
-                <Text style={styles.vaccineBadgeText}>{vacCount} Aşı</Text>
+                <Text style={styles.vaccineBadgeText}>{vacCount} {t.badgeVaccine}</Text>
               </View>
             )}
 
             {schCount > 0 && (
               <View style={styles.scheduledBadge}>
                 <Ionicons name="calendar-outline" size={11} color="#D97706" />
-                <Text style={styles.scheduledBadgeText}>{schCount} Plan</Text>
+                <Text style={styles.scheduledBadgeText}>{schCount} {t.badgePlan}</Text>
               </View>
             )}
 
             <View style={styles.metaBadge}>
-              <Ionicons name="images-outline" size={12} color={Colors.textSecondary} />
-              <Text style={styles.metaBadgeText}>{photoCount} Foto</Text>
+              <Ionicons name="images-outline" size={12} color={colors.textSecondary} />
+              <Text style={[styles.metaBadgeText, { color: colors.textSecondary }]}>{photoCount} {t.badgePhoto}</Text>
             </View>
           </View>
         </View>
@@ -239,29 +248,31 @@ export default function DogListScreen({ navigation }) {
   );
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={styles.headerBar}>
         <View>
-          <Text style={styles.headerTitle}>Kayıtlı Köpeklerim 🐶</Text>
-          <Text style={styles.headerSub}>Takip ettiğin tüm sadık dostlar</Text>
+          <Text style={[styles.headerTitle, { color: colors.text }]}>{t.navDogs} 🐶</Text>
+          <Text style={[styles.headerSub, { color: colors.textSecondary }]}>
+            {language === 'en' ? 'All loyal paw buddies you track' : 'Takip ettiğin tüm sadık dostlar'}
+          </Text>
         </View>
-        <View style={[styles.countPill, { backgroundColor: '#FEF3C7' }]}>
+        <View style={[styles.countPill, { backgroundColor: isDark ? colors.card : '#FEF3C7' }]}>
           <Text style={[styles.countPillText, { color: '#D97706' }]}>
             {searchQuery.trim().length > 0
-              ? `${filteredDogs.length} / ${dogs.length} Köpek`
-              : `${dogs.length} Köpek`}
+              ? `${filteredDogs.length} / ${dogs.length} ${t.homeStatDogs}`
+              : `${dogs.length} ${t.homeStatDogs}`}
           </Text>
         </View>
       </View>
 
       {/* ARAMA ÇUBUĞU */}
       <View style={styles.searchContainer}>
-        <View style={styles.searchBarBox}>
+        <View style={[styles.searchBarBox, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}>
           <Ionicons name="search" size={18} color="#D97706" style={styles.searchIcon} />
           <TextInput
-            style={styles.searchInput}
-            placeholder="Köpek adı, cins veya konum ara (örn: Karabaş, Park)..."
-            placeholderTextColor={Colors.textMuted}
+            style={[styles.searchInput, { color: colors.text }]}
+            placeholder={t.searchPlaceholderDogs}
+            placeholderTextColor={colors.textMuted}
             value={searchQuery}
             onChangeText={setSearchQuery}
             autoCapitalize="none"
@@ -273,7 +284,7 @@ export default function DogListScreen({ navigation }) {
               style={styles.clearSearchBtn}
               hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
             >
-              <Ionicons name="close-circle" size={18} color={Colors.textMuted} />
+              <Ionicons name="close-circle" size={18} color={colors.textMuted} />
             </TouchableOpacity>
           )}
         </View>
@@ -287,12 +298,16 @@ export default function DogListScreen({ navigation }) {
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.filterScroll}
           >
-            {GROUP_OPTIONS.map((opt) => {
+            {groupOptions.map((opt) => {
               const isActive = groupBy === opt.id;
               return (
                 <TouchableOpacity
                   key={opt.id}
-                  style={[styles.filterChip, isActive && styles.filterChipActive]}
+                  style={[
+                    styles.filterChip,
+                    { backgroundColor: colors.card, borderColor: colors.cardBorder },
+                    isActive && styles.filterChipActive,
+                  ]}
                   onPress={() => setGroupBy(opt.id)}
                   activeOpacity={0.8}
                 >
@@ -300,6 +315,7 @@ export default function DogListScreen({ navigation }) {
                   <Text
                     style={[
                       styles.filterChipText,
+                      { color: colors.textSecondary },
                       isActive && styles.filterChipTextActive,
                     ]}
                   >
@@ -315,12 +331,12 @@ export default function DogListScreen({ navigation }) {
       {/* LİSTE VEYA BOŞ DURUM */}
       {dogs.length === 0 ? (
         <View style={styles.emptyContainer}>
-          <View style={[styles.emptyIconCircle, { backgroundColor: '#FEF3C7' }]}>
+          <View style={[styles.emptyIconCircle, { backgroundColor: isDark ? colors.card : '#FEF3C7' }]}>
             <Text style={styles.emptyIconEmoji}>🐕</Text>
           </View>
-          <Text style={styles.emptyTitle}>Henüz hiç köpek dost eklemedin 🐶</Text>
-          <Text style={styles.emptySubtitle}>
-            Sokaktaki sevimli köpek dostlarını kaydetmek ve takip etmek için aşağıdaki butona dokunabilirsin!
+          <Text style={[styles.emptyTitle, { color: colors.text }]}>{t.noDogsYetTitle}</Text>
+          <Text style={[styles.emptySubtitle, { color: colors.textSecondary }]}>
+            {t.noDogsYetSub}
           </Text>
 
           <TouchableOpacity
@@ -328,24 +344,24 @@ export default function DogListScreen({ navigation }) {
             onPress={() => navigation.navigate('AddDog')}
           >
             <Ionicons name="add-circle" size={20} color="#FFFFFF" />
-            <Text style={styles.emptyAddBtnText}>İlk Köpeğini Ekle</Text>
+            <Text style={styles.emptyAddBtnText}>{t.addNewDogBtn}</Text>
           </TouchableOpacity>
         </View>
       ) : filteredDogs.length === 0 ? (
         <View style={styles.emptySearchContainer}>
-          <View style={styles.emptySearchCircle}>
+          <View style={[styles.emptySearchCircle, { backgroundColor: isDark ? colors.card : '#FEF3C7' }]}>
             <Text style={styles.emptySearchEmoji}>🔍</Text>
           </View>
-          <Text style={styles.emptySearchTitle}>Eşleşen Köpek Bulunamadı</Text>
-          <Text style={styles.emptySearchSub}>
-            "{searchQuery}" aramasına uygun köpek ismi, cins veya konum bulunamadı.
+          <Text style={[styles.emptySearchTitle, { color: colors.text }]}>{t.noDogsFound}</Text>
+          <Text style={[styles.emptySearchSub, { color: colors.textSecondary }]}>
+            "{searchQuery}"
           </Text>
           <TouchableOpacity
             style={[styles.clearSearchActionButton, { backgroundColor: '#D97706' }]}
             onPress={() => setSearchQuery('')}
           >
             <Ionicons name="refresh" size={16} color="#FFFFFF" />
-            <Text style={styles.clearSearchActionButtonText}>Aramayı Temizle</Text>
+            <Text style={styles.clearSearchActionButtonText}>{language === 'en' ? 'Clear Search' : 'Aramayı Temizle'}</Text>
           </TouchableOpacity>
         </View>
       ) : groupBy === 'all' ? (
@@ -375,7 +391,7 @@ export default function DogListScreen({ navigation }) {
         onPress={() => navigation.navigate('AddDog')}
       >
         <Ionicons name="add" size={26} color="#FFFFFF" />
-        <Text style={styles.fabText}>Yeni Köpek</Text>
+        <Text style={styles.fabText}>{t.homeStatDogs}</Text>
       </TouchableOpacity>
 
       {/* SİLME ONAY MODALI */}
@@ -386,21 +402,21 @@ export default function DogListScreen({ navigation }) {
         onRequestClose={() => setDogToDelete(null)}
       >
         <View style={styles.modalOverlay}>
-          <View style={styles.confirmModalBox}>
+          <View style={[styles.confirmModalBox, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}>
             <View style={styles.confirmEmojiCircle}>
               <Text style={styles.confirmEmoji}>🐶</Text>
             </View>
-            <Text style={styles.confirmTitle}>Köpeği Sil</Text>
-            <Text style={styles.confirmDesc}>
-              "{dogToDelete?.name}" adlı sadık dostumuzu silmek istediğine emin misin?
+            <Text style={[styles.confirmTitle, { color: colors.text }]}>{t.deleteModalTitle}</Text>
+            <Text style={[styles.confirmDesc, { color: colors.textSecondary }]}>
+              "{dogToDelete?.name}" {t.deleteModalSub}
             </Text>
             <View style={styles.confirmButtonsRow}>
               <TouchableOpacity
-                style={styles.confirmCancelBtn}
+                style={[styles.confirmCancelBtn, { backgroundColor: isDark ? colors.cardBorder : '#F3F4F6' }]}
                 activeOpacity={0.8}
                 onPress={() => setDogToDelete(null)}
               >
-                <Text style={styles.confirmCancelText}>Vazgeç</Text>
+                <Text style={[styles.confirmCancelText, { color: colors.text }]}>{t.deleteCancel}</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.confirmDeleteBtn}
@@ -413,7 +429,7 @@ export default function DogListScreen({ navigation }) {
                 }}
               >
                 <Ionicons name="trash" size={15} color="#FFFFFF" />
-                <Text style={styles.confirmDeleteText}>Evet, Sil</Text>
+                <Text style={styles.confirmDeleteText}>{t.deleteConfirm}</Text>
               </TouchableOpacity>
             </View>
           </View>
