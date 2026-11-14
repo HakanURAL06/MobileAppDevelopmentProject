@@ -89,6 +89,53 @@ Yapılan her sevgi dolu etkileşim aranızdaki bağı güçlendirir ve seviye at
 ### 10. 🔔 Estetik Toast Pop-up Bildirimleri
 - Kedi/köpek ekleme, silme, aşı kaydetme, dil ve tema değiştirme işlemlerinde ekranın üst kısmından yumuşak geçişle inen ve otomatik kapanan modern Toast banner'ı.
 
+### 11. 📊 Mahalle Bakım Özeti (Community Care Summary) ve Otomatik Birim Testleri
+- **Canlı Bakım İstatistikleri (`CareSummaryCard.js` & `careAnalytics.js`):** Ana ekranda yerel veritabanındaki tüm kedi ve köpekler için toplam bakım/ilgi sayısını, tamamlanan aşıları, planlanan aşıları ve en yüksek bağ kurulan dostumuzu anlık olarak özetler.
+- **Mobil Safe Area & Köşe Ergonomisi:** `react-native-safe-area-context` (`useSafeAreaInsets`) kullanılarak çentikli (Notch / Dynamic Island) ve kıvrımlı ekranlarda üst/alt barların, fotoğraf kapatma butonlarının ve kart içi aksiyonların köşelere sıkışması engellenmiştir.
+
+---
+
+## 🎯 Problem Tanımı, Hedef Kitle ve Mimari Kararlar (Final Project Overview)
+
+### 1. Problem Tanımı ve Motivasyon (Problem Definition & Motivation)
+Sokak hayvanlarının yoğun olduğu mahallelerde ve üniversite kampüslerinde hayvanseverler genellikle bireysel hareket etmekte; hangi kedi veya köpeğin ne zaman beslendiği, suyunun yenilendiği, hangi aşılarının yapıldığı veya en son hangi sokakta görüldüğü düzenli olarak takip edilememektedir. Bu uygulama, sokak kedileri ve köpekleri için **kalıcı, çevrimdışı çalışabilen ve kullanımı kolay bir dijital bakım/sağlık karnesi** oluşturarak bu problemi çözmeyi hedefler.
+
+### 2. Hedef Kullanıcı Kitlesi (Target User Group)
+- Mahalle sakinleri ve yerel hayvansever gönüllüler,
+- Üniversite kampüslerindeki hayvan koruma toplulukları ve öğrenciler,
+- Sokak hayvanlarının düzenli beslenme ve aşı takvimini tutmak isteyen bireysel bakıcılar.
+
+### 3. Karşılaşılan Teknik Zorluklar ve Çözümleri (Technical Challenges & Solutions)
+1. **Docker Konteyneri Üzerinden Fiziksel Telefona (iPhone Expo Go) LAN Bağlantısı:**
+   - *Sorun:* Docker varsayılan olarak kendi iç sanal IP'sini (`172.19.0.2`) ürettiği için fiziksel telefondan `Connection Timeout` hatası alınıyordu.
+   - *Çözüm:* `docker-compose.yml` üzerinde portlar `0.0.0.0` ile tüm yerel ağa açıldı, `REACT_NATIVE_PACKAGER_HOSTNAME` ortam değişkeni ve `npx expo start --host lan` başlatma komutu ile doğrudan fiziksel cihaza yayın yapıldı.
+2. **Web ve Mobil (Native) Harita Uyumluluğu (`react-native-maps`):**
+   - *Sorun:* `react-native-maps` kütüphanesi sadece iOS/Android üzerinde çalışmakta, Web derlemesinde çökme yaratmaktaydı.
+   - *Çözüm:* Platforma özel dosya uzantıları (`CatMap.native.js` ve `CatMap.web.js`) kullanılarak mobil cihazlarda yerel harita, web ortamında ise interaktif konum kartları sorunsuz şekilde ayrıştırıldı.
+3. **Veri Kalıcılığı ve Sahte Verilerin Üzerine Yazma Sorunu:**
+   - *Sorun:* Uygulama yeniden başlatıldığında kullanıcı verilerinin sıfırlanmaması gerekiyordu.
+   - *Çözüm:* `Zustand persist` middleware ve `@react-native-async-storage/async-storage` kullanılarak tüm CRUD işlemleri (`street-animal-local-db-v1`) cihaz hafızasına otomatik JSON serileştirme ile kalıcı hale getirildi.
+4. **Çentikli (Notch / Dynamic Island) ve Kıvrımlı Mobil Ekranlarda Köşe Ergonomisi:**
+   - *Sorun:* Tam ekran fotoğraf görüntüleyici ve kart köşelerindeki butonlar telefonun kıvrımlı köşelerinde veya çentik altında kalarak tıklanmayı zorlaştırıyordu.
+   - *Çözüm:* `useSafeAreaInsets` ile dinamik güvenli alan boşlukları, genişletilmiş `hitSlop` dokunma toleransları, `KeyboardAvoidingView` ve alt başparmak erişim butonları eklendi.
+
+### 4. Gelecek Geliştirme Fikirleri (Future Improvement Ideas)
+- **Bulut Senkronizasyonu (Firebase / Supabase):** Aynı mahalledeki tüm komşuların ortak bir canlı veritabanı üzerinden aynı kedi/köpek profillerini güncelleyebilmesi.
+- **Anlık Bildirimler (Push Notifications):** Planlanan aşı günü geldiğinde cihaza otomatik hatırlatma bildirimi gönderilmesi.
+- **Veteriner Kliniği Entegrasyonu:** Harita üzerinde nöbetçi veya anlaşmalı veteriner kliniklerinin gösterilmesi.
+
+---
+
+## 🧪 Otomatik Birim Testleri (Unit Tests)
+
+Proje içerisinde veri analizi ve bağ seviyesi hesaplama motorunu (`src/utils/careAnalytics.js`) doğrulayan otomatik birim testleri (`tests/careAnalytics.test.js`) yer almaktadır. Herhangi bir ek paket kurulumuna gerek kalmadan doğrudan çalıştırılabilir:
+
+```bash
+npm test
+# veya doğrudan:
+node --test tests/careAnalytics.test.js
+```
+
 ---
 
 ## 🚀 Docker ile Tek Komutla Çalıştırma
@@ -135,15 +182,16 @@ npx expo start --web
 
 | Kütüphane / Teknoloji | Açıklama |
 | :--- | :--- |
-| **React Native (0.76)** | Çapraz platform mobil uygulama altyapısı |
-| **Expo (SDK 52)** | Hızlı geliştirme, derleme ve test ortamı |
+| **React Native (0.86.3) & React (19.2.3)** | Çapraz platform mobil uygulama altyapısı |
+| **Expo (SDK 57 - `~57.0.0`)** | Güncel Expo Go istemcisiyle tam uyumlu geliştirme ve derleme ortamı |
 | **Zustand (v5) + Persist** | Yerel veritabanı mimarisi, CRUD işlemleri ve otomatik JSON serileştirme |
-| **AsyncStorage** | Cihaz üzerinde kalıcı yerel JSON veritabanı motoru (`@react-native-async-storage/async-storage`) |
-| **React Navigation (v6)** | Native Stack ve Bottom Tabs yönlendirme altyapısı |
-| **Expo ImagePicker** | Galeri ve kameradan fotoğraf seçme/çekme (Base64 kalıcılık destekli) |
-| **Expo Location** | Cihaz GPS'i üzerinden anlık koordinat alma |
-| **Expo Vector Icons (Ionicons)** | Modern ve tutarlı ikon seti |
-| **Docker & Docker Compose** | Konteynerize geliştirme ve dağıtım ortamı |
+| **AsyncStorage (2.2.0)** | Cihaz üzerinde kalıcı yerel JSON veritabanı motoru (`@react-native-async-storage/async-storage`) |
+| **React Navigation (v7)** | Native Stack ve Bottom Tabs yönlendirme altyapısı |
+| **React Native Safe Area Context** | Mobil çentik (Notch / Dynamic Island) ve alt bar güvenli alan yönetimi |
+| **Expo ImagePicker & Location** | Kamera/galeri fotoğraf seçimi (Base64 destekli) ve GPS koordinat entegrasyonu |
+| **React Native Maps (1.20.1)** | iOS ve Android için yerel interaktif harita ve pin gösterimi |
+| **Node Test Runner (`node:test`)** | Sıfır bağımlılıklı hızlı birim testi (Unit Test) altyapısı |
+| **Docker & Docker Compose** | LAN destekli konteynerize geliştirme ve dağıtım ortamı |
 
 ---
 
@@ -159,6 +207,8 @@ MobileAppDevelopmentProject/
 ├── App.js                          # Ana uygulama, navigasyon, tema ve dil sağlayıcıları
 └── src/
     ├── components/
+    │   ├── CareSummaryCard.js      # Mahalle bakım özeti ve istatistik kartı bileşeni
+    │   ├── ConfirmDeleteModal.js   # Silme işlemi onay modalı
     │   ├── ImageViewerModal.js     # Tam ekran fotoğraf görüntüleyici (Lightbox & Slider)
     │   ├── ToastBanner.js          # Bildirim pop-up bileşeni (Açık/Koyu tema ve çoklu dil uyumlu)
     │   ├── ThemeLanguageBar.js     # Hızlı tema ve dil geçiş çubuğu bileşeni
@@ -180,8 +230,11 @@ MobileAppDevelopmentProject/
     ├── theme/
     │   ├── colors.js               # Açık (LightColors) ve Koyu (DarkColors) renk temaları
     │   └── useAppTheme.js          # Birleşik tema, dil ve çeviri kancası (hook)
-    └── utils/
-        └── imageHelper.js          # Base64, yerel URI ve uzak görsel çözümleyici
+    ├── utils/
+    │   ├── careAnalytics.js        # Bakım istatistikleri ve bağ seviyesi hesaplama modülü
+    │   └── imageHelper.js          # Base64, yerel URI ve uzak görsel çözümleyici
+└── tests/
+    └── careAnalytics.test.js       # Otomatik birim testleri (Unit Tests)
 ```
 
 ---
