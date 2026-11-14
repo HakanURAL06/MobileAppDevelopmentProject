@@ -1,6 +1,26 @@
 # Sokak Hayvanları Takip ve Etkileşim Uygulaması (Street Animal Tracker: Cats & Dogs 🐾)
 
-React Native ve Expo kullanılarak geliştirilen; sokak kedileri ve köpeklerinin bakımını, beslenmesini, konumlarını, aşı takvimlerini ve insanlarla kurdukları bağı takip etmeyi sağlayan kapsamlı bir mobil uygulamadır.
+React Native ve Expo kullanılarak geliştirilen; sokak kedileri ve köpeklerinin bakımını, beslenmesini, konumlarını, aşı takvimlerini ve insanlarla kurdukları bağı takip etmeyi sağlayan, **gerçek bir yerel JSON veritabanı (Local Database)** mimarisiyle çalışan kapsamlı bir mobil ve web uygulamasıdır.
+
+---
+
+## 🗄️ Yerel Veritabanı Mimarisi (Local JSON Database & Persistence)
+
+Uygulamanın veri katmanı (`src/store/catStore.js`), GitHub'dan projeyi klonlayan her kullanıcının kendi cihazında sıfır ayar ile çalışan, kalıcı ve izole bir yerel veritabanına sahip olması için **Zustand Persist Middleware** ve **AsyncStorage** üzerine inşa edilmiştir:
+
+1. **Sıfır Sahte Veri (Clean Initial State):**
+   - Uygulama ilk kez kurulduğunda `cats: []` ve `dogs: []` tabloları tamamen **boş** olarak başlar.
+   - Kod içerisine gömülü hiçbir sabit/sahte başlangıç verisi bulunmaz; böylece uygulama yeniden başlatıldığında kullanıcı verilerinin üzerine yazılması (overwrite) kesin olarak engellenir.
+2. **Otomatik JSON Serileştirme (`persist` & `createJSONStorage`):**
+   - `zustand/middleware` modülünün resmi `persist` ve `createJSONStorage(() => AsyncStorage)` yapıları kullanılarak tüm state değişiklikleri anında JSON formatına dönüştürülür ve cihaz hafızasına (`street-animal-local-db-v1` anahtarıyla) kaydedilir.
+   - **Mobil (iOS & Android):** Veriler cihazın kendi yerel `AsyncStorage` (SQLite / yerel dosya sistemi) alanında saklanır.
+   - **Web / Docker:** Veriler tarayıcının `localStorage` alanında JSON olarak saklanır.
+3. **Tam CRUD Operasyonları (Create, Read, Update, Delete):**
+   - **Kediler (`cats`):** `addCat`, `deleteCat`, `addPhotoToCat`, `addInteraction`, `updateCatInfo`, `updateCatNotes`, `addVaccination`, `scheduleVaccine`, `completeScheduledVaccine`, `deleteVaccine`
+   - **Köpekler (`dogs`):** `addDog`, `deleteDog`, `addPhotoToDog`, `addDogInteraction`, `updateDogInfo`, `updateDogNotes`, `addDogVaccination`, `scheduleDogVaccine`, `completeScheduledDogVaccine`, `deleteDogVaccine`
+   - Herhangi bir kayıt eklendiğinde, güncellendiğinde veya silindiğinde yerel JSON veritabanı milisaniyeler içinde senkronize edilir.
+4. **Kalıcı Base64 & URI Fotoğraf Saklama:**
+   - Kamera veya galeriden seçilen fotoğraflar Base64 Data URI desteğiyle doğrudan yerel JSON veritabanına kaydedilir; böylece uygulama veya tarayıcı kapatılıp açılsa dahi fotoğraflar asla kaybolmaz.
 
 ---
 
@@ -9,53 +29,44 @@ React Native ve Expo kullanılarak geliştirilen; sokak kedileri ve köpeklerini
 ### 1. 🌐 Çoklu Dil Desteği (Türkçe & İngilizce / i18n)
 - **Tek Dokunuşla Dil Değiştirme:** Uygulama genelinde Türkçe (🇹🇷 TR) ve İngilizce (🇬🇧 EN) dilleri arasında anında geçiş imkanı.
 - **Tüm Arayüzde Bütünleşik Çeviri:** Sekmeler, ekran başlıkları, butonlar, form girişleri, arama çubukları, aşı türleri, oyunlaştırılmış bağ seviyeleri ve Toast bildirimlerinin tamamı dinamik olarak seçilen dile uyum sağlar.
-- **Kalıcı Dil Tercihi:** Yapılan dil seçimi AsyncStorage ile kalıcı olarak cihazda saklanır; uygulama tekrar açıldığında son tercih korunur.
+- **Kalıcı Dil Tercihi:** Yapılan dil seçimi yerel veritabanında kalıcı olarak saklanır; uygulama tekrar açıldığında son tercih korunur.
 
 ### 2. 🌓 Açık ve Koyu Tema (Light / Dark Mode)
 - **Özel Renk Paletleri:**
   - **☀️ Açık Tema:** Sıcak fildişi zemin, şeftali/mercan kedi vurguları, kehribar köpek tonları ve yumuşak pastel kartlar.
   - **🌙 Koyu Tema:** Gece kullanımına uygun derin arduvaz/grafit zeminler, yüksek kontrastlı tipografi ve gözü yormayan pastel vurgular.
 - **Hızlı Kontrol Barı (ThemeLanguageBar):** Ana sayfa ve ekran başlıkları üzerinde yer alan interaktif butonlarla tema ve dil aynı anda kolayca değiştirilebilir.
-- **Kalıcı Tema Tercihi:** Tema tercihi cihaz hafızasında güvenle saklanır.
+- **Kalıcı Tema Tercihi:** Tema tercihi yerel JSON veritabanında güvenle saklanır.
 
-### 3. 🖼️ Windows ve GitHub Görsel Uyumluluğu (HEIC -> Baseline JPEG Çözümü)
-- **Sorun Tespiti:** iPhone modellerinden çekilen bazı fotoğraflar `.jpg` uzantılı olsa da dosya başlığında Apple HEIF/HEVC (`ftypheic`) taşıyordu. macOS ve Safari HEIC'i yerel olarak çözerken; Windows işletim sistemi, GitHub web arayüzü ve Windows üzerindeki Chromium tarayıcılar bu görselleri desteklemediği için fotoğraflar kırık görünüyordu. Ayrıca Türkçe karakter içeren dosya adları (`avcı2`, `floryaaslanı`) Windows dosya sisteminde yol hatalarına yol açıyordu.
-- **Kapsamlı Çözüm:**
-  - Tüm görseller `sips` motoruyla gerçek standart JPEG (`ffd8 ffe1...`) formatına dönüştürüldü.
-  - Dosya adları tamamen temiz ASCII standartlarına (`avci2.jpg`, `floryaaslani1.jpg`) uyarlandı.
-  - `src/utils/imageHelper.js` motoru hem Windows ters bölü (`\`) hem Unix düz bölü (`/`) dosya yollarını regex ile ayrıştıracak şekilde güçlendirildi.
-  - Zustand store'unda Metro'nun geçici numeric asset id'leri yerine kalıcı string dosya adları saklanarak platformlar arası kusursuz senkronizasyon sağlandı.
-
-### 4. 🐱 Kediler ve 🐶 Köpekler Çift Kategori Yönetimi
+### 3. 🐱 Kediler ve 🐶 Köpekler Çift Kategori Yönetimi
 - **Ayrı Sekmeler ve Listeler:** Kedilerim ve Köpeklerim için bağımsız listeleme ve yönetim ekranları.
 - **Türe Özel Arayüz ve Temalandırma:** Kedi dostlarımız için sıcak şeftali/mercan tonları, köpek dostlarımız için enerji dolu kehribar/amber renk paleti.
 
-### 5. 🔍 Akıllı Arama, Filtreleme ve Gruplama
+### 4. 🔍 Akıllı Arama, Filtreleme ve Gruplama
 - **Canlı Arama Çubuğu:** İsim veya bölge/mahalle adına göre harf harf anında arama yapabilme.
 - **Dinamik Gruplama Seçenekleri:**
   - 📋 **Tümü:** Sade liste görünümü.
   - 🧬 **Cins / Türüne Göre:** Örneğin Tekir, Calico, Golden vb. altında gruplu görünüm.
-  - 📍 **Konum / Bölgeye Göre:** Kocatepe Metrosu, Üniversite Kampüsü vb. bölgelere göre ayrılmış bölümler.
+  - 📍 **Konum / Bölgeye Göre:** Mahalle, park veya kampüs bölgelerine göre ayrılmış bölümler.
 
-### 6. 📷 Albüm ve Tam Ekran Fotoğraf Görüntüleyici (Lightbox)
+### 5. 📷 Albüm ve Tam Ekran Fotoğraf Görüntüleyici (Lightbox)
 - **Çoklu Fotoğraf Desteği:** Her patili dost için sınırsız fotoğraf albümü oluşturabilme ve kapak fotoğrafı belirleme.
 - **Tam Ekran Görsel İnceleme:**
   - Kapak fotoğrafına veya albümdeki herhangi bir fotoğrafa dokunulduğunda tam ekran modal açılır.
   - Çoklu görsellerde sağ/sol geçiş okları ve alt şeritte küçük resim önizlemeleri (thumbnails) ile hızlı geçiş.
   - Fotoğraf sayacı (`1 / 3`) ve kapatma butonu.
-  - Hem yerel paketlenmiş görselleri hem de cihaz kamerasından/galerisinden eklenen fotoğrafları destekler.
 
-### 7. 💉 Aşı Takibi ve Gelecek Aşı Planlama
+### 6. 💉 Aşı Takibi ve Gelecek Aşı Planlama
 - **Tamamlanan Aşılar:** Uygulanan aşı adı (Kuduz, Karma, İç-Dış Parazit vb.), yapılış tarihi, uygulayan veteriner kliniği ve özel notlar.
 - **Planlanan / Yaklaşan Aşılar:** Gelecek aşı tarihi ve hatırlatma notuyla aşı planlama.
 - **Tek Tıkla Tamamlama:** Planlanan aşı günü geldiğinde tek dokunuşla "Tamamlandı" olarak işaretlenir ve geçmiş aşılar listesine aktarılır.
 
-### 8. 📍 Akıllı Konum ve Eski Konum Geçmişi
-- **Özel Bölge İsimlendirme:** GPS koordinatlarının yanında el ile tanınabilir konum adı verebilme (örn: *"Kocatepe Metrosu - Çıkış Merdivenleri"*).
+### 7. 📍 Akıllı Konum ve Eski Konum Geçmişi
+- **Özel Bölge İsimlendirme:** GPS koordinatlarının yanında el ile tanınabilir konum adı verebilme.
 - **GPS Koordinat Entegrasyonu:** `expo-location` ile tek dokunuşla cihazın anlık enlem/boylam bilgilerini alabilme.
 - **Konum Değişim Arşivi:** Bir patili dostun konumu güncellendiğinde, eski konumu otomatik olarak tarih damgasıyla *"Eski Konum Geçmişi"* listesine kaydedilir.
 
-### 9. 🎮 Oyunlaştırılmış Bağ & Sadakat Seviyesi (Bond System)
+### 8. 🎮 Oyunlaştırılmış Bağ & Sadakat Seviyesi (Bond System)
 Yapılan her sevgi dolu etkileşim aranızdaki bağı güçlendirir ve seviye atlatır (hem Türkçe hem İngilizce dilinde):
 - **Kedi Bağ Seviyeleri:**
   1. 🌱 *Yabancı* / *Stranger* (0 - 1 etkileşim)
@@ -70,16 +81,13 @@ Yapılan her sevgi dolu etkileşim aranızdaki bağı güçlendirir ve seviye at
   4. 🌟 *En İyi Dost* / *Best Pal* (9 - 13 etkileşim)
   5. 🏆 *Can Yoldaşı* / *Soul Companion* (14+ etkileşim)
 
-### 10. 🥣 Çeşitlendirilmiş Hızlı Etkileşimler
+### 9. 🥣 Çeşitlendirilmiş Hızlı Etkileşimler
 - **Kediler İçin:** Mama Verdim (🥣), Başını/Çenesini Sevdim (😽), Yaş Mama/Ödül Verdim (🥫), Oyun Oynadık (🪶), Taze Su Koydum (💧), Sağlık Kontrolü (🩺).
 - **Köpekler İçin:** Mama Verdim (🥣), Yürüyüş Yaptık (🦮), Göbüşünü Kaşıdım (🐕), Topla Oynadık (🎾), Ödül / Kemik Verdim (🦴), Taze Su Koydum (💧), Sağlık Kontrolü (🩺).
 - **Yeni Kayıtta Çoklu İlk Etkileşim:** Yeni kedi/köpek eklerken ilk karşılaşma anında yapılan etkileşimleri seçerek kayda başlayabilme.
 
-### 11. 🔔 Estetik Toast Pop-up Bildirimleri
+### 10. 🔔 Estetik Toast Pop-up Bildirimleri
 - Kedi/köpek ekleme, silme, aşı kaydetme, dil ve tema değiştirme işlemlerinde ekranın üst kısmından yumuşak geçişle inen ve otomatik kapanan modern Toast banner'ı.
-
-### 12. 💾 Çevrimdışı ve Kalıcı Veri Saklama
-- Zustand Store ve `@react-native-async-storage/async-storage` entegrasyonu sayesinde internet bağlantısı olmasa bile tüm veriler, temalar ve dil tercihleri cihazda güvenle saklanır.
 
 ---
 
@@ -111,7 +119,7 @@ docker compose down
 - Expo Go mobil uygulaması (iOS / Android cihazda test için)
 
 ```bash
-# 1. Bağımlılıkları yükleyin
+# 1. Bağımlılıkları yükleyin (Zustand ve AsyncStorage otomatik kurulur)
 npm install
 
 # 2. Expo geliştirme sunucusunu başlatın
@@ -129,10 +137,10 @@ npx expo start --web
 | :--- | :--- |
 | **React Native (0.76)** | Çapraz platform mobil uygulama altyapısı |
 | **Expo (SDK 52)** | Hızlı geliştirme, derleme ve test ortamı |
-| **Zustand (v5)** | Hafif, performanslı ve modüler global state yönetimi |
-| **AsyncStorage** | Cihaz üzerinde kalıcı yerel veri saklama (Local Persistence) |
+| **Zustand (v5) + Persist** | Yerel veritabanı mimarisi, CRUD işlemleri ve otomatik JSON serileştirme |
+| **AsyncStorage** | Cihaz üzerinde kalıcı yerel JSON veritabanı motoru (`@react-native-async-storage/async-storage`) |
 | **React Navigation (v6)** | Native Stack ve Bottom Tabs yönlendirme altyapısı |
-| **Expo ImagePicker** | Galeri ve kameradan fotoğraf seçme/çekme |
+| **Expo ImagePicker** | Galeri ve kameradan fotoğraf seçme/çekme (Base64 kalıcılık destekli) |
 | **Expo Location** | Cihaz GPS'i üzerinden anlık koordinat alma |
 | **Expo Vector Icons (Ionicons)** | Modern ve tutarlı ikon seti |
 | **Docker & Docker Compose** | Konteynerize geliştirme ve dağıtım ortamı |
@@ -146,9 +154,9 @@ MobileAppDevelopmentProject/
 ├── Dockerfile                      # Docker imaj yapılandırması
 ├── docker-compose.yml              # Konteyner port ve volume ayarları
 ├── package.json                    # Bağımlılıklar ve npm betikleri
+├── app.json                        # Expo uygulama yapılandırması
+├── index.js                        # Uygulama giriş noktası
 ├── App.js                          # Ana uygulama, navigasyon, tema ve dil sağlayıcıları
-├── assets/
-│   └── cats/                       # Standart Baseline JPEG formatına dönüştürülmüş kedi görselleri
 └── src/
     ├── components/
     │   ├── ImageViewerModal.js     # Tam ekran fotoğraf görüntüleyici (Lightbox & Slider)
@@ -158,9 +166,6 @@ MobileAppDevelopmentProject/
     │   └── CatMap.web.js           # Web ortamı için harita yedek bileşeni
     ├── i18n/
     │   └── translations.js         # Kapsamlı Türkçe ve İngilizce dil sözlüğü
-    ├── navigation/
-    │   ├── RootNavigator.js        # Stack navigasyon tanımları
-    │   └── TabNavigator.js         # Alt sekme navigasyon tanımları
     ├── screens/
     │   ├── HomeScreen.js           # Ana karşılama, istatistikler ve tema/dil kontrolü
     │   ├── CatListScreen.js        # Kedilerim ekranı (Arama, gruplama, hızlı silme)
@@ -171,24 +176,13 @@ MobileAppDevelopmentProject/
     │   ├── AddDogScreen.js         # Yeni köpek ekleme ve ilk etkileşim formu
     │   └── CatMapScreen.js         # Patili dostların harita üzerindeki konumları
     ├── store/
-    │   └── catStore.js             # Zustand store (Kedi & köpek CRUD, aşılar, tema/dil state'i, kalıcılık)
+    │   └── catStore.js             # Yerel JSON veritabanı (Zustand persist + AsyncStorage CRUD)
     ├── theme/
     │   ├── colors.js               # Açık (LightColors) ve Koyu (DarkColors) renk temaları
     │   └── useAppTheme.js          # Birleşik tema, dil ve çeviri kancası (hook)
     └── utils/
-        └── imageHelper.js          # Platformlar arası (Windows & Mac) güvenli görsel çözümleyici
+        └── imageHelper.js          # Base64, yerel URI ve uzak görsel çözümleyici
 ```
-
----
-
-## 🐱 Başlangıç Kedi Verileri (Örnek Dostlarımız)
-
-Uygulama ilk açıldığında boş gelmemesi için Zustand store'unda yerleşik olarak gelen kedi dostlarımız:
-
-1. **Avcı (Tekir):** Kocatepe Metrosu'nun sevilen şişman avcısı. Orta düzey bağ seviyesi ve aşı geçmişi.
-2. **Habeş (Uzun Tüylü Calico):** Göbüş deyince göbek açan sevimli site sakini. Maksimum seviye bağ ve düzenli aşı kayıtları.
-3. **Prenses (Gri-Beyaz):** İstanbul Üniversitesi EK-1 Kantini'nin çanta üstünde uyuyan ağırbaşlı prensesi.
-4. **Püskül (Uzun Tüylü Calico):** İstanbul Üniversitesi İktisat Fakültesi'nin gizemli ve temkinli sakini.
 
 ---
 

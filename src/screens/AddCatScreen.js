@@ -19,65 +19,6 @@ import { Colors } from '../theme/colors';
 import ImageViewerModal from '../components/ImageViewerModal';
 import useAppTheme from '../theme/useAppTheme';
 
-// Çeşitlendirilmiş İlk Etkileşim Seçenekleri
-const INTERACTION_OPTIONS = [
-  {
-    id: 'feeding',
-    type: 'feeding',
-    emoji: '🥣',
-    title: 'Mama Verdim',
-    desc: 'Kuru veya yaş mama ile besledim',
-    note: 'İlk tanışmada taze mama verildi 🥣',
-    color: Colors.primaryDark,
-    activeBg: '#FFF2EC',
-    activeBorder: '#FFBFA8',
-  },
-  {
-    id: 'petting',
-    type: 'petting',
-    emoji: '🐾',
-    title: 'Sevdim / Okşadım',
-    desc: 'Başını, çenesini okşadım, kendini sevdirdi',
-    note: 'Kendini sevdirdi, başı okşandı ✨',
-    color: Colors.secondary,
-    activeBg: '#FFF0F4',
-    activeBorder: '#FFBAC9',
-  },
-  {
-    id: 'water',
-    type: 'feeding',
-    emoji: '💧',
-    title: 'Temiz Su Bıraktım',
-    desc: 'Taze ve temiz bir kap su koydum',
-    note: 'Taze ve temiz su bırakıldı 💧',
-    color: Colors.blue,
-    activeBg: '#EDF6FD',
-    activeBorder: '#BCE0FB',
-  },
-  {
-    id: 'playing',
-    type: 'playing',
-    emoji: '🧶',
-    title: 'Oyun Oynadım',
-    desc: 'İp veya oyuncakla neşeyle vakit geçirdik',
-    note: 'Oyun oynandı, neşeyle koşturdu 🧶',
-    color: '#D97706',
-    activeBg: '#FEF9E7',
-    activeBorder: '#FDE68A',
-  },
-  {
-    id: 'health',
-    type: 'other',
-    emoji: '🩺',
-    title: 'Sağlık / Durum Kontrolü',
-    desc: 'Tüy, göz ve genel sağlık durumunu inceledim',
-    note: 'Genel sağlık ve tüy durumu kontrol edildi 🩺',
-    color: '#059669',
-    activeBg: '#EEFBF3',
-    activeBorder: '#A7F3D0',
-  },
-];
-
 export default function AddCatScreen({ navigation }) {
   const addCat = useCatStore((state) => state.addCat);
   const showToast = useCatStore((state) => state.showToast);
@@ -193,11 +134,16 @@ export default function AddCatScreen({ navigation }) {
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
         allowsEditing: true,
         aspect: [4, 3],
-        quality: 0.85,
+        quality: 0.7,
+        base64: true,
       });
 
       if (!result.canceled && result.assets && result.assets.length > 0) {
-        setPhotoUri(result.assets[0].uri);
+        const asset = result.assets[0];
+        const persistedUri = asset.base64
+          ? `data:image/jpeg;base64,${asset.base64}`
+          : asset.uri;
+        setPhotoUri(persistedUri);
       }
     } catch (e) {
       Alert.alert('Hata', 'Fotoğraf seçilirken bir hata oluştu.');
@@ -216,11 +162,16 @@ export default function AddCatScreen({ navigation }) {
       const result = await ImagePicker.launchCameraAsync({
         allowsEditing: true,
         aspect: [4, 3],
-        quality: 0.85,
+        quality: 0.7,
+        base64: true,
       });
 
       if (!result.canceled && result.assets && result.assets.length > 0) {
-        setPhotoUri(result.assets[0].uri);
+        const asset = result.assets[0];
+        const persistedUri = asset.base64
+          ? `data:image/jpeg;base64,${asset.base64}`
+          : asset.uri;
+        setPhotoUri(persistedUri);
       }
     } catch (e) {
       Alert.alert('Hata', 'Kamera başlatılırken bir hata oluştu.');

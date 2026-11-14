@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   View,
   Text,
@@ -405,11 +405,15 @@ export default function DogDetailScreen({ route, navigation }) {
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
         allowsEditing: true,
         aspect: [4, 3],
-        quality: 0.85,
+        quality: 0.7,
+        base64: true,
       });
 
       if (!result.canceled && result.assets && result.assets.length > 0) {
-        const newPhotoUri = result.assets[0].uri;
+        const asset = result.assets[0];
+        const newPhotoUri = asset.base64
+          ? `data:image/jpeg;base64,${asset.base64}`
+          : asset.uri;
         addPhotoToDog(dog.id, newPhotoUri);
         showToast(`"${dog.name}" albümüne yeni fotoğraf eklendi 📸`, 'success');
       }
