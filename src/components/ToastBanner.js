@@ -5,8 +5,8 @@ import {
   StyleSheet,
   Animated,
   TouchableOpacity,
-  Platform,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import useCatStore from '../store/catStore';
 import useAppTheme from '../theme/useAppTheme';
@@ -15,6 +15,7 @@ export default function ToastBanner() {
   const toast = useCatStore((state) => state.toast);
   const hideToast = useCatStore((state) => state.hideToast);
   const { isDark, language } = useAppTheme();
+  const insets = useSafeAreaInsets();
 
   const translateY = useRef(new Animated.Value(-100)).current;
   const opacity = useRef(new Animated.Value(0)).current;
@@ -83,11 +84,14 @@ export default function ToastBanner() {
         title: language === 'en' ? 'Success ✓' : 'İşlem Başarılı ✓',
       };
 
+  const topOffset = Math.max(insets.top + 8, 22);
+
   return (
     <Animated.View
       style={[
         styles.container,
         {
+          top: topOffset,
           transform: [{ translateY }],
           opacity,
         },
@@ -121,7 +125,7 @@ export default function ToastBanner() {
         <TouchableOpacity
           style={styles.closeBtn}
           onPress={hideToast}
-          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          hitSlop={{ top: 14, bottom: 14, left: 14, right: 14 }}
         >
           <Ionicons name="close" size={18} color={isDark ? '#9CA3AF' : '#6B7280'} />
         </TouchableOpacity>
@@ -133,7 +137,6 @@ export default function ToastBanner() {
 const styles = StyleSheet.create({
   container: {
     position: 'absolute',
-    top: Platform.OS === 'ios' ? 54 : 42,
     left: 16,
     right: 16,
     zIndex: 999999,
@@ -151,7 +154,7 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     shadowColor: '#000000',
     shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.12,
+    shadowOpacity: 0.14,
     shadowRadius: 14,
     elevation: 8,
   },
@@ -165,7 +168,7 @@ const styles = StyleSheet.create({
   },
   textWrapper: {
     flex: 1,
-    paddingRight: 6,
+    paddingRight: 8,
   },
   title: {
     fontSize: 13,
@@ -180,8 +183,11 @@ const styles = StyleSheet.create({
     lineHeight: 17,
   },
   closeBtn: {
-    padding: 4,
-    borderRadius: 12,
-    backgroundColor: 'rgba(0,0,0,0.04)',
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.06)',
   },
 });

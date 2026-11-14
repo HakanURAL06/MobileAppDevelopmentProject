@@ -242,12 +242,16 @@ const styles = StyleSheet.create({
   headerSub: { fontSize: 13, color: Colors.textSecondary, marginTop: 2 },
   filterRow: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: 8,
     marginBottom: 14,
   },
   filterChip: {
-    paddingVertical: 7,
-    paddingHorizontal: 12,
+    paddingVertical: 9,
+    paddingHorizontal: 14,
+    minHeight: 38,
+    justifyContent: 'center',
+    alignItems: 'center',
     borderRadius: 14,
     backgroundColor: '#FFFFFF',
     borderWidth: 1.5,

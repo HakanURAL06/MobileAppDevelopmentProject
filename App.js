@@ -1,9 +1,9 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Platform } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -25,6 +25,7 @@ const Stack = createNativeStackNavigator();
 
 /**
  * Üst Başlık Hızlı Tema ve Dil Değiştirici Butonları
+ * Mobil ekran köşelerinde rahat dokunulabilmesi için geniş dokunma alanı (hitSlop & minHeight) içerir.
  */
 function HeaderPreferencesButtons() {
   const theme = useCatStore((state) => state.theme || 'light');
@@ -37,20 +38,26 @@ function HeaderPreferencesButtons() {
     <View style={styles.headerBtnGroup}>
       {/* Tema Butonu */}
       <TouchableOpacity
-        style={[styles.headerIconBtn, { backgroundColor: isDark ? '#272C3D' : 'rgba(255,255,255,0.25)' }]}
+        style={[
+          styles.headerIconBtn,
+          { backgroundColor: isDark ? '#272C3D' : 'rgba(255,255,255,0.28)' },
+        ]}
         onPress={toggleTheme}
-        activeOpacity={0.8}
-        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+        activeOpacity={0.75}
+        hitSlop={{ top: 12, bottom: 12, left: 10, right: 6 }}
       >
         <Text style={styles.headerBtnEmoji}>{isDark ? '🌙' : '☀️'}</Text>
       </TouchableOpacity>
 
       {/* Dil Butonu */}
       <TouchableOpacity
-        style={[styles.headerLangBtn, { backgroundColor: isDark ? '#272C3D' : 'rgba(255,255,255,0.25)' }]}
+        style={[
+          styles.headerLangBtn,
+          { backgroundColor: isDark ? '#272C3D' : 'rgba(255,255,255,0.28)' },
+        ]}
         onPress={toggleLanguage}
-        activeOpacity={0.8}
-        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+        activeOpacity={0.75}
+        hitSlop={{ top: 12, bottom: 12, left: 6, right: 12 }}
       >
         <Text style={styles.headerLangText}>
           {language === 'tr' ? '🇹🇷 TR' : '🇬🇧 EN'}
@@ -67,6 +74,9 @@ function BottomTabs() {
   const isDark = theme === 'dark';
   const colors = getThemeColors(theme);
   const t = getTranslation(language);
+  const insets = useSafeAreaInsets();
+
+  const bottomPadding = Math.max(insets.bottom, Platform.OS === 'ios' ? 16 : 10);
 
   return (
     <Tab.Navigator
@@ -78,9 +88,16 @@ function BottomTabs() {
           elevation: 0,
         },
         headerTintColor: '#FFFFFF',
+        headerTitleAlign: 'left',
         headerTitleStyle: {
           fontWeight: '800',
           fontSize: 18,
+        },
+        headerRightContainerStyle: {
+          paddingRight: 14,
+        },
+        headerLeftContainerStyle: {
+          paddingLeft: 6,
         },
         headerRight: () => <HeaderPreferencesButtons />,
         tabBarActiveTintColor: colors.primary,
@@ -89,31 +106,37 @@ function BottomTabs() {
           backgroundColor: isDark ? colors.card : '#FFFFFF',
           borderTopWidth: 1,
           borderTopColor: isDark ? colors.cardBorder : '#F5ECE6',
-          paddingBottom: 8,
+          paddingBottom: bottomPadding,
           paddingTop: 8,
-          height: 64,
+          paddingHorizontal: 10,
+          height: 58 + bottomPadding,
           shadowColor: '#000000',
           shadowOffset: { width: 0, height: -4 },
-          shadowOpacity: isDark ? 0.2 : 0.04,
+          shadowOpacity: isDark ? 0.2 : 0.05,
           shadowRadius: 10,
-          elevation: 4,
+          elevation: 6,
+        },
+        tabBarItemStyle: {
+          paddingVertical: 2,
+          marginHorizontal: 2,
+          borderRadius: 12,
         },
         tabBarLabelStyle: {
           fontSize: 11,
           fontWeight: '700',
-          marginTop: -2,
+          marginTop: 0,
         },
-        tabBarIcon: ({ focused, color, size }) => {
+        tabBarIcon: ({ focused, color }) => {
           if (route.name === 'Home') {
-            return <Ionicons name={focused ? 'home' : 'home-outline'} size={21} color={color} />;
+            return <Ionicons name={focused ? 'home' : 'home-outline'} size={22} color={color} />;
           } else if (route.name === 'CatList') {
             return <Text style={{ fontSize: 19 }}>🐱</Text>;
           } else if (route.name === 'DogList') {
             return <Text style={{ fontSize: 19 }}>🐶</Text>;
           } else if (route.name === 'CatMap') {
-            return <Ionicons name={focused ? 'map' : 'map-outline'} size={21} color={color} />;
+            return <Ionicons name={focused ? 'map' : 'map-outline'} size={22} color={color} />;
           }
-          return <Ionicons name="paw" size={21} color={color} />;
+          return <Ionicons name="paw" size={22} color={color} />;
         },
       })}
     >
@@ -152,7 +175,7 @@ export default function App() {
   return (
     <SafeAreaProvider>
       <NavigationContainer>
-        <StatusBar style={isDark ? 'light' : 'dark'} />
+        <StatusBar style="light" />
         <Stack.Navigator
           screenOptions={{
             headerStyle: {
@@ -161,8 +184,9 @@ export default function App() {
             headerTintColor: '#FFFFFF',
             headerTitleStyle: {
               fontWeight: '800',
-              fontSize: 18,
+              fontSize: 17,
             },
+            headerBackTitleVisible: false,
             headerRight: () => <HeaderPreferencesButtons />,
           }}
         >
@@ -234,27 +258,32 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    marginRight: 12,
+    paddingVertical: 2,
+    paddingRight: 4,
   },
   headerIconBtn: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 14,
+    minWidth: 38,
+    minHeight: 34,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 16,
     justifyContent: 'center',
     alignItems: 'center',
   },
   headerBtnEmoji: {
-    fontSize: 14,
+    fontSize: 15,
   },
   headerLangBtn: {
-    paddingHorizontal: 9,
-    paddingVertical: 4,
-    borderRadius: 14,
+    minWidth: 52,
+    minHeight: 34,
+    paddingHorizontal: 11,
+    paddingVertical: 6,
+    borderRadius: 16,
     justifyContent: 'center',
     alignItems: 'center',
   },
   headerLangText: {
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: '800',
     color: '#FFFFFF',
   },

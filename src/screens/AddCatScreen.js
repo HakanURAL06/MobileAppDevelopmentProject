@@ -10,7 +10,9 @@ import {
   Alert,
   ActivityIndicator,
   Platform,
+  KeyboardAvoidingView,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
 import * as Location from 'expo-location';
 import { Ionicons } from '@expo/vector-icons';
@@ -23,6 +25,7 @@ export default function AddCatScreen({ navigation }) {
   const addCat = useCatStore((state) => state.addCat);
   const showToast = useCatStore((state) => state.showToast);
   const { isDark, colors, t, language } = useAppTheme();
+  const insets = useSafeAreaInsets();
 
   const [name, setName] = useState('');
   const [breed, setBreed] = useState('');
@@ -269,7 +272,19 @@ export default function AddCatScreen({ navigation }) {
   const isAllSelected = selectedInteractions.length === interactionOptions.length;
 
   return (
-    <ScrollView style={[styles.container, { backgroundColor: colors.background }]} contentContainerStyle={styles.contentContainer}>
+    <KeyboardAvoidingView
+      style={{ flex: 1, backgroundColor: colors.background }}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
+    >
+      <ScrollView
+        style={[styles.container, { backgroundColor: colors.background }]}
+        contentContainerStyle={[
+          styles.contentContainer,
+          { paddingBottom: Math.max(insets.bottom + 36, 48) },
+        ]}
+        keyboardShouldPersistTaps="handled"
+      >
       {/* Başlık Alanı */}
       <View style={styles.header}>
         <Text style={[styles.headerTitle, { color: colors.text }]}>{t.addCatHeaderTitle}</Text>
@@ -296,8 +311,10 @@ export default function AddCatScreen({ navigation }) {
             <TouchableOpacity
               style={[styles.removePhotoButton, { backgroundColor: colors.card }]}
               onPress={() => setPhotoUri(null)}
+              activeOpacity={0.8}
+              hitSlop={{ top: 14, bottom: 14, left: 14, right: 14 }}
             >
-              <Ionicons name="close-circle" size={26} color="#FF6B6B" />
+              <Ionicons name="close-circle" size={28} color="#FF6B6B" />
             </TouchableOpacity>
           </View>
         ) : (
@@ -541,7 +558,8 @@ export default function AddCatScreen({ navigation }) {
         onClose={() => setIsViewerVisible(false)}
         title={name ? `${name} Fotoğrafı 🐾` : 'Seçilen Fotoğraf 🐾'}
       />
-    </ScrollView>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
@@ -603,11 +621,20 @@ const styles = StyleSheet.create({
   },
   removePhotoButton: {
     position: 'absolute',
-    top: 10,
-    right: 10,
+    top: 12,
+    right: 12,
+    width: 38,
+    height: 38,
+    borderRadius: 19,
     backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 2,
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 4,
   },
   photoEmptyBox: {
     backgroundColor: '#FFFFFF',

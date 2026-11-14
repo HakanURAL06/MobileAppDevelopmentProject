@@ -9,21 +9,17 @@ import {
   Dimensions,
   ScrollView,
   StatusBar,
-  SafeAreaView,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { getImageSource } from '../utils/imageHelper';
+import useAppTheme from '../theme/useAppTheme';
 
 const { width, height } = Dimensions.get('window');
 
 /**
  * Tam Ekran Fotoğraf Görüntüleyici (Lightbox / Fullscreen Image Viewer)
- *
- * @param {boolean} visible - Modalın görünürlük durumu
- * @param {Array<string|number>} images - Görüntülenecek fotoğraf listesi
- * @param {number} initialIndex - Başlangıçta açılacak fotoğrafın indeksi
- * @param {function} onClose - Kapatma fonksiyonu
- * @param {string} [title] - Başlık (örn: Kedinin / Köpeğin adı)
+ * Mobil ekran çentik (Dynamic Island / Notch) ve alt Home Bar güvenli alanlarıyla tam uyumludur.
  */
 export default function ImageViewerModal({
   visible,
@@ -33,6 +29,8 @@ export default function ImageViewerModal({
   title = 'Fotoğraf Görüntüleyici',
 }) {
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
+  const insets = useSafeAreaInsets();
+  const { language } = useAppTheme();
 
   useEffect(() => {
     if (visible) {
@@ -58,6 +56,9 @@ export default function ImageViewerModal({
     }
   };
 
+  const topSafePadding = Math.max(insets.top + 14, 52);
+  const bottomSafePadding = Math.max(insets.bottom + 18, 28);
+
   return (
     <Modal
       visible={visible}
@@ -69,7 +70,15 @@ export default function ImageViewerModal({
       <View style={styles.backdrop}>
         <StatusBar barStyle="light-content" backgroundColor="rgba(0,0,0,0.95)" />
 
-        <SafeAreaView style={styles.safeArea}>
+        <View
+          style={[
+            styles.safeArea,
+            {
+              paddingTop: topSafePadding,
+              paddingBottom: bottomSafePadding,
+            },
+          ]}
+        >
           {/* ÜST BİLGİ VE KAPATMA ÇUBUĞU */}
           <View style={styles.headerBar}>
             <View style={styles.titleInfo}>
@@ -89,7 +98,7 @@ export default function ImageViewerModal({
               style={styles.closeButton}
               onPress={onClose}
               activeOpacity={0.8}
-              hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+              hitSlop={{ top: 16, bottom: 16, left: 16, right: 16 }}
             >
               <Ionicons name="close" size={26} color="#FFFFFF" />
             </TouchableOpacity>
@@ -109,6 +118,7 @@ export default function ImageViewerModal({
                 style={[styles.arrowBtn, styles.arrowLeft]}
                 onPress={handlePrev}
                 activeOpacity={0.8}
+                hitSlop={{ top: 14, bottom: 14, left: 14, right: 14 }}
               >
                 <Ionicons name="chevron-back" size={28} color="#FFFFFF" />
               </TouchableOpacity>
@@ -120,15 +130,16 @@ export default function ImageViewerModal({
                 style={[styles.arrowBtn, styles.arrowRight]}
                 onPress={handleNext}
                 activeOpacity={0.8}
+                hitSlop={{ top: 14, bottom: 14, left: 14, right: 14 }}
               >
                 <Ionicons name="chevron-forward" size={28} color="#FFFFFF" />
               </TouchableOpacity>
             )}
           </View>
 
-          {/* ALT: ÇOKLU FOTOĞRAF KÜÇÜK ÖNİZLEME ŞERİDİ (THUMBNAILS) */}
-          {images.length > 1 ? (
-            <View style={styles.footerContainer}>
+          {/* ALT: KÜÇÜK ÖNİZLEME ŞERİDİ VE KOLAY KAPATMA BUTONU */}
+          <View style={styles.footerContainer}>
+            {images.length > 1 && (
               <ScrollView
                 horizontal
                 showsHorizontalScrollIndicator={false}
@@ -152,16 +163,20 @@ export default function ImageViewerModal({
                   );
                 })}
               </ScrollView>
-              <Text style={styles.hintText}>
-                Fotoğraflar arasında geçiş yapmak için oklara veya küçük resimlere dokunabilirsiniz
+            )}
+
+            <TouchableOpacity
+              style={styles.bottomClosePill}
+              onPress={onClose}
+              activeOpacity={0.85}
+            >
+              <Ionicons name="close-circle" size={18} color="#FFFFFF" />
+              <Text style={styles.bottomCloseText}>
+                {language === 'en' ? 'Close Viewer' : 'Fotoğrafı Kapat'}
               </Text>
-            </View>
-          ) : (
-            <View style={styles.footerContainer}>
-              <Text style={styles.hintText}>Tam ekran görünümünü kapatmak için çarpıya dokunun</Text>
-            </View>
-          )}
-        </SafeAreaView>
+            </TouchableOpacity>
+          </View>
+        </View>
       </View>
     </Modal>
   );
@@ -181,8 +196,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 18,
-    paddingTop: 16,
+    paddingHorizontal: 22,
     paddingBottom: 12,
     zIndex: 10,
   },
@@ -191,18 +205,19 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
-    marginRight: 12,
+    marginRight: 14,
   },
   titleText: {
     fontSize: 18,
     fontWeight: '800',
     color: '#FFFFFF',
     letterSpacing: -0.3,
+    flexShrink: 1,
   },
   counterBadge: {
     backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    paddingHorizontal: 9,
-    paddingVertical: 3,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
     borderRadius: 12,
   },
   counterText: {
@@ -211,14 +226,14 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
   },
   closeButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.18)',
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: 'rgba(255, 255, 255, 0.22)',
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.3)',
+    borderColor: 'rgba(255, 255, 255, 0.35)',
   },
   imageContainer: {
     flex: 1,
@@ -229,41 +244,41 @@ const styles = StyleSheet.create({
   },
   fullImage: {
     width: width,
-    height: height * 0.72,
+    height: height * 0.64,
   },
   arrowBtn: {
     position: 'absolute',
     top: '50%',
-    marginTop: -25,
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    backgroundColor: 'rgba(0, 0, 0, 0.55)',
+    marginTop: -26,
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
     justifyContent: 'center',
     alignItems: 'center',
     zIndex: 20,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.25)',
+    borderColor: 'rgba(255, 255, 255, 0.3)',
   },
   arrowLeft: {
-    left: 14,
+    left: 16,
   },
   arrowRight: {
-    right: 14,
+    right: 16,
   },
   footerContainer: {
-    paddingVertical: 14,
-    paddingHorizontal: 16,
+    paddingTop: 10,
+    paddingHorizontal: 20,
     alignItems: 'center',
+    gap: 12,
   },
   thumbnailScroll: {
-    gap: 8,
-    paddingHorizontal: 4,
-    marginBottom: 8,
+    gap: 10,
+    paddingHorizontal: 6,
   },
   thumbnailWrap: {
-    width: 52,
-    height: 52,
+    width: 54,
+    height: 54,
     borderRadius: 12,
     overflow: 'hidden',
     borderWidth: 2,
@@ -279,9 +294,21 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
   },
-  hintText: {
-    fontSize: 11,
-    color: 'rgba(255, 255, 255, 0.6)',
-    textAlign: 'center',
+  bottomClosePill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    backgroundColor: 'rgba(255, 255, 255, 0.18)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.3)',
+    paddingVertical: 11,
+    paddingHorizontal: 26,
+    borderRadius: 24,
+  },
+  bottomCloseText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '700',
   },
 });

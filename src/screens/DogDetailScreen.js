@@ -11,7 +11,10 @@ import {
   Dimensions,
   Modal,
   ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
 import * as Location from 'expo-location';
 import { Ionicons } from '@expo/vector-icons';
@@ -173,6 +176,8 @@ export default function DogDetailScreen({ route, navigation }) {
   const [viewerIndex, setViewerIndex] = useState(0);
 
   const { isDark, colors, t, language } = useAppTheme();
+  const insets = useSafeAreaInsets();
+  const modalBottomPadding = Math.max(insets.bottom + 16, 28);
 
   const handleOpenViewer = (index = 0) => {
     setViewerIndex(index);
@@ -1035,19 +1040,23 @@ export default function DogDetailScreen({ route, navigation }) {
         animationType="slide"
         onRequestClose={() => setIsEditModalVisible(false)}
       >
-        <View style={styles.modalOverlay}>
-          <View style={[styles.editModalContent, { backgroundColor: colors.card }]}>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          style={styles.modalOverlay}
+        >
+          <View style={[styles.editModalContent, { backgroundColor: colors.card, paddingBottom: modalBottomPadding }]}>
             <View style={styles.modalHeaderRow}>
               <Text style={[styles.modalTitle, { color: colors.text }]}>Köpek Bilgilerini Düzenle ✏️</Text>
               <TouchableOpacity
+                style={[styles.modalCloseBtn, { backgroundColor: isDark ? '#2D3748' : '#F3F4F6' }]}
                 onPress={() => setIsEditModalVisible(false)}
-                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                hitSlop={{ top: 14, bottom: 14, left: 14, right: 14 }}
               >
-                <Ionicons name="close" size={24} color={colors.textSecondary} />
+                <Ionicons name="close" size={22} color={colors.textSecondary} />
               </TouchableOpacity>
             </View>
 
-            <ScrollView showsVerticalScrollIndicator={false}>
+            <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
               <Text style={[styles.modalInputLabel, { color: colors.text }]}>{t.inputNameLabel} *</Text>
               <TextInput
                 style={[styles.modalInput, { backgroundColor: colors.inputBackground, borderColor: colors.border, color: colors.text }]}
@@ -1134,7 +1143,7 @@ export default function DogDetailScreen({ route, navigation }) {
               </View>
             </ScrollView>
           </View>
-        </View>
+        </KeyboardAvoidingView>
       </Modal>
 
       {/* MODAL 2: AŞI EKLEME MODALI */}
@@ -1144,16 +1153,23 @@ export default function DogDetailScreen({ route, navigation }) {
         animationType="slide"
         onRequestClose={() => setIsAddVaccineModalVisible(false)}
       >
-        <View style={styles.modalOverlay}>
-          <View style={[styles.editModalContent, { backgroundColor: colors.card }]}>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          style={styles.modalOverlay}
+        >
+          <View style={[styles.editModalContent, { backgroundColor: colors.card, paddingBottom: modalBottomPadding }]}>
             <View style={styles.modalHeaderRow}>
               <Text style={[styles.modalTitle, { color: colors.text }]}>{t.tabCompletedVaccines} 💉</Text>
-              <TouchableOpacity onPress={() => setIsAddVaccineModalVisible(false)}>
-                <Ionicons name="close" size={24} color={colors.textSecondary} />
+              <TouchableOpacity
+                style={[styles.modalCloseBtn, { backgroundColor: isDark ? '#2D3748' : '#F3F4F6' }]}
+                onPress={() => setIsAddVaccineModalVisible(false)}
+                hitSlop={{ top: 14, bottom: 14, left: 14, right: 14 }}
+              >
+                <Ionicons name="close" size={22} color={colors.textSecondary} />
               </TouchableOpacity>
             </View>
 
-            <ScrollView showsVerticalScrollIndicator={false}>
+            <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
               <Text style={[styles.modalInputLabel, { color: colors.text }]}>Hızlı Aşı Seç</Text>
               <View style={styles.quickTagsWrap}>
                 {QUICK_DOG_VACCINE_SUGGESTIONS.map((sug) => (
@@ -1229,7 +1245,7 @@ export default function DogDetailScreen({ route, navigation }) {
               </View>
             </ScrollView>
           </View>
-        </View>
+        </KeyboardAvoidingView>
       </Modal>
 
       {/* MODAL 3: AŞI PLANLAMA MODALI */}
@@ -1239,16 +1255,23 @@ export default function DogDetailScreen({ route, navigation }) {
         animationType="slide"
         onRequestClose={() => setIsScheduleModalVisible(false)}
       >
-        <View style={styles.modalOverlay}>
-          <View style={[styles.editModalContent, { backgroundColor: colors.card }]}>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          style={styles.modalOverlay}
+        >
+          <View style={[styles.editModalContent, { backgroundColor: colors.card, paddingBottom: modalBottomPadding }]}>
             <View style={styles.modalHeaderRow}>
               <Text style={[styles.modalTitle, { color: colors.text }]}>{t.tabScheduledVaccines} 📅</Text>
-              <TouchableOpacity onPress={() => setIsScheduleModalVisible(false)}>
-                <Ionicons name="close" size={24} color={colors.textSecondary} />
+              <TouchableOpacity
+                style={[styles.modalCloseBtn, { backgroundColor: isDark ? '#2D3748' : '#F3F4F6' }]}
+                onPress={() => setIsScheduleModalVisible(false)}
+                hitSlop={{ top: 14, bottom: 14, left: 14, right: 14 }}
+              >
+                <Ionicons name="close" size={22} color={colors.textSecondary} />
               </TouchableOpacity>
             </View>
 
-            <ScrollView showsVerticalScrollIndicator={false}>
+            <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
               <Text style={[styles.modalInputLabel, { color: colors.text }]}>Hızlı Öneri Seç</Text>
               <View style={styles.quickTagsWrap}>
                 {QUICK_DOG_SCHEDULE_SUGGESTIONS.map((sug) => (
@@ -1318,7 +1341,7 @@ export default function DogDetailScreen({ route, navigation }) {
               </View>
             </ScrollView>
           </View>
-        </View>
+        </KeyboardAvoidingView>
       </Modal>
 
       {/* 9. TAM EKRAN FOTOĞRAF GÖRÜNTÜLEYİCİ */}
@@ -1417,6 +1440,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    flexWrap: 'wrap',
+    gap: 8,
   },
   dogName: {
     fontSize: 25,
@@ -1430,11 +1455,12 @@ const styles = StyleSheet.create({
     backgroundColor: '#FEF9E7',
     borderWidth: 1,
     borderColor: '#FDE68A',
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 12,
-    gap: 4,
-    marginRight: 6,
+    paddingHorizontal: 13,
+    paddingVertical: 8,
+    minHeight: 36,
+    borderRadius: 14,
+    gap: 5,
+    marginRight: 4,
   },
   editInfoBtnText: {
     fontSize: 12,
@@ -1570,7 +1596,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 10,
+    flexWrap: 'wrap',
+    gap: 10,
+    marginBottom: 12,
   },
   sectionTitle: {
     fontSize: 15,
@@ -1620,9 +1648,11 @@ const styles = StyleSheet.create({
   },
   editLocationShortBtn: {
     backgroundColor: '#EFF6FF',
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 12,
+    paddingHorizontal: 13,
+    paddingVertical: 8,
+    minHeight: 36,
+    justifyContent: 'center',
+    borderRadius: 14,
   },
   editLocationShortText: {
     fontSize: 11,
@@ -1729,19 +1759,21 @@ const styles = StyleSheet.create({
   },
   vaccineActionButtonsRow: {
     flexDirection: 'row',
-    gap: 6,
+    flexWrap: 'wrap',
+    gap: 8,
   },
   addVaccineHeaderBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#059669',
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 12,
-    gap: 4,
+    paddingHorizontal: 13,
+    paddingVertical: 8,
+    minHeight: 36,
+    borderRadius: 14,
+    gap: 5,
   },
   addVaccineHeaderBtnText: {
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: '700',
     color: '#FFFFFF',
   },
@@ -1751,13 +1783,14 @@ const styles = StyleSheet.create({
     backgroundColor: '#FEF3C7',
     borderWidth: 1,
     borderColor: '#FDE68A',
-    paddingHorizontal: 9,
-    paddingVertical: 5,
-    borderRadius: 12,
-    gap: 4,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    minHeight: 36,
+    borderRadius: 14,
+    gap: 5,
   },
   scheduleHeaderBtnText: {
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: '700',
     color: '#D97706',
   },
@@ -1864,7 +1897,12 @@ const styles = StyleSheet.create({
     marginTop: 1,
   },
   deleteVacBtn: {
-    padding: 6,
+    width: 36,
+    height: 36,
+    borderRadius: 12,
+    backgroundColor: '#FFF1F2',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   scheduledRowItem: {
     flexDirection: 'row',
@@ -2288,9 +2326,16 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 14,
-    paddingBottom: 8,
+    paddingBottom: 10,
     borderBottomWidth: 1,
     borderBottomColor: '#F3E8E2',
+  },
+  modalCloseBtn: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   modalTitle: {
     fontSize: 17,

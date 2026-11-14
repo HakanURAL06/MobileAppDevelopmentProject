@@ -192,10 +192,16 @@ export default function CatListScreen({ navigation }) {
             {/* SİL BUTONU */}
             <TouchableOpacity
               style={styles.deleteButton}
-              onPress={() => handleDeleteCat(item)}
-              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              activeOpacity={0.75}
+              onPress={(e) => {
+                if (e && typeof e.stopPropagation === 'function') {
+                  e.stopPropagation();
+                }
+                handleDeleteCat(item);
+              }}
+              hitSlop={{ top: 14, bottom: 14, left: 14, right: 14 }}
             >
-              <Ionicons name="trash-outline" size={17} color="#FF6B6B" />
+              <Ionicons name="trash-outline" size={19} color="#FF6B6B" />
             </TouchableOpacity>
           </View>
 
@@ -571,7 +577,7 @@ const styles = StyleSheet.create({
   listContent: {
     paddingHorizontal: 18,
     paddingTop: 6,
-    paddingBottom: 100, // FAB için boşluk
+    paddingBottom: 120, // FAB için güvenli boşluk
   },
   sectionHeader: {
     flexDirection: 'row',
@@ -653,13 +659,13 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   deleteButton: {
-    width: 30,
-    height: 30,
-    borderRadius: 15,
+    width: 38,
+    height: 38,
+    borderRadius: 14,
     backgroundColor: '#FFF0F0',
     justifyContent: 'center',
     alignItems: 'center',
-    marginLeft: 6,
+    marginLeft: 8,
   },
   catBreed: {
     fontSize: 12,
@@ -851,15 +857,17 @@ const styles = StyleSheet.create({
   },
   fabButton: {
     position: 'absolute',
-    bottom: 24,
+    bottom: 20,
     right: 20,
+    minHeight: 52,
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
     backgroundColor: Colors.primary,
-    paddingVertical: 13,
-    paddingHorizontal: 18,
-    borderRadius: 30,
-    gap: 6,
+    paddingVertical: 14,
+    paddingHorizontal: 22,
+    borderRadius: 28,
+    gap: 8,
     shadowColor: Colors.primary,
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.4,
