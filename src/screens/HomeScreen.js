@@ -11,6 +11,7 @@ import { Ionicons } from '@expo/vector-icons';
 import useCatStore from '../store/catStore';
 import useAppTheme from '../theme/useAppTheme';
 import ThemeLanguageBar from '../components/ThemeLanguageBar';
+import CareSummaryCard from '../components/CareSummaryCard';
 
 export default function HomeScreen({ navigation }) {
   const cats = useCatStore((state) => state.cats || []);
@@ -242,6 +243,9 @@ export default function HomeScreen({ navigation }) {
           </Text>
         </TouchableOpacity>
       </View>
+
+      {/* 3.5 MAHALLE BAKIM ÖZETİ KARTI */}
+      <CareSummaryCard cats={cats} dogs={dogs} />
 
       {/* 4. GÜNÜN NOTU */}
       <View style={[styles.noteBox, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}>
