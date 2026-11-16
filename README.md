@@ -140,11 +140,20 @@ node --test tests/careAnalytics.test.js
 
 ## 🚀 Docker ile Tek Komutla Çalıştırma
 
-Bilgisayarınıza Node.js veya herhangi bir mobil bağımlılık kurmadan, Docker ile uygulamayı izole bir container içinde anında çalıştırabilirsiniz:
+Bilgisayarınıza Node.js veya herhangi bir mobil bağımlılık kurmadan, Docker ile uygulamayı izole bir container içinde anında çalıştırabilirsiniz.
+
+### ⚡ Otomatik IP Tespiti ile Hızlı Başlatma (Tavsiye Edilen)
+Mac'inizin o an bağlı olduğu Wi-Fi / yerel ağ IP'sini otomatik algılayıp Docker'a aktaran ve Expo'yu telefonunuzla sorunsuz bağlayan başlatıcı:
 
 ```bash
-# Container'ı derle ve başlat
-docker compose up --build
+./baslat.sh
+```
+
+### 🐳 Klasik Docker Compose ile Başlatma
+
+```bash
+# Container'ı derle ve başlat (HOST_IP çevre değişkeni ile)
+HOST_IP=$(ipconfig getifaddr en0 2>/dev/null || ipconfig getifaddr en1) docker compose up --build
 ```
 
 Sunucu hazır olduğunda:

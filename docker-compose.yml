@@ -10,7 +10,7 @@ services:
       - "0.0.0.0:19001:19001"
       - "0.0.0.0:19002:19002"
     environment:
-      - REACT_NATIVE_PACKAGER_HOSTNAME=172.20.10.4
+      - REACT_NATIVE_PACKAGER_HOSTNAME=${HOST_IP}
     volumes:
       # Canlı kod senkronizasyonu
       - .:/app

@@ -38,15 +38,27 @@ function calculateCareAnalytics(cats = [], dogs = []) {
   for (const animal of allAnimals) {
     if (!animal || typeof animal !== 'object') continue;
 
-    const interactionsLen = Array.isArray(animal.interactions)
-      ? animal.interactions.length
-      : 0;
-    const vaccinesLen = Array.isArray(animal.vaccines)
-      ? animal.vaccines.length
-      : 0;
-    const scheduledLen = Array.isArray(animal.scheduledVaccines)
-      ? animal.scheduledVaccines.length
-      : 0;
+    // Etkileşimler: animal.interactions veya animal.interactionHistory
+    const interactionsList = Array.isArray(animal.interactionHistory)
+      ? animal.interactionHistory
+      : Array.isArray(animal.interactions)
+      ? animal.interactions
+      : [];
+    const interactionsLen = interactionsList.length;
+
+    // Tamamlanan Aşılar: animal.vaccinations veya animal.vaccines
+    const vaccinesList = Array.isArray(animal.vaccinations)
+      ? animal.vaccinations
+      : Array.isArray(animal.vaccines)
+      ? animal.vaccines
+      : [];
+    const vaccinesLen = vaccinesList.length;
+
+    // Planlanan Aşılar: animal.scheduledVaccines
+    const scheduledList = Array.isArray(animal.scheduledVaccines)
+      ? animal.scheduledVaccines
+      : [];
+    const scheduledLen = scheduledList.length;
 
     totalInteractions += interactionsLen;
     completedVaccinesCount += vaccinesLen;

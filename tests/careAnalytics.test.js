@@ -66,6 +66,40 @@ test('calculateCareAnalytics - kedi ve köpek etkileşim ile aşı sayılarını
   });
 });
 
+test('calculateCareAnalytics - store veri modeliyle (interactionHistory ve vaccinations) eksiksiz calismali', () => {
+  const storeCats = [
+    {
+      id: 'cat-store-1',
+      name: 'Mırmır',
+      interactionHistory: [{ id: 'int-1', type: 'feeding' }],
+      vaccinations: [{ id: 'vac-1', name: 'Kuduz' }, { id: 'vac-2', name: 'Lösemi' }],
+      scheduledVaccines: [{ id: 'sch-1', name: 'Parazit' }],
+    },
+  ];
+
+  const storeDogs = [
+    {
+      id: 'dog-store-1',
+      name: 'Duman',
+      interactionHistory: [{ id: 'int-2', type: 'walking' }, { id: 'int-3', type: 'belly_rub' }],
+      vaccinations: [{ id: 'vac-3', name: 'Karma' }],
+      scheduledVaccines: [],
+    },
+  ];
+
+  const result = calculateCareAnalytics(storeCats, storeDogs);
+  assert.equal(result.totalAnimals, 2);
+  assert.equal(result.totalInteractions, 3);
+  assert.equal(result.completedVaccinesCount, 3);
+  assert.equal(result.scheduledVaccinesCount, 1);
+  assert.deepEqual(result.topFriend, {
+    id: 'dog-store-1',
+    name: 'Duman',
+    species: 'dog',
+    interactionCount: 2,
+  });
+});
+
 test('calculateBondLevel - etkileşim sayısına göre bağ yüzdesini ve seviyeyi doğru hesaplamalı', () => {
   const zeroBond = calculateBondLevel(0);
   assert.equal(zeroBond.progressPercent, 0);
