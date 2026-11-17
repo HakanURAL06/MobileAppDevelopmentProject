@@ -25,7 +25,7 @@ const Stack = createNativeStackNavigator();
 
 /**
  * Üst Başlık Hızlı Tema ve Dil Değiştirici Butonları
- * Mobil ekran köşelerinde rahat dokunulabilmesi için geniş dokunma alanı (hitSlop & minHeight) içerir.
+ * Sade, minimalist ve göz yormayan kompakt tasarım.
  */
 function HeaderPreferencesButtons() {
   const theme = useCatStore((state) => state.theme || 'light');
@@ -40,27 +40,31 @@ function HeaderPreferencesButtons() {
       <TouchableOpacity
         style={[
           styles.headerIconBtn,
-          { backgroundColor: isDark ? '#272C3D' : 'rgba(255,255,255,0.28)' },
+          { backgroundColor: isDark ? 'rgba(255,255,255,0.12)' : 'rgba(255,255,255,0.22)' },
         ]}
         onPress={toggleTheme}
-        activeOpacity={0.75}
-        hitSlop={{ top: 12, bottom: 12, left: 10, right: 6 }}
+        activeOpacity={0.7}
+        hitSlop={{ top: 10, bottom: 10, left: 8, right: 4 }}
       >
-        <Text style={styles.headerBtnEmoji}>{isDark ? '🌙' : '☀️'}</Text>
+        <Ionicons
+          name={isDark ? 'moon' : 'sunny'}
+          size={16}
+          color={isDark ? '#FDE047' : '#FFFFFF'}
+        />
       </TouchableOpacity>
 
       {/* Dil Butonu */}
       <TouchableOpacity
         style={[
           styles.headerLangBtn,
-          { backgroundColor: isDark ? '#272C3D' : 'rgba(255,255,255,0.28)' },
+          { backgroundColor: isDark ? 'rgba(255,255,255,0.12)' : 'rgba(255,255,255,0.22)' },
         ]}
         onPress={toggleLanguage}
-        activeOpacity={0.75}
-        hitSlop={{ top: 12, bottom: 12, left: 6, right: 12 }}
+        activeOpacity={0.7}
+        hitSlop={{ top: 10, bottom: 10, left: 4, right: 8 }}
       >
         <Text style={styles.headerLangText}>
-          {language === 'tr' ? '🇹🇷 TR' : '🇬🇧 EN'}
+          {language === 'tr' ? 'TR' : 'EN'}
         </Text>
       </TouchableOpacity>
     </View>
@@ -257,34 +261,28 @@ const styles = StyleSheet.create({
   headerBtnGroup: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: 6,
     paddingVertical: 2,
-    paddingRight: 4,
+    paddingRight: 2,
   },
   headerIconBtn: {
-    minWidth: 38,
-    minHeight: 34,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
+    width: 32,
+    height: 32,
     borderRadius: 16,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  headerBtnEmoji: {
-    fontSize: 15,
-  },
   headerLangBtn: {
-    minWidth: 52,
-    minHeight: 34,
-    paddingHorizontal: 11,
-    paddingVertical: 6,
+    paddingHorizontal: 9,
+    height: 32,
     borderRadius: 16,
     justifyContent: 'center',
     alignItems: 'center',
   },
   headerLangText: {
     fontSize: 12,
-    fontWeight: '800',
+    fontWeight: '700',
     color: '#FFFFFF',
+    letterSpacing: 0.5,
   },
 });

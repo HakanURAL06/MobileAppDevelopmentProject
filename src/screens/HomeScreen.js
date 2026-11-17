@@ -10,7 +10,6 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import useCatStore from '../store/catStore';
 import useAppTheme from '../theme/useAppTheme';
-import ThemeLanguageBar from '../components/ThemeLanguageBar';
 import CareSummaryCard from '../components/CareSummaryCard';
 
 export default function HomeScreen({ navigation }) {
@@ -29,9 +28,6 @@ export default function HomeScreen({ navigation }) {
         barStyle={isDark ? 'light-content' : 'dark-content'}
         backgroundColor={colors.background}
       />
-
-      {/* 0. TEMA VE DİL DEĞİŞTİRME ÇUBUĞU */}
-      <ThemeLanguageBar />
 
       {/* 1. SEVİMLİ VE MİNİMALİST KARŞILAMA ALANI */}
       <View style={styles.welcomeSection}>
