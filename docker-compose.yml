@@ -10,13 +10,13 @@ services:
       - "0.0.0.0:19001:19001"
       - "0.0.0.0:19002:19002"
     environment:
-      - REACT_NATIVE_PACKAGER_HOSTNAME=${HOST_IP}
+      # LAN erisimi icin ana makinenin yerel ag IP adresi (varsayilan: 0.0.0.0)
+      - REACT_NATIVE_PACKAGER_HOSTNAME=${HOST_IP:-0.0.0.0}
     volumes:
-      # Canlı kod senkronizasyonu
+      # Canlı kaynak kod senkronizasyonu
       - .:/app
-      # Host makinenin node_modules klasörünü ezmesini önleyen anonim hacim
+      # Host makinenin node_modules klasörünü ezmesini önleyen yalıtılmış hacim
       - /app/node_modules
-      - ~/.expo:/root/.expo
     stdin_open: true
     tty: true
     command: npx expo start --host lan
