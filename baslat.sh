@@ -10,8 +10,8 @@ fi
 
 echo "Algılanan Aktif IP: $HOST_IP"
 
-
-
+# Docker Compose'un otomatik okuması için .env dosyasını güncelle
+echo "HOST_IP=$HOST_IP" > .env
 
 # Dinamik IP ile projeyi yeniden baslat
 docker compose up

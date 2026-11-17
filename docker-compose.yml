@@ -16,6 +16,7 @@ services:
       - .:/app
       # Host makinenin node_modules klasörünü ezmesini önleyen anonim hacim
       - /app/node_modules
+      - ~/.expo:/root/.expo
     stdin_open: true
     tty: true
     command: npx expo start --host lan
