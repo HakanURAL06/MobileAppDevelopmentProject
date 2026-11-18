@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "StreetCatTracker",
-    "slug": "street-cat-tracker",
+    "name": "Street Animal Tracker",
+    "slug": "street-animal-tracker",
     "version": "1.0.0",
     "orientation": "portrait",
     "userInterfaceStyle": "automatic",
@@ -18,16 +18,9 @@
       }
     },
     "web": {},
-    "updates": {
-      "url": "https://u.expo.dev/8a7947cb-a30c-4414-833d-a7e012fb7d3b"
-    },
+    "updates": {},
     "runtimeVersion": {
       "policy": "appVersion"
-    },
-    "extra": {
-      "eas": {
-        "projectId": "8a7947cb-a30c-4414-833d-a7e012fb7d3b"
-      }
     }
   }
 }
