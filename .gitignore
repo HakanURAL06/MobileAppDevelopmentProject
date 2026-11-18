@@ -15,7 +15,6 @@ ios/
 
 # Environment and IDE
 .env*
-baslat.sh
 .DS_Store
 *.pem
 .vscode/

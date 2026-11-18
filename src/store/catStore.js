@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Colors } from '../theme/colors';
+import { INITIAL_SEED_CATS, INITIAL_SEED_DOGS } from '../data/seedData';
 
 /**
  * @typedef {Object} Interaction
@@ -56,9 +57,9 @@ import { Colors } from '../theme/colors';
 export const useCatStore = create(
   persist(
     (set, get) => ({
-      // KURAL 1: Başlangıçta hiçbir sahte/sabit veri yok, diziler tamamen BOŞ ([]) başlar.
-      cats: [],
-      dogs: [],
+      // Başlangıçta boş başlar, ancak ilk açılışta (storage boş ise) seedData ile doldurulur
+      cats: INITIAL_SEED_CATS,
+      dogs: INITIAL_SEED_DOGS,
       hasHydrated: false,
       isLoading: false,
       toast: null, // { message: string, type: 'success' | 'delete' | 'info', id: number }
@@ -987,13 +988,23 @@ export const useCatStore = create(
       }),
       merge: (persistedState, currentState) => {
         if (!persistedState || typeof persistedState !== 'object') {
-          return currentState;
+          return {
+            ...currentState,
+            cats: INITIAL_SEED_CATS,
+            dogs: INITIAL_SEED_DOGS,
+          };
         }
+
+        // Eğer daha önce kaydedilmiş bir durum varsa ancak listeler tanımsız veya boşsa seed data yükle
+        const savedCats = Array.isArray(persistedState.cats) ? persistedState.cats : [];
+        const savedDogs = Array.isArray(persistedState.dogs) ? persistedState.dogs : [];
+        const isFreshInstall = savedCats.length === 0 && savedDogs.length === 0;
+
         return {
           ...currentState,
           ...persistedState,
-          cats: Array.isArray(persistedState.cats) ? persistedState.cats : currentState.cats,
-          dogs: Array.isArray(persistedState.dogs) ? persistedState.dogs : currentState.dogs,
+          cats: isFreshInstall ? INITIAL_SEED_CATS : savedCats,
+          dogs: isFreshInstall ? INITIAL_SEED_DOGS : savedDogs,
           theme: persistedState.theme || currentState.theme,
           language: persistedState.language || currentState.language,
         };

@@ -15,6 +15,8 @@ test('calculateCareAnalytics - boş veritabanında (initial state) sıfır değe
   assert.equal(result.completedVaccinesCount, 0);
   assert.equal(result.scheduledVaccinesCount, 0);
   assert.equal(result.topFriend, null);
+  assert.deepEqual(result.locationsBreakdown, []);
+  assert.deepEqual(result.breedBreakdown, []);
 });
 
 test('calculateCareAnalytics - null veya undefined parametrelerde çökmeden güvenli çalışmalı', () => {
@@ -30,6 +32,8 @@ test('calculateCareAnalytics - kedi ve köpek etkileşim ile aşı sayılarını
     {
       id: 'cat-1',
       name: 'Pamuk',
+      breed: 'Tekir',
+      location: { regionName: 'Kadıköy Moda' },
       interactions: [{ id: 'i1', type: 'feeding' }, { id: 'i2', type: 'water' }],
       vaccines: [{ id: 'v1', name: 'Kuduz' }],
       scheduledVaccines: [{ id: 'sv1', name: 'Karma' }],
@@ -40,6 +44,8 @@ test('calculateCareAnalytics - kedi ve köpek etkileşim ile aşı sayılarını
     {
       id: 'dog-1',
       name: 'Karabaş',
+      breed: 'Kangal Melezi',
+      location: { regionName: 'Beşiktaş Çarşı' },
       interactions: [
         { id: 'i3', type: 'walking' },
         { id: 'i4', type: 'feeding' },
@@ -64,6 +70,8 @@ test('calculateCareAnalytics - kedi ve köpek etkileşim ile aşı sayılarını
     species: 'dog',
     interactionCount: 3,
   });
+  assert.equal(result.locationsBreakdown.length, 2);
+  assert.equal(result.breedBreakdown.length, 2);
 });
 
 test('calculateCareAnalytics - store veri modeliyle (interactionHistory ve vaccinations) eksiksiz calismali', () => {
@@ -71,6 +79,8 @@ test('calculateCareAnalytics - store veri modeliyle (interactionHistory ve vacci
     {
       id: 'cat-store-1',
       name: 'Mırmır',
+      breed: 'Calico',
+      location: { regionName: 'Kadıköy Moda' },
       interactionHistory: [{ id: 'int-1', type: 'feeding' }],
       vaccinations: [{ id: 'vac-1', name: 'Kuduz' }, { id: 'vac-2', name: 'Lösemi' }],
       scheduledVaccines: [{ id: 'sch-1', name: 'Parazit' }],
@@ -81,6 +91,8 @@ test('calculateCareAnalytics - store veri modeliyle (interactionHistory ve vacci
     {
       id: 'dog-store-1',
       name: 'Duman',
+      breed: 'Sokak Köpeği',
+      location: { regionName: 'Kadıköy Moda' },
       interactionHistory: [{ id: 'int-2', type: 'walking' }, { id: 'int-3', type: 'belly_rub' }],
       vaccinations: [{ id: 'vac-3', name: 'Karma' }],
       scheduledVaccines: [],
@@ -98,6 +110,15 @@ test('calculateCareAnalytics - store veri modeliyle (interactionHistory ve vacci
     species: 'dog',
     interactionCount: 2,
   });
+
+  // Konum bazlı kontrol: İki hayvan da aynı konumda
+  assert.equal(result.locationsBreakdown.length, 1);
+  assert.equal(result.locationsBreakdown[0].regionName, 'Kadıköy Moda');
+  assert.equal(result.locationsBreakdown[0].totalAnimals, 2);
+  assert.equal(result.locationsBreakdown[0].catsCount, 1);
+  assert.equal(result.locationsBreakdown[0].dogsCount, 1);
+  assert.equal(result.locationsBreakdown[0].interactionsCount, 3);
+  assert.equal(result.locationsBreakdown[0].vaccinesCount, 3);
 });
 
 test('calculateBondLevel - etkileşim sayısına göre bağ yüzdesini ve seviyeyi doğru hesaplamalı', () => {

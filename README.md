@@ -2,19 +2,20 @@
 
 **Sokak Hayvanları Sağlık ve Bakım Takip Sistemi**, kentsel alanlarda ve üniversite kampüslerinde yaşayan sokak kedileri ve sokak köpeklerinin beslenme, sağlık, aşı ve konum geçmişlerini kayıt altına almak amacıyla **React Native** ve **Expo** teknolojileriyle geliştirilmiş çapraz platform (iOS, Android ve Web) bir mobil uygulamadır.
 
-Uygulama; harici bir sunucu bağımlılığı gerektirmeksizin, cihaz üzerinde çalışan **Zustand Persist** ve **AsyncStorage** tabanlı tam teşekküllü **yerel JSON veritabanı (Local JSON Database)** mimarisine sahiptir. Bu sayede çevrimdışı (offline) koşullarda dahi tam veri bütünlüğü ve kalıcılık sağlar.
+Uygulama; harici bir sunucu bağımlılığı gerektirmeksizin, cihaz üzerinde çalışan **Zustand Persist** ve **AsyncStorage** tabanlı tam teşekküllü **yerel JSON veritabanı (Local JSON Database)** mimarisine ve **EAS Update** bulut yayın altyapısına sahiptir.
 
 ---
 
 ## 📑 İçindekiler
 1. [Proje Mimarisi ve Veri Yönetimi](#-proje-mimarisi-ve-veri-yönetimi)
-2. [Temel Fonksiyonlar ve Ekranlar](#-temel-fonksiyonlar-ve-ekranlar)
-3. [Öne Çıkan Teknik Nitelikler](#-öne-çıkan-teknik-nitelikler)
-4. [Teknoloji Yığını (Tech Stack)](#-teknoloji-yığını-tech-stack)
-5. [Kurulum ve Çalıştırma Rehberi](#-kurulum-ve-çalıştırma-rehberi)
-6. [Olası Dağıtım ve Ağ Sorunları Çözüm Rehberi (Troubleshooting)](#-olası-dağıtım-ve-ağ-sorunları-çözüm-rehberi-troubleshooting)
-7. [Birim Testleri (Unit Tests)](#-birim-testleri-unit-tests)
-8. [Proje Dizin Yapısı](#-proje-dizin-yapısı)
+2. [Pati Karnesi & İlgi Özeti (Dinamik Analitik Modülü)](#-pati-karnesi--ilgi-özeti-dinamik-analitik-modülü)
+3. [Otomatik Başlangıç Verileri (Seed Data)](#-otomatik-başlangıç-verileri-seed-data)
+4. [Temel Fonksiyonlar ve Ekranlar](#-temel-fonksiyonlar-ve-ekranlar)
+5. [Teknoloji Yığını (Tech Stack)](#-teknoloji-yığını-tech-stack)
+6. [Kurulum ve Çalıştırma Rehberi](#-kurulum-ve-çalıştırma-rehberi)
+7. [EAS Update ile Bulut Yayını (Cloud Deployment)](#-eas-update-ile-bulut-yayını-cloud-deployment)
+8. [Birim Testleri (Unit Tests)](#-birim-testleri-unit-tests)
+9. [Proje Dizin Yapısı](#-proje-dizin-yapısı)
 
 ---
 
@@ -22,8 +23,8 @@ Uygulama; harici bir sunucu bağımlılığı gerektirmeksizin, cihaz üzerinde 
 
 Uygulamanın veri katmanı (`src/store/catStore.js`), modern mobil uygulama standartlarına uygun olarak tasarlanmıştır:
 
-- **Sıfır Statik Başlangıç Verisi (Clean Slate Initial State):** Uygulama ilk kez yüklendiğinde hayvan listeleri tamamen boş (`cats: []`, `dogs: []`) olarak başlar. Kod tabanında sahte veya geçici mock veriler bulunmaz; böylece uygulamanın yeniden başlatılması durumunda kullanıcı verilerinin üzerine yazılması kesin olarak önlenir.
 - **Otomatik JSON Kalıcılığı (Persistence Engine):** `zustand/middleware` modülünün resmi `persist` ve `createJSONStorage(() => AsyncStorage)` arayüzleri üzerinden durum değişiklikleri eşzamanlı olarak yerel depolama alanına serileştirilir.
+- **Akıllı Başlangıç Senkronizasyonu (Seed Hydration):** Uygulama ilk kez kurulduğunda (`AsyncStorage` boş olduğunda) otomatik olarak 5 kedi ve 5 köpekten oluşan gerçekçi verileri yükler. Kullanıcı yeni veri eklediğinde, güncellediğinde veya sildiğinde mevcut durum korunur.
 - **Tam CRUD Desteği (Create, Read, Update, Delete):**
   - **Kayıt Oluşturma:** Kedi ve köpek profilleri, isim, ırk/cins, fotoğraf albümü, anlık GPS koordinatları ve ilk karşılaşma etkileşimleriyle oluşturulur.
   - **Kayıt Güncelleme:** Profil bilgileri, sağlık/bakım notları, geçmiş aşı kayıtları, planlanan aşılar ve konum değişiklikleri güncellenir.
@@ -32,50 +33,37 @@ Uygulamanın veri katmanı (`src/store/catStore.js`), modern mobil uygulama stan
 
 ---
 
-## 📱 Temel Fonksiyonlar ve Ekranlar
+## 📊 Pati Karnesi & İlgi Özeti (Dinamik Analitik Modülü)
 
-Uygulama, kullanıcı deneyimini maksimize eden zengin ekran ve bileşen hiyerarşisine sahiptir:
+Ana ekranda (`HomeScreen.js`) yer alan analitik kartı (`CareSummaryCard.js` & `careAnalytics.js`), düz bir sayı paneli olmanın ötesinde üç farklı sekmede derinlemesine içgörü sunar:
 
-### 1. Ana Karşılama ve Kontrol Paneli (`HomeScreen.js`)
-- **İstatistiksel Genel Bakış:** Kayıtlı toplam kedi, köpek ve genel hayvan sayısı özet rozetleri.
-- **Mahalle Bakım Özeti (`CareSummaryCard.js`):** Topluluk tarafından gerçekleştirilen toplam bakım eylemleri (besleme, su, sevgi vb.), tamamlanan toplam aşılar, yaklaşan aşılar ve en yüksek bağ seviyesine sahip olan hayvan bilgisini gerçek zamanlı hesaplayan analitik paneli.
-- **Hızlı Aksiyonlar:** Kedi ekleme, köpek ekleme ve harita görünümüne tek dokunuşla geçiş kartları.
-
-### 2. Kedi ve Köpek Yönetim Listeleri (`CatListScreen.js` & `DogListScreen.js`)
-- **Dinamik Filtreleme ve Gruplama:** Tümü, Konuma Göre, Cinsine Göre ve Bağ Seviyesine Göre anlık gruplandırma seçenekleri.
-- **Canlı Metin Araması:** İsim ve bölgeye duyarlı dinamik arama çubuğu.
-- **Hızlı İşlemler:** Kart üzerinden doğrudan silme modalı çağırma ve yüzen ekleme butonu (FAB).
-
-### 3. Detay ve Sağlık Takip Sayfaları (`CatDetailScreen.js` & `DogDetailScreen.js`)
-- **Oyunlaştırılmış Bağ Seviyesi Sistemi (Bond Level):** Gerçekleştirilen etkileşim sayısına paralel olarak artan 5 aşamalı görsel ilerleme çubuğu.
-- **Fotoğraf Galerisi ve Lightbox:** Sınırsız albüm desteği, kapak fotoğrafı yönetimi ve tam ekran yüksek çözünürlüklü slayt görüntüleyici (`ImageViewerModal.js`).
-- **Aşı ve Sağlık Takvimi:**
-  - *Geçmiş Aşılar:* Uygulanan aşı türü, tarih, veteriner kliniği ve tıbbi notlar.
-  - *Planlanan Aşılar:* Gelecek tarihe randevulanan aşılar ve tek dokunuşla tamamlandıya çevirme özelliği.
-- **Konum ve Bölge Geçmişi:** Hayvanın bulunduğu ana konum güncellendiğinde, eski bölgeleri zaman damgasıyla listeleyen konum günlüğü.
-- **Türe Özel Etkileşim Butonları:**
-  - *Kedi:* Mama verme, su bırakma, sevme, oyun, sağlık kontrolü.
-  - *Köpek:* Mama verme, yürüyüşe çıkarma, göbek kaşıma, top oyunu, ödül maması, sağlık kontrolü.
-
-### 4. Coğrafi Takip ve Harita Ekranı (`CatMapScreen.js`)
-- Cihaz GPS entegrasyonu (`expo-location`) ile hayvanların harita üzerindeki dağılımı (`react-native-maps`).
-- Tür filtreleme (Tümü, Yalnızca Kediler, Yalnızca Köpekler).
-- Platforma duyarlı modüler mimari: Mobil cihazlarda yerel harita motoru (`CatMap.native.js`), web ortamında ise uyumlu görsel liste haritası (`CatMap.web.js`).
-
-### 5. Yeni Hayvan Kayıt Arayüzleri (`AddCatScreen.js` & `AddDogScreen.js`)
-- Kamera veya cihaz galerisinden fotoğraf çekme/seçme.
-- Tek dokunuşla bulunulan yerin GPS koordinatlarını ve adres bilgisini alma.
-- Çoklu seçimli ilk karşılaşma etkileşim çipleri.
+1. **Genel Bakış (Overview):**
+   - Toplam bakım & ilgi sayısı (mama, su, sevgi, oyun, yürüyüş vb.),
+   - Tamamlanan ve randevulanan aşı sayıları,
+   - En yüksek bağ seviyesine ulaşılan dostumuzun profili ve etkileşim rozeti.
+2. **Mahalle / Konum Bazlı Dağılım (Location Breakdown):**
+   - Hangi semt/park bölgesinde kaç hayvanın barındığı (kedi ve köpek dağılımı),
+   - O bölgede gerçekleştirilen toplam besleme/bakım sayısı ve uygulanan aşıların dökümü.
+3. **Tür ve Cins Bazlı Bakım (Breeds & Care Breakdown):**
+   - Tekir, Sarman, Calico, Yavru ve melez ırklara göre bakım hareketlerinin dağılımı.
 
 ---
 
-## 🌟 Öne Çıkan Teknik Nitelikler
+## 🐾 Otomatik Başlangıç Verileri (Seed Data)
 
-- **Uluslararasılaştırma (i18n):** Uygulama başlığında yer alan minimalist buton ile Türkçe (TR) ve İngilizce (EN) dilleri arasında anında geçiş.
-- **Açık ve Koyu Tema Desteği:** Sistem kontrast standartlarına uygun, göz yormayan Açık (Light) ve Koyu (Dark) mod mimarisi.
-- **Kalıcı Alt Menü (Bottom Navigation):** Uygulama içerisinde gezinirken tüm ana ekranlara doğrudan erişim sunan alt sekme çubuğu.
-- **Mobil Ekran Güvenli Alan Uyumluluğu:** `react-native-safe-area-context` ile modern çentikli (Notch / Dynamic Island) ve kıvrımlı ekran köşelerine duyarlı dinamik boşluklar (`useSafeAreaInsets`).
-- **Ergonomik Dokunma Alanları:** Mobil tasarım standartları gereği kritik butonlar için genişletilmiş dokunma toleransları (`hitSlop`).
+Yeni kurulan bir cihazda veya sunum esnasında ekranların dolu ve işlevsel görünmesi adına İstanbul'un simge noktalarından gerçekçi veriler hazırlanmıştır (`src/data/seedData.js`):
+- **Kediler:** Kadife (Moda Parkı / Calico), Tarçın (Beşiktaş Çarşı / Sarman), Pusat (Kuzguncuk Bostanı / Tekir), Fıstık (Cihangir Sanatkarlar Parkı / Yavru Melez), Zeytin (Karaköy Rıhtım / Bombay Siyah).
+- **Köpekler:** Karabaş (Yoğurtçu Parkı / Kangal Melezi), Boncuk (Abbasağa Parkı / Golden Melezi), Duman (Bankalar Caddesi / Sokak Köpeği), Pamuk (Salacak Sahili / Terrier Karışımı), Çakıl (Emirgan Korusu / Yavru Çoban Melezi).
+
+---
+
+## 📱 Temel Fonksiyonlar ve Ekranlar
+
+- **HomeScreen:** İstatistikler, dinamik Pati Karnesi & İlgi Özeti, hızlı kedi/köpek ekleme aksiyonları.
+- **CatListScreen & DogListScreen:** Canlı arama, türe/konuma/bağ seviyesine göre gruplama, hızlı silme.
+- **CatDetailScreen & DogDetailScreen:** 5 seviyeli oyunlaştırılmış bağ göstergesi, tam ekran fotoğraf lightbox, aşı geçmişi ve gelecek planlama, eski konum geçmişi günlüğü.
+- **CatMapScreen:** Cihaz GPS'i ile harita üzerinde hayvan konumlarını filtreleme ve pinleme.
+- **AddCatScreen & AddDogScreen:** Galeri/kamera entegrasyonu, anlık GPS koordinat alma, çoklu ilk etkileşim seçimi.
 
 ---
 
@@ -90,89 +78,50 @@ Uygulama, kullanıcı deneyimini maksimize eden zengin ekran ve bileşen hiyerar
 | **Yerel Veri Saklama** | @react-native-async-storage/async-storage | 2.2.0 |
 | **Navigasyon ve Yönlendirme** | React Navigation (Bottom Tabs & Native Stack) | ^7.0.0 |
 | **Harita ve Konum** | React Native Maps & Expo Location | 1.20.1 / ~57.0.0 |
-| **Medya ve Donanım Erişimi** | Expo ImagePicker | ~57.0.0 |
+| **Medya Erişimi** | Expo ImagePicker | ~57.0.0 |
+| **Bulut Güncelleme & Dağıtım** | EAS Update & eas-cli | ^14.0.0 / ~57.0.28 |
 | **Birim Testleri (Unit Tests)** | Node.js Test Runner (`node:test`) | Node v18+ |
-| **Konteynerizasyon** | Docker & Docker Compose | Güncel |
 
 ---
 
 ## 🚀 Kurulum ve Çalıştırma Rehberi
 
-Uygulama iki farklı geliştirme ortamında çalıştırılabilir:
-
-### Yöntem 1: Yerel Ortamda Çalıştırma (Tavsiye Edilen)
-
-#### Gereksinimler:
-- Node.js (v18 veya üzeri)
-- npm veya yarn
-- Test cihazında **Expo Go** mobil uygulaması
+Proje tamamen yerel Node.js ve Expo ortamında çalıştırılır:
 
 ```bash
 # 1. Bağımlılıkları yükleyin
 npm install
 
-# 2. Geliştirme sunucusunu başlatın
+# 2. Yerel Expo geliştirme sunucusunu başlatın
 npx expo start
 
-# 3. İsteğe bağlı olarak Web tarayıcısında görüntülemek için:
+# 3. İsteğe bağlı olarak Web üzerinde çalıştırmak için:
 npx expo start --web
 ```
 
 ---
 
-### Yöntem 2: Docker ile Konteyner Üzerinde Çalıştırma
+## ☁️ EAS Update ile Bulut Yayını (Cloud Deployment)
 
-Docker altyapısı, harici ortam bağımlılıklarını izole ederek sunucunun hızlıca ayağa kaldırılmasını sağlar:
+Uygulamanın en güncel JavaScript paketini Expo bulutuna yüklemek ve fiziki cihazlarda yerel sunucuya ihtiyaç duymadan çalıştırmak için:
 
 ```bash
-# Konteyneri inşa edin ve başlatın
-docker compose up --build
+# 1. Expo hesabınıza giriş yapın
+npx eas-cli login
+
+# 2. Production kanalına bulut güncellemesi yayınlayın
+EAS_NO_VCS=1 npx eas-cli update --branch production --message "Pati Karnesi ve Dummy Veriler"
 ```
-
-Container çalıştıktan sonra:
-- Web çıktısına `http://localhost:8081` adresinden erişilebilir.
-- Container'ı sonlandırmak için `docker compose down` komutu kullanılır.
-
----
-
-## 🔧 Olası Dağıtım ve Ağ Sorunları Çözüm Rehberi (Troubleshooting)
-
-Farklı ağ yapılandırmalarında ve cihaz modellerinde karşılaşılabilecek durumlar ve standart çözüm yöntemleri aşağıda listelenmiştir:
-
-### 1. Docker Üzerinde Fiziksel Cihazın Expo Go Bağlantı Zaman Aşımı (Connection Timeout)
-- **Olası Neden:** Docker varsayılan olarak dahili bir köprü ağı (bridge network) kullanır. Mobil cihaz, geliştirme sunucusunun yerel ağ (LAN) IP adresi yerine Docker'ın iç sanal IP'sine yönlendirilirse bağlantı kurulamaz.
-- **Çözüm:** 
-  Ana makinenin yerel ağdaki IP adresini ortam değişkeni olarak Docker'a ileterek çalıştırın:
-  ```bash
-  # Linux / macOS:
-  HOST_IP=$(hostname -I | awk '{print $1}') docker compose up
-  # veya
-  HOST_IP=<BILGISAYAR_YEREL_IP_ADRESI> docker compose up
-
-  # Windows (PowerShell):
-  $env:HOST_IP="<BILGISAYAR_YEREL_IP_ADRESI>"; docker compose up
-  ```
-
-### 2. Fiziksel Cihaz ile Expo Go SDK Sürüm Uyuşmazlığı
-- **Olası Neden:** Cihazdaki Expo Go istemcisi yakın zamanda güncellendiyse eski SDK sürümlerine sahip projeleri derlemeyi reddedebilir.
-- **Çözüm:** Proje **Expo SDK 57** ile tam uyumlu hale getirilmiştir. `package.json` bağımlılıklarının kurulu olduğundan emin olun (`npm install`).
-
-### 3. Web Ortamında Harita Kütüphanesi (`react-native-maps`) Uyarısı
-- **Olası Neden:** `react-native-maps`, yerel iOS (Apple Maps) ve Android (Google Maps) bileşenlerine dayanır ve web tarayıcılarında yerel derlenemez.
-- **Çözüm:** Proje modüler mimarisinde `CatMap.native.js` ve `CatMap.web.js` dosyaları platform bazlı ayrıştırılmıştır; Expo platform motoru otomatik olarak uygun dosyayı yükler.
 
 ---
 
 ## 🧪 Birim Testleri (Unit Tests)
 
-Uygulamanın veri analiz motorunu, aşı sayaçlarını, uç durum korumalarını (null/undefined toleransı) ve bağ hesaplama algoritmalarını doğrulayan otomatik birim testleri mevcuttur:
+Uygulamanın analitik motorunu, konum ve tür dağılım hesaplamalarını ve bağ seviyesi algoritmasını doğrulayan otomatik testler:
 
 ```bash
-# Birim testlerini çalıştırmak için:
 npm test
 ```
-
-Test paketi harici kütüphane bağımlılığı olmaksızın doğrudan Node.js yerleşik test motoru (`node:test`, `node:assert/strict`) üzerinde çalışır.
 
 ---
 
@@ -180,20 +129,21 @@ Test paketi harici kütüphane bağımlılığı olmaksızın doğrudan Node.js 
 
 ```text
 MobileAppDevelopmentProject/
-├── Dockerfile                      # Docker derleme yapılandırması
-├── docker-compose.yml              # Konteyner servis ve port tanımları
 ├── package.json                    # Bağımlılıklar ve npm betikleri
-├── app.json                        # Expo uygulama ayarları
+├── app.json                        # Expo ve EAS proje ayarları
+├── eas.json                        # EAS derleme ve güncelleme yapılandırması
 ├── index.js                        # Uygulama giriş noktası
 ├── App.js                          # Ana navigasyon ve tema sağlayıcıları
 ├── src/
 │   ├── components/
-│   │   ├── CareSummaryCard.js      # Mahalle bakım özeti bileşeni
+│   │   ├── CareSummaryCard.js      # Pati Karnesi & İlgi Özeti bileşeni
 │   │   ├── ConfirmDeleteModal.js   # Silme doğrulama modalı
 │   │   ├── ImageViewerModal.js     # Tam ekran lightbox görsel görüntüleyici
-│   │   ├── ToastBanner.js          # Bildirim bildirim çubuğu
+│   │   ├── ToastBanner.js          # Bildirim pop-up bileşeni
 │   │   ├── CatMap.native.js        # Mobil yerel harita motoru
 │   │   └── CatMap.web.js           # Web ortamı harita bileşeni
+│   ├── data/
+│   │   └── seedData.js             # Otomatik başlangıç verileri (Seed Data)
 │   ├── i18n/
 │   │   └── translations.js         # Türkçe ve İngilizce dil sözlüğü
 │   ├── screens/
@@ -211,7 +161,7 @@ MobileAppDevelopmentProject/
 │   │   ├── colors.js               # Açık ve Koyu tema renk paletleri
 │   │   └── useAppTheme.js          # Tema ve dil yönetim kancası (Hook)
 │   └── utils/
-│       ├── careAnalytics.js        # İstatistiksel analiz ve bağ algoritması
+│       ├── careAnalytics.js        # İstatistiksel analiz ve dağılım algoritması
 │       └── imageHelper.js          # Görsel URI çözümleyici yardımcı modül
 └── tests/
     └── careAnalytics.test.js       # Otomatik doğrulama birim testleri
