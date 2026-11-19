@@ -198,7 +198,7 @@ export default function AnalyticsScreen({ navigation }) {
 
           {/* En Yüksek Bağ */}
           {stats.topFriend && stats.topFriend.name && (
-            <View
+            <TouchableOpacity
               style={[
                 styles.topFriendCard,
                 {
@@ -206,14 +206,36 @@ export default function AnalyticsScreen({ navigation }) {
                   borderColor: colors.cardBorder,
                 },
               ]}
+              activeOpacity={0.82}
+              onPress={() => {
+                if (!stats.topFriend?.id) return;
+                if (stats.topFriend.species === 'dog') {
+                  navigation.navigate('DogDetail', {
+                    dogId: stats.topFriend.id,
+                    dogName: stats.topFriend.name,
+                  });
+                } else {
+                  navigation.navigate('CatDetail', {
+                    catId: stats.topFriend.id,
+                    catName: stats.topFriend.name,
+                  });
+                }
+              }}
             >
               <Text style={styles.topFriendBigEmoji}>
                 {stats.topFriend.species === 'dog' ? '🐶' : '🐱'}
               </Text>
               <View style={{ flex: 1 }}>
-                <Text style={[styles.topFriendTitle, { color: colors.textSecondary }]}>
-                  {isEn ? 'Strongest Bond Champion' : 'En Yüksek Bağ Kurulan Dost'}
-                </Text>
+                <View style={styles.topFriendHeaderRow}>
+                  <Text style={[styles.topFriendTitle, { color: colors.textSecondary }]}>
+                    {isEn ? 'Strongest Bond Champion' : 'En Çok Etkileşime Girilen Dost'}
+                  </Text>
+                  <View style={[styles.topFriendBadge, { backgroundColor: isDark ? colors.surfaceSecondary : '#FFF2EC' }]}>
+                    <Text style={[styles.topFriendBadgeText, { color: colors.primary }]}>
+                      {isEn ? 'View Profile ➔' : 'Profile Git ➔'}
+                    </Text>
+                  </View>
+                </View>
                 <Text style={[styles.topFriendName, { color: colors.text }]}>
                   {stats.topFriend.name}
                 </Text>
@@ -221,7 +243,16 @@ export default function AnalyticsScreen({ navigation }) {
                   {stats.topFriend.interactionCount} {isEn ? 'care interactions recorded' : 'etkileşim ve bakım kaydı'}
                 </Text>
               </View>
-            </View>
+
+              <View
+                style={[
+                  styles.topFriendArrowCircle,
+                  { backgroundColor: isDark ? colors.surfaceSecondary : '#FFF0EA' },
+                ]}
+              >
+                <Ionicons name="chevron-forward" size={18} color={colors.primary} />
+              </View>
+            </TouchableOpacity>
           )}
         </View>
       )}
@@ -445,6 +476,34 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     borderWidth: 1,
     gap: 14,
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 6,
+    elevation: 2,
+  },
+  topFriendHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 6,
+    marginBottom: 2,
+  },
+  topFriendBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 10,
+  },
+  topFriendBadgeText: {
+    fontSize: 10,
+    fontWeight: '800',
+  },
+  topFriendArrowCircle: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   topFriendBigEmoji: {
     fontSize: 34,
