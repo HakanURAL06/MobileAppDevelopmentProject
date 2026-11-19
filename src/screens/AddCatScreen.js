@@ -259,12 +259,6 @@ export default function AddCatScreen({ navigation }) {
       showToast('Hızlı kayıt tamamlandı! Sonra tamamlayabilirsiniz ⚡', 'success');
     }
 
-    navigation.goBack();
-  };
-      notes: notes.trim(),
-      initialInteractions: initialInteractionsData,
-    });
-
     // Formu temizle
     setName('');
     setBreed('');
