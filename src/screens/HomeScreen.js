@@ -11,6 +11,7 @@ import { Ionicons } from '@expo/vector-icons';
 import useCatStore from '../store/catStore';
 import useAppTheme from '../theme/useAppTheme';
 import CareSummaryCard from '../components/CareSummaryCard';
+import AddAnimalActionMenu from '../components/AddAnimalActionMenu';
 
 export default function HomeScreen({ navigation }) {
   const cats = useCatStore((state) => state.cats || []);
@@ -105,7 +106,10 @@ export default function HomeScreen({ navigation }) {
         </View>
       </View>
 
-      {/* 2. BÜYÜK YÖNLENDİRME KARTLARI */}
+      {/* 2. TEK VE DÜZENLİ AÇILIR EKLE BUTONU */}
+      <AddAnimalActionMenu navigation={navigation} />
+
+      {/* 3. BÜYÜK YÖNLENDİRME KARTLARI */}
       <View style={styles.buttonsContainer}>
         {/* Buton 1: Kayıtlı Kedilerim */}
         <TouchableOpacity
@@ -203,55 +207,12 @@ export default function HomeScreen({ navigation }) {
         </TouchableOpacity>
       </View>
 
-      {/* 3. HIZLI EKLEME BUTONLARI (KEDİ & KÖPEK) */}
-      <View style={styles.quickAddRow}>
-        <TouchableOpacity
-          style={[
-            styles.quickAddBtnCat,
-            {
-              backgroundColor: isDark ? colors.card : '#FFF2EC',
-              borderColor: isDark ? colors.primary : '#FFD9CB',
-            },
-          ]}
-          activeOpacity={0.85}
-          onPress={() => navigation.navigate('AddCat')}
-        >
-          <Ionicons name="add-circle" size={20} color={colors.primary} />
-          <Text style={[styles.quickAddBtnTextCat, { color: colors.primary }]}>
-            + {t.homeQuickAddCat} 🐱
-          </Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[
-            styles.quickAddBtnDog,
-            {
-              backgroundColor: isDark ? colors.card : '#FEF3C7',
-              borderColor: isDark ? '#D97706' : '#FDE68A',
-            },
-          ]}
-          activeOpacity={0.85}
-          onPress={() => navigation.navigate('AddDog')}
-        >
-          <Ionicons name="add-circle" size={20} color="#D97706" />
-          <Text style={styles.quickAddBtnTextDog}>
-            + {t.homeQuickAddDog} 🐶
-          </Text>
-        </TouchableOpacity>
-      </View>
-
-      {/* 3.5 MAHALLE BAKIM ÖZETİ KARTI */}
-      <CareSummaryCard cats={cats} dogs={dogs} />
-
-      {/* 4. GÜNÜN NOTU */}
-      <View style={[styles.noteBox, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}>
-        <Text style={styles.noteEmoji}>🥣</Text>
-        <Text style={[styles.noteText, { color: colors.textSecondary }]}>
-          {language === 'en'
-            ? '"A bowl of food, a bowl of clean water and a little affection brighten any street animal\'s day."'
-            : '"Bir kap mama, bir kap temiz su ve biraz sevgi her sokak canının gününü güzelleştirir."'}
-        </Text>
-      </View>
+      {/* 4. SADE PATİ KARNESİ ÖZET KARTI (Dokununca detaylı Analytics sayfasına gider) */}
+      <CareSummaryCard
+        cats={cats}
+        dogs={dogs}
+        onPressDetails={() => navigation.navigate('Analytics')}
+      />
     </ScrollView>
   );
 }

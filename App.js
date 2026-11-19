@@ -15,6 +15,7 @@ import AddCatScreen from './src/screens/AddCatScreen';
 import AddDogScreen from './src/screens/AddDogScreen';
 import CatDetailScreen from './src/screens/CatDetailScreen';
 import DogDetailScreen from './src/screens/DogDetailScreen';
+import AnalyticsScreen from './src/screens/AnalyticsScreen';
 import ToastBanner from './src/components/ToastBanner';
 import useCatStore from './src/store/catStore';
 import { getThemeColors, Colors } from './src/theme/colors';
@@ -22,6 +23,31 @@ import { getTranslation } from './src/i18n/translations';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
+
+/**
+ * Sol Üst Geri Dön Butonu (Global Back Button)
+ * Kullanıcı nerede olursa olsun bastığında bir önceki bulunduğu sayfaya döner.
+ */
+function HeaderBackButton({ navigation }) {
+  const canGoBack = navigation && navigation.canGoBack ? navigation.canGoBack() : false;
+  const isDark = useCatStore((state) => state.theme === 'dark');
+
+  if (!canGoBack) return null;
+
+  return (
+    <TouchableOpacity
+      style={[
+        styles.globalBackBtn,
+        { backgroundColor: isDark ? 'rgba(255,255,255,0.12)' : 'rgba(255,255,255,0.22)' },
+      ]}
+      onPress={() => navigation.goBack()}
+      activeOpacity={0.7}
+      hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+    >
+      <Ionicons name="chevron-back" size={20} color="#FFFFFF" />
+    </TouchableOpacity>
+  );
+}
 
 /**
  * Üst Başlık Hızlı Tema ve Dil Değiştirici Butonları
@@ -181,7 +207,7 @@ export default function App() {
       <NavigationContainer>
         <StatusBar style="light" />
         <Stack.Navigator
-          screenOptions={{
+          screenOptions={({ navigation }) => ({
             headerStyle: {
               backgroundColor: isDark ? colors.card : Colors.primary,
             },
@@ -191,8 +217,9 @@ export default function App() {
               fontSize: 17,
             },
             headerBackTitleVisible: false,
+            headerLeft: () => <HeaderBackButton navigation={navigation} />,
             headerRight: () => <HeaderPreferencesButtons />,
-          }}
+          })}
         >
           {/* Ana Sekmeler */}
           <Stack.Screen
@@ -250,6 +277,16 @@ export default function App() {
               },
             }}
           />
+
+          {/* Pati Karnesi & İlgi Özeti Detay Sayfası */}
+          <Stack.Screen
+            name="Analytics"
+            component={AnalyticsScreen}
+            options={{
+              title: language === 'en' ? 'Paw Passport & Analytics' : 'Pati Karnesi & Rapor',
+              headerBackTitle: t.navBack,
+            }}
+          />
         </Stack.Navigator>
       </NavigationContainer>
       <ToastBanner />
@@ -264,6 +301,15 @@ const styles = StyleSheet.create({
     gap: 6,
     paddingVertical: 2,
     paddingRight: 2,
+  },
+  globalBackBtn: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginLeft: 6,
+    marginRight: 4,
   },
   headerIconBtn: {
     width: 32,

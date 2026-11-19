@@ -32,6 +32,7 @@ export default function CatListScreen({ navigation }) {
 
   const groupOptions = useMemo(() => [
     { id: 'all', title: t.filterAll, emoji: '📋' },
+    { id: 'drafts', title: language === 'en' ? 'Incomplete / Drafts' : 'Eksik / Taslaklar', emoji: '📝' },
     { id: 'location', title: t.filterLocation, emoji: '📍' },
     { id: 'breed', title: t.filterBreed, emoji: '🐾' },
     { id: 'bond', title: language === 'en' ? 'By Bond Level' : 'Bağ Seviyesine Göre', emoji: '💖' },
@@ -70,6 +71,29 @@ export default function CatListScreen({ navigation }) {
   // Gruplara göre bölümlenmiş kedi verisi (filtrelenmiş kediler üzerinden)
   const groupedSections = useMemo(() => {
     if (groupBy === 'all' || filteredCats.length === 0) return [];
+
+    // 0. Tamamlanmamış / Hızlı Eklenen Taslak Kediler
+    if (groupBy === 'drafts') {
+      const drafts = filteredCats.filter((c) => c.isDraft || !c.name || c.name.includes('(Taslak)'));
+      const completed = filteredCats.filter((c) => !c.isDraft && c.name && !c.name.includes('(Taslak)'));
+
+      const sections = [];
+      if (drafts.length > 0) {
+        sections.push({
+          title: language === 'en' ? 'Incomplete / Quick Saves (Tap to Complete)' : 'Eksik / Hızlı Kayıtlar (Dokunarak Tamamla)',
+          emoji: '📝',
+          data: drafts,
+        });
+      }
+      if (completed.length > 0) {
+        sections.push({
+          title: language === 'en' ? 'Completed Profiles' : 'Tamamlanmış Profiller',
+          emoji: '✓',
+          data: completed,
+        });
+      }
+      return sections;
+    }
 
     // 1. Konuma göre gruplama (Kullanıcının verdiği el ile isim öncelikli)
     if (groupBy === 'location') {

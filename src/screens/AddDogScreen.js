@@ -220,16 +220,17 @@ export default function AddDogScreen({ navigation }) {
     }
   };
 
-  const handleSubmit = () => {
-    if (!name.trim()) {
-      showToast('Lütfen sevimli dostumuzun adını yazın 🐶', 'info');
-      return;
-    }
-
+  const handleSaveDog = (isQuick = false) => {
     const defaultDogPhoto =
       'https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=600&q=80';
 
     const now = new Date().toISOString();
+
+    const dogName = name.trim() || (isQuick ? 'İsimsiz Köpek (Taslak)' : '');
+    if (!dogName && !isQuick) {
+      showToast('Lütfen sevimli dostumuzun adını yazın 🐶', 'info');
+      return;
+    }
 
     const initialInteractionsData = selectedInteractions.map((id) => {
       const option = dogInteractionOptions.find((opt) => opt.id === id);
@@ -241,14 +242,25 @@ export default function AddDogScreen({ navigation }) {
     });
 
     addDog({
-      name: name.trim(),
-      breed: breed.trim() || 'Sokak Köpeği / Melez',
+      name: dogName || 'İsimsiz Köpek (Taslak)',
+      breed: breed.trim() || (isQuick ? 'Belirtilmedi' : 'Sokak Köpeği / Melez'),
       photoUri: photoUri || defaultDogPhoto,
+      isDraft: isQuick || !name.trim(),
       location: {
         regionName: regionName.trim() || 'Bilinmeyen Bölge',
         latitude: coordinates?.latitude || null,
         longitude: coordinates?.longitude || null,
       },
+      notes: notes.trim(),
+      initialInteractions: initialInteractionsData,
+    });
+
+    if (isQuick) {
+      showToast('Hızlı kayıt tamamlandı! Sonra tamamlayabilirsiniz ⚡', 'success');
+    }
+
+    navigation.goBack();
+  };
       notes: notes.trim(),
       initialInteractions: initialInteractionsData,
     });
@@ -535,12 +547,31 @@ export default function AddDogScreen({ navigation }) {
           </View>
         </View>
 
-        {/* KAYDET BUTONU */}
-        <TouchableOpacity style={styles.submitButton} onPress={handleSubmit} activeOpacity={0.88}>
-          <Text style={styles.submitButtonEmoji}>🐶</Text>
-          <Text style={styles.submitButtonText}>{t.submitAddDogBtn}</Text>
-          <Ionicons name="checkmark-circle" size={22} color="#FFFFFF" />
-        </TouchableOpacity>
+        {/* KAYDETME BUTONLARI (HIZLI & TAM) */}
+        <View style={styles.actionButtonsContainer}>
+          <TouchableOpacity
+            style={[
+              styles.quickSaveBtn,
+              {
+                backgroundColor: isDark ? colors.surfaceSecondary : '#FEF3C7',
+                borderColor: '#D97706',
+              },
+            ]}
+            onPress={() => handleSaveDog(true)}
+            activeOpacity={0.85}
+          >
+            <Ionicons name="flash" size={18} color="#D97706" />
+            <Text style={[styles.quickSaveBtnText, { color: '#D97706' }]}>
+              {language === 'en' ? 'Quick Save (Photo & Location)' : 'Hızlı Kaydet ⚡ (Sadece Foto & Konum)'}
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.submitButton} onPress={() => handleSaveDog(false)} activeOpacity={0.88}>
+            <Text style={styles.submitButtonEmoji}>🐶</Text>
+            <Text style={styles.submitButtonText}>{t.submitAddDogBtn}</Text>
+            <Ionicons name="checkmark-circle" size={22} color="#FFFFFF" />
+          </TouchableOpacity>
+        </View>
       </View>
 
       {/* Tam Ekran Fotoğraf Görüntüleyici */}
@@ -860,6 +891,23 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginLeft: 8,
   },
+  actionButtonsContainer: {
+    gap: 10,
+    marginTop: 16,
+  },
+  quickSaveBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 14,
+    borderRadius: 18,
+    borderWidth: 1.5,
+    gap: 8,
+  },
+  quickSaveBtnText: {
+    fontSize: 13,
+    fontWeight: '800',
+  },
   submitButton: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -867,7 +915,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#D97706',
     borderRadius: 20,
     paddingVertical: 14,
-    marginTop: 20,
     gap: 8,
     shadowColor: '#D97706',
     shadowOffset: { width: 0, height: 4 },

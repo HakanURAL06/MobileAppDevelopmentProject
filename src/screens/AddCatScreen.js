@@ -217,17 +217,19 @@ export default function AddCatScreen({ navigation }) {
     }
   };
 
-  // 4. Form Gönderimi & Zustand Store'a Kayıt
-  const handleSubmit = () => {
-    if (!name.trim()) {
-      showToast('Lütfen sevimli dostumuzun adını yazın 🐾', 'info');
-      return;
-    }
-
+  // 4. Form Gönderimi (Hızlı Kaydet veya Tam Kaydet)
+  const handleSaveCat = (isQuick = false) => {
     const defaultCatPhoto =
       'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=600&q=80';
 
     const now = new Date().toISOString();
+
+    // Hızlı kaydetmede isim zorunlu değil; taslak olarak kaydedilebilir
+    const catName = name.trim() || (isQuick ? 'İsimsiz Kedi (Taslak)' : '');
+    if (!catName && !isQuick) {
+      showToast('Lütfen sevimli dostumuzun adını yazın 🐾', 'info');
+      return;
+    }
 
     // Seçilen etkileşimlerin detaylarını hazırla
     const initialInteractionsData = selectedInteractions.map((id) => {
@@ -240,14 +242,25 @@ export default function AddCatScreen({ navigation }) {
     });
 
     addCat({
-      name: name.trim(),
-      breed: breed.trim() || 'Tekir / Melez',
+      name: catName || 'İsimsiz Kedi (Taslak)',
+      breed: breed.trim() || (isQuick ? 'Belirtilmedi' : 'Tekir / Melez'),
       photoUri: photoUri || defaultCatPhoto,
+      isDraft: isQuick || !name.trim(),
       location: {
         regionName: regionName.trim() || 'Bilinmeyen Bölge',
         latitude: coordinates?.latitude || null,
         longitude: coordinates?.longitude || null,
       },
+      notes: notes.trim(),
+      initialInteractions: initialInteractionsData,
+    });
+
+    if (isQuick) {
+      showToast('Hızlı kayıt tamamlandı! Sonra tamamlayabilirsiniz ⚡', 'success');
+    }
+
+    navigation.goBack();
+  };
       notes: notes.trim(),
       initialInteractions: initialInteractionsData,
     });
@@ -544,10 +557,35 @@ export default function AddCatScreen({ navigation }) {
           </View>
         </View>
 
-        {/* KAYDET BUTONU */}
-        <TouchableOpacity style={[styles.submitButton, { backgroundColor: colors.primary }]} onPress={handleSubmit} activeOpacity={0.88}>
-          <Text style={styles.submitButtonText}>{t.submitAddCatBtn}</Text>
-        </TouchableOpacity>
+        {/* KAYDETME BUTONLARI (HIZLI KAYDET & TAM KAYDET) */}
+        <View style={styles.actionButtonsContainer}>
+          {/* Hızlı Kaydet Butonu */}
+          <TouchableOpacity
+            style={[
+              styles.quickSaveBtn,
+              {
+                backgroundColor: isDark ? colors.surfaceSecondary : '#FFF2EC',
+                borderColor: colors.primary,
+              },
+            ]}
+            onPress={() => handleSaveCat(true)}
+            activeOpacity={0.85}
+          >
+            <Ionicons name="flash" size={18} color={colors.primary} />
+            <Text style={[styles.quickSaveBtnText, { color: colors.primary }]}>
+              {language === 'en' ? 'Quick Save (Photo & Location)' : 'Hızlı Kaydet ⚡ (Sadece Foto & Konum)'}
+            </Text>
+          </TouchableOpacity>
+
+          {/* Tam Kaydet Butonu */}
+          <TouchableOpacity
+            style={[styles.submitButton, { backgroundColor: colors.primary }]}
+            onPress={() => handleSaveCat(false)}
+            activeOpacity={0.88}
+          >
+            <Text style={styles.submitButtonText}>{t.submitAddCatBtn}</Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
       {/* Tam Ekran Fotoğraf Görüntüleyici */}
@@ -891,6 +929,23 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginLeft: 10,
+  },
+  actionButtonsContainer: {
+    gap: 10,
+    marginTop: 6,
+  },
+  quickSaveBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 14,
+    borderRadius: 18,
+    borderWidth: 1.5,
+    gap: 8,
+  },
+  quickSaveBtnText: {
+    fontSize: 13,
+    fontWeight: '800',
   },
   submitButton: {
     backgroundColor: Colors.primary,

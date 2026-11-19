@@ -32,6 +32,7 @@ export default function DogListScreen({ navigation }) {
 
   const groupOptions = useMemo(() => [
     { id: 'all', title: t.filterAll, emoji: '📋' },
+    { id: 'drafts', title: language === 'en' ? 'Incomplete / Drafts' : 'Eksik / Taslaklar', emoji: '📝' },
     { id: 'location', title: t.filterLocation, emoji: '📍' },
     { id: 'breed', title: t.filterBreed, emoji: '🐾' },
     { id: 'bond', title: language === 'en' ? 'By Loyalty Level' : 'Sadakat Seviyesine Göre', emoji: '💖' },
@@ -62,6 +63,28 @@ export default function DogListScreen({ navigation }) {
 
   const groupedSections = useMemo(() => {
     if (groupBy === 'all' || filteredDogs.length === 0) return [];
+
+    if (groupBy === 'drafts') {
+      const drafts = filteredDogs.filter((d) => d.isDraft || !d.name || d.name.includes('(Taslak)'));
+      const completed = filteredDogs.filter((d) => !d.isDraft && d.name && !d.name.includes('(Taslak)'));
+
+      const sections = [];
+      if (drafts.length > 0) {
+        sections.push({
+          title: language === 'en' ? 'Incomplete / Quick Saves (Tap to Complete)' : 'Eksik / Hızlı Kayıtlar (Dokunarak Tamamla)',
+          emoji: '📝',
+          data: drafts,
+        });
+      }
+      if (completed.length > 0) {
+        sections.push({
+          title: language === 'en' ? 'Completed Profiles' : 'Tamamlanmış Profiller',
+          emoji: '✓',
+          data: completed,
+        });
+      }
+      return sections;
+    }
 
     if (groupBy === 'location') {
       const map = {};

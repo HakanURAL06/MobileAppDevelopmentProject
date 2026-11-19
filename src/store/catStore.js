@@ -153,12 +153,15 @@ export const useCatStore = create(
           ];
         }
 
+        const isDraft = Boolean(catData.isDraft || (!catData.name || catData.name.trim() === 'İsimsiz Kedi' || !catData.breed));
+
         const newCat = {
           id: newCatId,
-          name: (catData.name || '').trim() || 'İsimsiz Kedi',
+          name: (catData.name || '').trim() || 'İsimsiz Kedi (Taslak)',
+          isDraft: isDraft,
           photos: photoList,
           photoUri: photoList[0] || null,
-          breed: (catData.breed || '').trim() || 'Tekir / Melez',
+          breed: (catData.breed || '').trim() || 'Belirtilmedi',
           location:
             typeof catData.location === 'object'
               ? {
@@ -302,11 +305,16 @@ export const useCatStore = create(
         set((state) => ({
           cats: (Array.isArray(state.cats) ? state.cats : []).map((cat) => {
             if (cat.id === catId) {
-              return {
+              const updated = {
                 ...cat,
                 ...updatedFields,
                 locationHistory: newHistory,
               };
+              // Eğer isim girildiyse ve belirtilmedi olan cins güncellendiyse taslak durumundan çıkar
+              if (updated.isDraft && updated.name && updated.name.trim() !== 'İsimsiz Kedi (Taslak)') {
+                updated.isDraft = false;
+              }
+              return updated;
             }
             return cat;
           }),
@@ -504,12 +512,15 @@ export const useCatStore = create(
           ];
         }
 
+        const isDraft = Boolean(dogData.isDraft || (!dogData.name || dogData.name.trim() === 'İsimsiz Köpek' || !dogData.breed));
+
         const newDog = {
           id: newDogId,
-          name: (dogData.name || '').trim() || 'İsimsiz Köpek',
+          name: (dogData.name || '').trim() || 'İsimsiz Köpek (Taslak)',
+          isDraft: isDraft,
           photos: photoList,
           photoUri: photoList[0] || null,
-          breed: (dogData.breed || '').trim() || 'Sokak Köpeği / Melez',
+          breed: (dogData.breed || '').trim() || 'Belirtilmedi',
           location:
             typeof dogData.location === 'object'
               ? {
@@ -653,11 +664,15 @@ export const useCatStore = create(
         set((state) => ({
           dogs: (Array.isArray(state.dogs) ? state.dogs : []).map((dog) => {
             if (dog.id === dogId) {
-              return {
+              const updated = {
                 ...dog,
                 ...updatedFields,
                 locationHistory: newHistory,
               };
+              if (updated.isDraft && updated.name && updated.name.trim() !== 'İsimsiz Köpek (Taslak)') {
+                updated.isDraft = false;
+              }
+              return updated;
             }
             return dog;
           }),
