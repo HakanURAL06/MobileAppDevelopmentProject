@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Platform } from 'react-native';
-import { NavigationContainer } from '@react-navigation/native';
+import { NavigationContainer, useNavigationContainerRef } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -25,26 +25,54 @@ const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
 
 /**
- * Sol Üst Geri Dön Butonu (Global Back Button)
- * Kullanıcı nerede olursa olsun bastığında bir önceki bulunduğu sayfaya döner.
+ * Kalıcı Menünün Sol Üstünde Duran Geri Gitme Butonu (Floating Back Button)
+ * Kullanıcının nerede olursa olsun bir önceki bulunduğu sayfaya kolayca dönmesini sağlar.
  */
-function HeaderBackButton({ navigation }) {
-  const canGoBack = navigation && navigation.canGoBack ? navigation.canGoBack() : false;
-  const isDark = useCatStore((state) => state.theme === 'dark');
+function FloatingBottomBackButton({ currentRoute, canGoBack, onBack }) {
+  const insets = useSafeAreaInsets();
+  const theme = useCatStore((state) => state.theme || 'light');
+  const language = useCatStore((state) => state.language || 'tr');
+  const isDark = theme === 'dark';
+  const colors = getThemeColors(theme);
+  const t = getTranslation(language);
 
-  if (!canGoBack) return null;
+  const isTabScreen = ['Home', 'CatList', 'DogList', 'CatMap'].includes(currentRoute) || currentRoute === 'MainTabs';
+  const bottomPadding = Math.max(insets.bottom, Platform.OS === 'ios' ? 16 : 10);
+  const tabBarHeight = 58 + bottomPadding;
+
+  // Kalıcı menü üzerindeyken tab barın hemen sol üstünde, stack sayfalarında ise alt kenarın sol üstünde durur
+  const bottomPosition = isTabScreen ? tabBarHeight + 12 : bottomPadding + 16;
+
+  // Ana sayfada değilsek veya geri gidilebilecek geçmiş varsa aktif renkte parlar
+  const isActive = canGoBack || (currentRoute && currentRoute !== 'Home' && currentRoute !== 'MainTabs');
 
   return (
     <TouchableOpacity
       style={[
-        styles.globalBackBtn,
-        { backgroundColor: isDark ? 'rgba(255,255,255,0.12)' : 'rgba(255,255,255,0.22)' },
+        styles.floatingBackBtn,
+        {
+          bottom: bottomPosition,
+          backgroundColor: isActive
+            ? (isDark ? colors.card : colors.primary)
+            : (isDark ? 'rgba(55,65,81,0.92)' : 'rgba(75,85,99,0.92)'),
+          borderColor: isActive
+            ? (isDark ? colors.cardBorder : 'rgba(255,255,255,0.45)')
+            : 'rgba(255,255,255,0.25)',
+        },
       ]}
-      onPress={() => navigation.goBack()}
-      activeOpacity={0.7}
-      hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+      onPress={onBack}
+      activeOpacity={0.78}
+      hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
     >
-      <Ionicons name="chevron-back" size={20} color="#FFFFFF" />
+      <Ionicons
+        name="arrow-back"
+        size={17}
+        color="#FFFFFF"
+        style={{ marginRight: 4 }}
+      />
+      <Text style={styles.floatingBackText}>
+        {t.navBack || 'Geri'}
+      </Text>
     </TouchableOpacity>
   );
 }
@@ -110,6 +138,7 @@ function BottomTabs() {
 
   return (
     <Tab.Navigator
+      backBehavior="history"
       screenOptions={({ route }) => ({
         headerShown: true,
         headerStyle: {
@@ -201,13 +230,50 @@ export default function App() {
   const isDark = theme === 'dark';
   const colors = getThemeColors(theme);
   const t = getTranslation(language);
+  const showToast = useCatStore((state) => state.showToast);
+
+  const navigationRef = useNavigationContainerRef();
+  const [canGoBackState, setCanGoBackState] = React.useState(false);
+  const [currentRoute, setCurrentRoute] = React.useState('Home');
+
+  const updateNavState = React.useCallback(() => {
+    if (navigationRef.isReady()) {
+      setCanGoBackState(navigationRef.canGoBack());
+      const route = navigationRef.getCurrentRoute();
+      if (route?.name) {
+        setCurrentRoute(route.name);
+      }
+    }
+  }, [navigationRef]);
+
+  const handleFloatingBack = () => {
+    if (!navigationRef.isReady()) return;
+
+    if (navigationRef.canGoBack()) {
+      navigationRef.goBack();
+    } else {
+      const current = navigationRef.getCurrentRoute()?.name;
+      if (current && current !== 'Home' && current !== 'MainTabs') {
+        navigationRef.navigate('MainTabs', { screen: 'Home' });
+      } else {
+        showToast(
+          language === 'en' ? 'Already at home screen 🏠' : 'Zaten ana ekrandasınız 🏠',
+          'info'
+        );
+      }
+    }
+  };
 
   return (
     <SafeAreaProvider>
-      <NavigationContainer>
+      <NavigationContainer
+        ref={navigationRef}
+        onReady={updateNavState}
+        onStateChange={updateNavState}
+      >
         <StatusBar style="light" />
         <Stack.Navigator
-          screenOptions={({ navigation }) => ({
+          screenOptions={{
             headerStyle: {
               backgroundColor: isDark ? colors.card : Colors.primary,
             },
@@ -217,9 +283,8 @@ export default function App() {
               fontSize: 17,
             },
             headerBackTitleVisible: false,
-            headerLeft: () => <HeaderBackButton navigation={navigation} />,
             headerRight: () => <HeaderPreferencesButtons />,
-          })}
+          }}
         >
           {/* Ana Sekmeler */}
           <Stack.Screen
@@ -289,6 +354,14 @@ export default function App() {
           />
         </Stack.Navigator>
       </NavigationContainer>
+
+      {/* Kalıcı Alt Menünün Sol Üstünde Duran Geri Gitme Butonu */}
+      <FloatingBottomBackButton
+        currentRoute={currentRoute}
+        canGoBack={canGoBackState}
+        onBack={handleFloatingBack}
+      />
+
       <ToastBanner />
     </SafeAreaProvider>
   );
@@ -302,14 +375,28 @@ const styles = StyleSheet.create({
     paddingVertical: 2,
     paddingRight: 2,
   },
-  globalBackBtn: {
-    width: 34,
-    height: 34,
-    borderRadius: 17,
-    justifyContent: 'center',
+  floatingBackBtn: {
+    position: 'absolute',
+    left: 16,
+    flexDirection: 'row',
     alignItems: 'center',
-    marginLeft: 6,
-    marginRight: 4,
+    justifyContent: 'center',
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    borderRadius: 22,
+    borderWidth: 1.5,
+    zIndex: 9999,
+    elevation: 8,
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.28,
+    shadowRadius: 5,
+  },
+  floatingBackText: {
+    color: '#FFFFFF',
+    fontSize: 13,
+    fontWeight: '700',
+    letterSpacing: 0.3,
   },
   headerIconBtn: {
     width: 32,
