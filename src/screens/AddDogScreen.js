@@ -259,12 +259,6 @@ export default function AddDogScreen({ navigation }) {
       showToast('Hızlı kayıt tamamlandı! Sonra tamamlayabilirsiniz ⚡', 'success');
     }
 
-    navigation.goBack();
-  };
-      notes: notes.trim(),
-      initialInteractions: initialInteractionsData,
-    });
-
     setName('');
     setBreed('');
     setRegionName('');
