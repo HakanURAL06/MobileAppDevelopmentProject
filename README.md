@@ -268,7 +268,5 @@ Bu mobil yazılım projesi, **İstanbul Üniversitesi Yönetim Bilişim Sistemle
 
 - **Geliştirici:** Hakan Ural
 - **Öğrenci Numarası:** 0515240030
-- **Depo Bağlantısı:** [GitHub Deposu](https://github.com/HakanURAL06/MobileAppDevelopmentProject)
 
-### Lisans (License)
-Bu proje, açık kaynak topluluğuna katkı ve akademik değerlendirme amacıyla **MIT Lisansı** altında lisanslanmıştır. Detaylar ve serbest kullanım şartları için proje deposundaki lisans esasları geçerlidir.
+
