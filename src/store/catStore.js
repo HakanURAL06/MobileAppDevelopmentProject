@@ -4,6 +4,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Colors } from '../theme/colors';
 import { INITIAL_SEED_CATS, INITIAL_SEED_DOGS } from '../data/seedData';
 
+export const SEED_VERSION = 'v2';
+
 /**
  * @typedef {Object} Interaction
  * @property {string} id - Benzersiz etkileşim kimliği
@@ -993,7 +995,7 @@ export const useCatStore = create(
     {
       // KURAL 2 & 4: Resmi persist + createJSONStorage + AsyncStorage kurulumu.
       // Yalnızca yerel veritabanındaki (AsyncStorage) kullanıcı verileri okunur ve korunur.
-      name: 'street-animal-local-db-v1',
+      name: `street-animal-local-db-${SEED_VERSION}`,
       storage: createJSONStorage(() => AsyncStorage),
       partialize: (state) => ({
         cats: Array.isArray(state.cats) ? state.cats : [],
