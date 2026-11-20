@@ -17,7 +17,6 @@ export default function HomeScreen({ navigation }) {
   const cats = useCatStore((state) => state.cats || []);
   const dogs = useCatStore((state) => state.dogs || []);
   const vets = useCatStore((state) => state.vets || []);
-  const setDisclaimerOpen = useCatStore((state) => state.setDisclaimerOpen);
   const { isDark, colors, t, language } = useAppTheme();
 
   const totalAnimals = cats.length + dogs.length;
@@ -266,43 +265,6 @@ export default function HomeScreen({ navigation }) {
         dogs={dogs}
         onPressDetails={() => navigation.navigate('Analytics')}
       />
-
-      {/* 5. AKADEMİK PROJE KÜNYESİ & RESMİ BİLDİRİM KARTI */}
-      <TouchableOpacity
-        style={[
-          styles.academicCard,
-          {
-            backgroundColor: isDark ? colors.card : '#F8FAFC',
-            borderColor: isDark ? colors.cardBorder : '#E2E8F0',
-          },
-        ]}
-        onPress={() => setDisclaimerOpen(true)}
-        activeOpacity={0.85}
-      >
-        <View style={styles.academicCardLeft}>
-          <View style={[styles.academicIconCircle, { backgroundColor: isDark ? '#1E293B' : '#EEF2FF' }]}>
-            <Ionicons name="school" size={20} color="#4F46E5" />
-          </View>
-          <View style={{ flex: 1 }}>
-            <View style={styles.academicTitleRow}>
-              <Text style={[styles.academicTitle, { color: colors.text }]}>
-                {language === 'en' ? 'Mobile App Development Project' : 'Mobile App Development Projesi'}
-              </Text>
-              <View style={[styles.academicBadge, { backgroundColor: '#4F46E5' }]}>
-                <Text style={styles.academicBadgeText}>{language === 'en' ? 'Academic' : 'Akademik'}</Text>
-              </View>
-            </View>
-            <Text style={[styles.academicAuthor, { color: colors.textSecondary }]}>
-              {language === 'en' ? 'Developer:' : 'Geliştirici:'} Hakan Ural • No: 0515240030
-            </Text>
-            <Text style={[styles.academicSub, { color: colors.textMuted }]}>
-              {language === 'en'
-                ? 'All veterinary and animal records are educational simulation mockups ➔'
-                : 'Tüm veteriner ve can kayıtları akademik eğitim simülasyonudur ➔'}
-            </Text>
-          </View>
-        </View>
-      </TouchableOpacity>
     </ScrollView>
   );
 }
@@ -532,57 +494,5 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontStyle: 'italic',
     lineHeight: 17,
-  },
-  academicCard: {
-    width: '100%',
-    borderRadius: 20,
-    borderWidth: 1,
-    padding: 16,
-    marginTop: 14,
-  },
-  academicCardLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  academicIconCircle: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  academicTitleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 2,
-  },
-  academicTitle: {
-    fontSize: 14,
-    fontWeight: '800',
-    flex: 1,
-  },
-  academicBadge: {
-    paddingHorizontal: 7,
-    paddingVertical: 2,
-    borderRadius: 6,
-    marginLeft: 6,
-  },
-  academicBadgeText: {
-    color: '#FFFFFF',
-    fontSize: 10,
-    fontWeight: '800',
-    textTransform: 'uppercase',
-  },
-  academicAuthor: {
-    fontSize: 12,
-    fontWeight: '700',
-    marginTop: 2,
-  },
-  academicSub: {
-    fontSize: 11,
-    marginTop: 4,
-    lineHeight: 15,
   },
 });
