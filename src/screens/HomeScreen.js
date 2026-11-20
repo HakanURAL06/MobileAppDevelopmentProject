@@ -3,15 +3,14 @@ import {
   View,
   Text,
   StyleSheet,
-  TouchableOpacity,
   ScrollView,
   StatusBar,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
 import useCatStore from '../store/catStore';
 import useAppTheme from '../theme/useAppTheme';
 import CareSummaryCard from '../components/CareSummaryCard';
 import AddAnimalActionMenu from '../components/AddAnimalActionMenu';
+import ViewRecordsActionMenu from '../components/ViewRecordsActionMenu';
 
 export default function HomeScreen({ navigation }) {
   const cats = useCatStore((state) => state.cats || []);
@@ -19,19 +18,18 @@ export default function HomeScreen({ navigation }) {
   const vets = useCatStore((state) => state.vets || []);
   const { isDark, colors, t, language } = useAppTheme();
 
-  const totalAnimals = cats.length + dogs.length;
-
   return (
     <ScrollView
       style={[styles.container, { backgroundColor: colors.background }]}
       contentContainerStyle={styles.contentContainer}
+      showsVerticalScrollIndicator={false}
     >
       <StatusBar
         barStyle={isDark ? 'light-content' : 'dark-content'}
         backgroundColor={colors.background}
       />
 
-      {/* 1. SEVİMLİ VE MİNİMALİST KARŞILAMA ALANI */}
+      {/* 1. MİNİMALİST KARŞILAMA VE SAYAÇ ALANI */}
       <View style={styles.welcomeSection}>
         <View style={styles.avatarRow}>
           <View style={[styles.avatarCircle, { backgroundColor: isDark ? colors.card : '#FFF2EC', borderColor: isDark ? colors.cardBorder : '#FFFFFF' }]}>
@@ -48,218 +46,32 @@ export default function HomeScreen({ navigation }) {
         </View>
 
         <Text style={[styles.greetingTitle, { color: colors.text }]}>
-          {t.homeGreetingTitle}
-        </Text>
-        <Text style={[styles.greetingSubtitle, { color: colors.textSecondary }]}>
-          {t.homeGreetingSubtitle}
+          {language === 'en' ? 'Street Paws 🐾' : 'Sokak Dostları 🐾'}
         </Text>
 
-        {/* İstatistik Rozetleri */}
-        <View style={styles.statsRow}>
-          <TouchableOpacity
-            style={[
-              styles.statChip,
-              {
-                backgroundColor: colors.card,
-                borderColor: isDark ? colors.cardBorder : colors.cardBorder,
-              },
-            ]}
-            onPress={() => navigation.navigate('CatList')}
-            activeOpacity={0.8}
-          >
-            <Text style={styles.statChipEmoji}>🐱</Text>
-            <Text style={[styles.statChipText, { color: colors.text }]}>
-              {cats.length} {t.homeStatCats}
-            </Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[
-              styles.statChip,
-              {
-                backgroundColor: colors.card,
-                borderColor: isDark ? '#4B3F1E' : '#FDE68A',
-              },
-            ]}
-            onPress={() => navigation.navigate('DogList')}
-            activeOpacity={0.8}
-          >
-            <Text style={styles.statChipEmoji}>🐶</Text>
-            <Text style={[styles.statChipText, { color: '#D97706' }]}>
-              {dogs.length} {t.homeStatDogs}
-            </Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[
-              styles.statChip,
-              {
-                backgroundColor: colors.card,
-                borderColor: isDark ? '#064E3B' : '#A7F3D0',
-              },
-            ]}
-            onPress={() => navigation.navigate('VetList')}
-            activeOpacity={0.8}
-          >
-            <Text style={styles.statChipEmoji}>🩺</Text>
-            <Text style={[styles.statChipText, { color: '#059669' }]}>
-              {vets.length} {t.homeStatVets}
-            </Text>
-          </TouchableOpacity>
-
-          <View
-            style={[
-              styles.statChip,
-              {
-                backgroundColor: isDark ? colors.card : '#FAF5F0',
-                borderColor: isDark ? colors.cardBorder : colors.cardBorder,
-              },
-            ]}
-          >
-            <Ionicons name="heart" size={14} color={colors.secondary} />
-            <Text style={[styles.statChipText, { color: colors.text }]}>
-              {totalAnimals} {t.homeStatTotal}
-            </Text>
-          </View>
+        {/* Minimal Tek Satır Sayaç Özeti */}
+        <View style={[styles.statPill, { backgroundColor: isDark ? colors.card : '#F8FAFC', borderColor: colors.cardBorder }]}>
+          <Text style={[styles.statPillText, { color: colors.textSecondary }]}>
+            🐱 {cats.length} {t.homeStatCats}   •   🐶 {dogs.length} {t.homeStatDogs}   •   🩺 {vets.length} {language === 'en' ? 'Clinics' : 'Klinik'}
+          </Text>
         </View>
       </View>
 
-      {/* 2. TEK VE DÜZENLİ AÇILIR EKLE BUTONU */}
-      <AddAnimalActionMenu navigation={navigation} />
+      {/* 2. AÇILIR LİSTE MENÜLERİ (EKLEME VE GÖRÜNTÜLEME) */}
+      <View style={styles.actionSection}>
+        {/* Buton 1: Patili Dost Ekle Açılır Menüsü */}
+        <AddAnimalActionMenu navigation={navigation} />
 
-      {/* 3. BÜYÜK YÖNLENDİRME KARTLARI */}
-      <View style={styles.buttonsContainer}>
-        {/* Buton 1: Kayıtlı Kedilerim */}
-        <TouchableOpacity
-          style={[
-            styles.navCard,
-            isDark
-              ? { backgroundColor: colors.card, borderColor: colors.cardBorder }
-              : styles.navCardPeach,
-          ]}
-          activeOpacity={0.88}
-          onPress={() => navigation.navigate('CatList')}
-        >
-          <View style={[styles.iconCircle, { backgroundColor: isDark ? colors.primaryLight : '#FFF0EA' }]}>
-            <Text style={{ fontSize: 30 }}>🐱</Text>
-          </View>
-          <View style={styles.navCardTexts}>
-            <View style={styles.cardTitleBadgeRow}>
-              <Text style={[styles.navCardTitle, { color: colors.text }]}>
-                {t.homeCardCatsTitle}
-              </Text>
-              <View style={[styles.counterBadgePeach, { backgroundColor: isDark ? colors.primaryLight : '#FFF0EA' }]}>
-                <Text style={styles.counterBadgeTextPeach}>
-                  {cats.length} {t.homeStatCats}
-                </Text>
-              </View>
-            </View>
-            <Text style={[styles.navCardDesc, { color: colors.textSecondary }]}>
-              {t.homeCardCatsDesc}
-            </Text>
-          </View>
-          <View style={[styles.arrowCircle, { backgroundColor: isDark ? colors.cardBorder : '#FFFFFF' }]}>
-            <Ionicons name="chevron-forward" size={20} color={colors.primary} />
-          </View>
-        </TouchableOpacity>
-
-        {/* Buton 2: Kayıtlı Köpeklerim */}
-        <TouchableOpacity
-          style={[
-            styles.navCard,
-            isDark
-              ? { backgroundColor: colors.card, borderColor: colors.cardBorder }
-              : styles.navCardAmber,
-          ]}
-          activeOpacity={0.88}
-          onPress={() => navigation.navigate('DogList')}
-        >
-          <View style={[styles.iconCircle, { backgroundColor: isDark ? '#2C2310' : '#FEF3C7' }]}>
-            <Text style={{ fontSize: 30 }}>🐶</Text>
-          </View>
-          <View style={styles.navCardTexts}>
-            <View style={styles.cardTitleBadgeRow}>
-              <Text style={[styles.navCardTitle, { color: colors.text }]}>
-                {t.homeCardDogsTitle}
-              </Text>
-              <View style={[styles.counterBadgeAmber, { backgroundColor: isDark ? '#3D2F14' : '#FEF3C7' }]}>
-                <Text style={styles.counterBadgeTextAmber}>
-                  {dogs.length} {t.homeStatDogs}
-                </Text>
-              </View>
-            </View>
-            <Text style={[styles.navCardDesc, { color: colors.textSecondary }]}>
-              {t.homeCardDogsDesc}
-            </Text>
-          </View>
-          <View style={[styles.arrowCircle, { backgroundColor: isDark ? colors.cardBorder : '#FFFFFF' }]}>
-            <Ionicons name="chevron-forward" size={20} color="#D97706" />
-          </View>
-        </TouchableOpacity>
-
-        {/* Buton 3: Canlı Haritada Gör */}
-        <TouchableOpacity
-          style={[
-            styles.navCard,
-            isDark
-              ? { backgroundColor: colors.card, borderColor: colors.cardBorder }
-              : styles.navCardBlue,
-          ]}
-          activeOpacity={0.88}
-          onPress={() => navigation.navigate('CatMap')}
-        >
-          <View style={[styles.iconCircle, { backgroundColor: isDark ? colors.blueLight : '#EDF6FD' }]}>
-            <Ionicons name="map" size={28} color={colors.blue} />
-          </View>
-          <View style={styles.navCardTexts}>
-            <Text style={[styles.navCardTitle, { color: colors.text }]}>
-              {t.homeExploreMap}
-            </Text>
-            <Text style={[styles.navCardDesc, { color: colors.textSecondary }]}>
-              {t.homeExploreMapSub}
-            </Text>
-          </View>
-          <View style={[styles.arrowCircle, { backgroundColor: isDark ? colors.cardBorder : '#FFFFFF' }]}>
-            <Ionicons name="chevron-forward" size={20} color={colors.blue} />
-          </View>
-        </TouchableOpacity>
-
-        {/* Buton 4: Bölge Hekimleri & Klinikler */}
-        <TouchableOpacity
-          style={[
-            styles.navCard,
-            isDark
-              ? { backgroundColor: colors.card, borderColor: colors.cardBorder }
-              : styles.navCardGreen,
-          ]}
-          activeOpacity={0.88}
-          onPress={() => navigation.navigate('VetList')}
-        >
-          <View style={[styles.iconCircle, { backgroundColor: isDark ? '#064E3B' : '#ECFDF5' }]}>
-            <Ionicons name="medkit" size={26} color="#059669" />
-          </View>
-          <View style={styles.navCardTexts}>
-            <View style={styles.cardTitleBadgeRow}>
-              <Text style={[styles.navCardTitle, { color: colors.text }]}>
-                {t.homeCardVetsTitle}
-              </Text>
-              <View style={[styles.counterBadgeGreen, { backgroundColor: isDark ? '#064E3B' : '#D1FAE5' }]}>
-                <Text style={styles.counterBadgeTextGreen}>
-                  {vets.length} {language === 'en' ? 'Clinics' : 'Klinik'}
-                </Text>
-              </View>
-            </View>
-            <Text style={[styles.navCardDesc, { color: colors.textSecondary }]}>
-              {t.homeCardVetsDesc}
-            </Text>
-          </View>
-          <View style={[styles.arrowCircle, { backgroundColor: isDark ? colors.cardBorder : '#FFFFFF' }]}>
-            <Ionicons name="chevron-forward" size={20} color="#059669" />
-          </View>
-        </TouchableOpacity>
+        {/* Buton 2: Kayıtlı Canları ve Klinikleri Gör Açılır Menüsü */}
+        <ViewRecordsActionMenu
+          navigation={navigation}
+          catsCount={cats.length}
+          dogsCount={dogs.length}
+          vetsCount={vets.length}
+        />
       </View>
 
-      {/* 4. SADE PATİ KARNESİ ÖZET KARTI (Dokununca detaylı Analytics sayfasına gider) */}
+      {/* 3. SADE PATİ KARNESİ ÖZET KARTI (Dokununca detaylı Analytics sayfasına gider) */}
       <CareSummaryCard
         cats={cats}
         dogs={dogs}
@@ -275,7 +87,7 @@ const styles = StyleSheet.create({
   },
   contentContainer: {
     paddingHorizontal: 20,
-    paddingTop: 16,
+    paddingTop: 20,
     paddingBottom: 40,
     alignItems: 'center',
   },
@@ -306,193 +118,21 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: '800',
     letterSpacing: -0.5,
-    marginBottom: 6,
+    marginBottom: 8,
   },
-  greetingSubtitle: {
-    fontSize: 13,
-    textAlign: 'center',
-    lineHeight: 19,
-    maxWidth: 320,
-    marginBottom: 12,
-  },
-  statsRow: {
-    flexDirection: 'row',
-    gap: 8,
-    flexWrap: 'wrap',
-    justifyContent: 'center',
-  },
-  statChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 11,
-    paddingVertical: 6,
-    borderRadius: 16,
-    gap: 5,
+  statPill: {
+    paddingHorizontal: 16,
+    paddingVertical: 7,
+    borderRadius: 20,
     borderWidth: 1,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 1,
   },
-  statChipEmoji: {
-    fontSize: 13,
-  },
-  statChipText: {
+  statPillText: {
     fontSize: 12,
     fontWeight: '700',
+    letterSpacing: 0.2,
   },
-  buttonsContainer: {
+  actionSection: {
     width: '100%',
-    gap: 14,
-    marginBottom: 16,
-  },
-  navCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderRadius: 24,
-    paddingVertical: 16,
-    paddingHorizontal: 16,
-    borderWidth: 1,
-    shadowOffset: { width: 0, height: 5 },
-    shadowOpacity: 0.08,
-    shadowRadius: 14,
-    elevation: 3,
-  },
-  navCardPeach: {
-    backgroundColor: '#FFFBF7',
-    borderColor: '#FFE8DF',
-    shadowColor: '#FF9A76',
-  },
-  navCardAmber: {
-    backgroundColor: '#FFFCF5',
-    borderColor: '#FDE68A',
-    shadowColor: '#D97706',
-  },
-  navCardBlue: {
-    backgroundColor: '#F8FCFF',
-    borderColor: '#E2F0FD',
-    shadowColor: '#6CB4EE',
-  },
-  navCardGreen: {
-    backgroundColor: '#F2FBF7',
-    borderColor: '#A7F3D0',
-    shadowColor: '#10B981',
-  },
-  iconCircle: {
-    width: 56,
-    height: 56,
-    borderRadius: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 14,
-  },
-  navCardTexts: {
-    flex: 1,
-  },
-  cardTitleBadgeRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 3,
-    paddingRight: 4,
-  },
-  navCardTitle: {
-    fontSize: 16,
-    fontWeight: '800',
-  },
-  counterBadgePeach: {
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 8,
-  },
-  counterBadgeTextPeach: {
-    fontSize: 11,
-    fontWeight: '800',
-    color: '#F08055',
-  },
-  counterBadgeAmber: {
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 8,
-  },
-  counterBadgeTextAmber: {
-    fontSize: 11,
-    fontWeight: '800',
-    color: '#D97706',
-  },
-  counterBadgeGreen: {
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 8,
-  },
-  counterBadgeTextGreen: {
-    fontSize: 11,
-    fontWeight: '800',
-    color: '#059669',
-  },
-  navCardDesc: {
-    fontSize: 12,
-    lineHeight: 16,
-  },
-  arrowCircle: {
-    width: 30,
-    height: 30,
-    borderRadius: 15,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginLeft: 8,
-  },
-  quickAddRow: {
-    flexDirection: 'row',
-    width: '100%',
-    gap: 10,
-    marginBottom: 20,
-  },
-  quickAddBtnCat: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1.5,
-    paddingVertical: 12,
-    borderRadius: 16,
-    gap: 6,
-  },
-  quickAddBtnTextCat: {
-    fontSize: 12,
-    fontWeight: '800',
-  },
-  quickAddBtnDog: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1.5,
-    paddingVertical: 12,
-    borderRadius: 16,
-    gap: 6,
-  },
-  quickAddBtnTextDog: {
-    fontSize: 12,
-    fontWeight: '800',
-    color: '#D97706',
-  },
-  noteBox: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderRadius: 18,
-    padding: 14,
-    borderWidth: 1,
-    gap: 10,
-    width: '100%',
-  },
-  noteEmoji: {
-    fontSize: 22,
-  },
-  noteText: {
-    flex: 1,
-    fontSize: 12,
-    fontStyle: 'italic',
-    lineHeight: 17,
+    marginBottom: 6,
   },
 });

@@ -92,6 +92,7 @@ MobileAppDevelopmentProject/
 ├── src/
 │   ├── components/
 │   │   ├── AddAnimalActionMenu.js        # Açılır yeni kayıt aksiyon menüsü
+│   │   ├── ViewRecordsActionMenu.js      # Açılır kayıtlı canlar ve klinikler menüsü
 │   │   ├── CareSummaryCard.js            # Ana ekran analitik özet kartı
 │   │   ├── CatMap.native.js              # Native iOS/Android harita bileşeni
 │   │   ├── CatMap.web.js                 # Web ortamı harita kartları
