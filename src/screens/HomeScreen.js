@@ -16,6 +16,7 @@ import AddAnimalActionMenu from '../components/AddAnimalActionMenu';
 export default function HomeScreen({ navigation }) {
   const cats = useCatStore((state) => state.cats || []);
   const dogs = useCatStore((state) => state.dogs || []);
+  const vets = useCatStore((state) => state.vets || []);
   const { isDark, colors, t, language } = useAppTheme();
 
   const totalAnimals = cats.length + dogs.length;
@@ -86,6 +87,23 @@ export default function HomeScreen({ navigation }) {
             <Text style={styles.statChipEmoji}>🐶</Text>
             <Text style={[styles.statChipText, { color: '#D97706' }]}>
               {dogs.length} {t.homeStatDogs}
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[
+              styles.statChip,
+              {
+                backgroundColor: colors.card,
+                borderColor: isDark ? '#064E3B' : '#A7F3D0',
+              },
+            ]}
+            onPress={() => navigation.navigate('VetList')}
+            activeOpacity={0.8}
+          >
+            <Text style={styles.statChipEmoji}>🩺</Text>
+            <Text style={[styles.statChipText, { color: '#059669' }]}>
+              {vets.length} {t.homeStatVets}
             </Text>
           </TouchableOpacity>
 
@@ -205,6 +223,40 @@ export default function HomeScreen({ navigation }) {
             <Ionicons name="chevron-forward" size={20} color={colors.blue} />
           </View>
         </TouchableOpacity>
+
+        {/* Buton 4: Bölge Hekimleri & Klinikler */}
+        <TouchableOpacity
+          style={[
+            styles.navCard,
+            isDark
+              ? { backgroundColor: colors.card, borderColor: colors.cardBorder }
+              : styles.navCardGreen,
+          ]}
+          activeOpacity={0.88}
+          onPress={() => navigation.navigate('VetList')}
+        >
+          <View style={[styles.iconCircle, { backgroundColor: isDark ? '#064E3B' : '#ECFDF5' }]}>
+            <Ionicons name="medkit" size={26} color="#059669" />
+          </View>
+          <View style={styles.navCardTexts}>
+            <View style={styles.cardTitleBadgeRow}>
+              <Text style={[styles.navCardTitle, { color: colors.text }]}>
+                {t.homeCardVetsTitle}
+              </Text>
+              <View style={[styles.counterBadgeGreen, { backgroundColor: isDark ? '#064E3B' : '#D1FAE5' }]}>
+                <Text style={styles.counterBadgeTextGreen}>
+                  {vets.length} {language === 'en' ? 'Clinics' : 'Klinik'}
+                </Text>
+              </View>
+            </View>
+            <Text style={[styles.navCardDesc, { color: colors.textSecondary }]}>
+              {t.homeCardVetsDesc}
+            </Text>
+          </View>
+          <View style={[styles.arrowCircle, { backgroundColor: isDark ? colors.cardBorder : '#FFFFFF' }]}>
+            <Ionicons name="chevron-forward" size={20} color="#059669" />
+          </View>
+        </TouchableOpacity>
       </View>
 
       {/* 4. SADE PATİ KARNESİ ÖZET KARTI (Dokununca detaylı Analytics sayfasına gider) */}
@@ -321,6 +373,11 @@ const styles = StyleSheet.create({
     borderColor: '#E2F0FD',
     shadowColor: '#6CB4EE',
   },
+  navCardGreen: {
+    backgroundColor: '#F2FBF7',
+    borderColor: '#A7F3D0',
+    shadowColor: '#10B981',
+  },
   iconCircle: {
     width: 56,
     height: 56,
@@ -362,6 +419,16 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: '800',
     color: '#D97706',
+  },
+  counterBadgeGreen: {
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 8,
+  },
+  counterBadgeTextGreen: {
+    fontSize: 11,
+    fontWeight: '800',
+    color: '#059669',
   },
   navCardDesc: {
     fontSize: 12,

@@ -18,6 +18,7 @@ import useAppTheme from '../theme/useAppTheme';
 export default function CatMapScreen({ navigation }) {
   const cats = useCatStore((state) => state.cats || []);
   const dogs = useCatStore((state) => state.dogs || []);
+  const vets = useCatStore((state) => state.vets || []);
   const getBondLevelInfo = useCatStore((state) => state.getBondLevelInfo);
   const getDogBondLevelInfo = useCatStore((state) => state.getDogBondLevelInfo);
   const { isDark, colors, t, language } = useAppTheme();
@@ -159,8 +160,15 @@ export default function CatMapScreen({ navigation }) {
       <View style={[styles.mapCard, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}>
         <CatMap
           animals={allAnimals}
+          vets={vets}
           location={location}
           onSelectCat={handleSelectAnimal}
+          onSelectVet={(v) =>
+            navigation.navigate('VetDetail', {
+              vetId: v.id,
+              vetName: v.name,
+            })
+          }
         />
       </View>
 
@@ -175,19 +183,59 @@ export default function CatMapScreen({ navigation }) {
           </Text>
         </View>
       ) : (
-        groupedAnimals.map((group) => (
-          <View key={group.regionName} style={[styles.groupCard, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}>
-            <View style={[styles.groupHeader, { borderBottomColor: colors.border }]}>
-              <View style={styles.groupTitleBox}>
-                <Ionicons name="location" size={16} color={colors.primary} />
-                <Text style={[styles.groupTitleText, { color: colors.text }]}>{group.regionName}</Text>
-              </View>
-              <View style={[styles.groupCountChip, { backgroundColor: isDark ? '#2D3748' : '#FAF5F0' }]}>
-                <Text style={[styles.groupCountText, { color: colors.textSecondary }]}>{group.animalList.length} {t.homeStatTotal}</Text>
-              </View>
-            </View>
+        groupedAnimals.map((group) => {
+          const groupVet = vets.find(
+            (v) =>
+              v.regionName &&
+              v.regionName.trim().toLocaleLowerCase('tr') === group.regionName.trim().toLocaleLowerCase('tr')
+          );
 
-            {group.animalList.map((animal) => {
+          return (
+            <View key={group.regionName} style={[styles.groupCard, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}>
+              <View style={[styles.groupHeader, { borderBottomColor: colors.border }]}>
+                <View style={styles.groupTitleBox}>
+                  <Ionicons name="location" size={16} color={colors.primary} />
+                  <Text style={[styles.groupTitleText, { color: colors.text }]}>{group.regionName}</Text>
+                </View>
+                <View style={[styles.groupCountChip, { backgroundColor: isDark ? '#2D3748' : '#FAF5F0' }]}>
+                  <Text style={[styles.groupCountText, { color: colors.textSecondary }]}>{group.animalList.length} {t.homeStatTotal}</Text>
+                </View>
+              </View>
+
+              {/* Sorumlu Bölge Veteriner Hekim & Klinik Bilgisi */}
+              {groupVet ? (
+                <TouchableOpacity
+                  style={[
+                    styles.groupVetBanner,
+                    {
+                      backgroundColor: isDark ? '#064E3B20' : '#ECFDF5',
+                      borderColor: isDark ? '#047857' : '#A7F3D0',
+                    },
+                  ]}
+                  onPress={() =>
+                    navigation.navigate('VetDetail', {
+                      vetId: groupVet.id,
+                      vetName: groupVet.name,
+                    })
+                  }
+                  activeOpacity={0.85}
+                >
+                  <View style={styles.groupVetIconBox}>
+                    <Ionicons name="medkit" size={14} color="#10B981" />
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Text style={[styles.groupVetName, { color: colors.text }]}>
+                      {groupVet.clinicName}
+                    </Text>
+                    <Text style={styles.groupVetDoctor}>
+                      {groupVet.name} • {t.responsibleVetBadge}
+                    </Text>
+                  </View>
+                  <Ionicons name="chevron-forward" size={14} color="#10B981" />
+                </TouchableOpacity>
+              ) : null}
+
+              {group.animalList.map((animal) => {
               const photo =
                 (animal.photos && animal.photos.length > 0 ? animal.photos[0] : animal.photoUri) ||
                 (animal.isDog
@@ -228,8 +276,8 @@ export default function CatMapScreen({ navigation }) {
               );
             })}
           </View>
-        ))
-      )}
+        );
+      }))}
     </ScrollView>
   );
 }
@@ -307,6 +355,32 @@ const styles = StyleSheet.create({
     paddingBottom: 8,
     borderBottomWidth: 1,
     borderBottomColor: '#FAF5F0',
+  },
+  groupVetBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 10,
+    borderRadius: 14,
+    borderWidth: 1,
+    marginBottom: 10,
+    gap: 10,
+  },
+  groupVetIconBox: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: '#FFFFFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  groupVetName: {
+    fontSize: 13,
+    fontWeight: '800',
+  },
+  groupVetDoctor: {
+    fontSize: 11,
+    fontWeight: '600',
+    marginTop: 1,
   },
   groupTitleBox: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   groupTitleText: { fontSize: 15, fontWeight: '800', color: Colors.text },

@@ -16,6 +16,8 @@ import AddDogScreen from './src/screens/AddDogScreen';
 import CatDetailScreen from './src/screens/CatDetailScreen';
 import DogDetailScreen from './src/screens/DogDetailScreen';
 import AnalyticsScreen from './src/screens/AnalyticsScreen';
+import VetListScreen from './src/screens/VetListScreen';
+import VetDetailScreen from './src/screens/VetDetailScreen';
 import ToastBanner from './src/components/ToastBanner';
 import useCatStore from './src/store/catStore';
 import { getThemeColors, Colors } from './src/theme/colors';
@@ -163,6 +165,8 @@ function BottomTabs() {
             return <Text style={{ fontSize: 19 }}>🐱</Text>;
           } else if (route.name === 'DogList') {
             return <Text style={{ fontSize: 19 }}>🐶</Text>;
+          } else if (route.name === 'VetList') {
+            return <Ionicons name={focused ? 'medkit' : 'medkit-outline'} size={21} color={color} />;
           } else if (route.name === 'CatMap') {
             return <Ionicons name={focused ? 'map' : 'map-outline'} size={22} color={color} />;
           }
@@ -184,6 +188,11 @@ function BottomTabs() {
         name="DogList"
         component={DogListScreen}
         options={{ title: t.navDogs }}
+      />
+      <Tab.Screen
+        name="VetList"
+        component={VetListScreen}
+        options={{ title: t.navVets }}
       />
       <Tab.Screen
         name="CatMap"
@@ -286,6 +295,34 @@ export default function App() {
               title: language === 'en' ? 'Paw Passport & Analytics' : 'Pati Karnesi & Rapor',
               headerBackTitle: t.navBack,
             }}
+          />
+
+          {/* Veteriner Hekim & Klinik Listesi (Doğrudan Stack ile Açılış) */}
+          <Stack.Screen
+            name="VetList"
+            component={VetListScreen}
+            options={{
+              title: t.navVets,
+              headerBackTitle: t.navBack,
+              headerStyle: {
+                backgroundColor: isDark ? colors.card : '#059669',
+              },
+            }}
+          />
+
+          {/* Veteriner Hekim & Klinik Profili */}
+          <Stack.Screen
+            name="VetDetail"
+            component={VetDetailScreen}
+            options={({ route }) => ({
+              title: route.params?.vetName
+                ? route.params.vetName
+                : t.navVetDetail,
+              headerBackTitle: t.navBack,
+              headerStyle: {
+                backgroundColor: isDark ? colors.card : '#059669',
+              },
+            })}
           />
         </Stack.Navigator>
       </NavigationContainer>

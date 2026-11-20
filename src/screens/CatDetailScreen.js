@@ -111,6 +111,7 @@ export default function CatDetailScreen({ route, navigation }) {
   const deleteVaccine = useCatStore((state) => state.deleteVaccine);
   const showToast = useCatStore((state) => state.showToast);
   const getBondLevelInfo = useCatStore((state) => state.getBondLevelInfo);
+  const vets = useCatStore((state) => state.vets || []);
 
   // Not Düzenleme Durumu
   const [isEditingNote, setIsEditingNote] = useState(false);
@@ -242,6 +243,24 @@ export default function CatDetailScreen({ route, navigation }) {
   const completedVaccines = Array.isArray(cat.vaccinations) ? cat.vaccinations : [];
   const scheduledVaccines = Array.isArray(cat.scheduledVaccines) ? cat.scheduledVaccines : [];
   const locationHistory = Array.isArray(cat.locationHistory) ? cat.locationHistory : [];
+
+  const responsibleVet = useMemo(() => {
+    if (!cat) return null;
+    return vets.find((v) => {
+      if (Array.isArray(v.assignedAnimalIds) && v.assignedAnimalIds.includes(cat.id)) {
+        return true;
+      }
+      const catRegion =
+        typeof cat.location === 'object'
+          ? cat.location?.regionName
+          : cat.location;
+      return (
+        catRegion &&
+        v.regionName &&
+        catRegion.trim().toLocaleLowerCase('tr') === v.regionName.trim().toLocaleLowerCase('tr')
+      );
+    });
+  }, [vets, cat]);
 
   const locationName =
     typeof cat.location === 'object'
@@ -646,6 +665,88 @@ export default function CatDetailScreen({ route, navigation }) {
               </View>
             </View>
           ))
+        )}
+      </View>
+
+      {/* SORUMLU VETERİNER HEKİM & KLİNİK KARTI */}
+      <View style={[styles.locationHistoryCard, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}>
+        <View style={styles.sectionHeaderBetween}>
+          <View style={styles.sectionHeaderBox}>
+            <Ionicons name="medkit" size={20} color="#059669" />
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>
+              {t.responsibleVetSectionTitle}
+            </Text>
+          </View>
+          {responsibleVet ? (
+            <TouchableOpacity
+              style={[styles.editLocationShortBtn, { backgroundColor: isDark ? '#064E3B' : '#ECFDF5' }]}
+              onPress={() =>
+                navigation.navigate('VetDetail', {
+                  vetId: responsibleVet.id,
+                  vetName: responsibleVet.name,
+                })
+              }
+            >
+              <Text style={[styles.editLocationShortText, { color: '#059669' }]}>
+                {t.responsibleVetDetailBtn}
+              </Text>
+            </TouchableOpacity>
+          ) : (
+            <TouchableOpacity
+              style={[styles.editLocationShortBtn, { backgroundColor: isDark ? colors.card : '#F3F4F6' }]}
+              onPress={() => navigation.navigate('VetList')}
+            >
+              <Text style={[styles.editLocationShortText, { color: colors.textSecondary }]}>
+                {language === 'en' ? 'Find Vet' : 'Hekim Bul'}
+              </Text>
+            </TouchableOpacity>
+          )}
+        </View>
+
+        {responsibleVet ? (
+          <TouchableOpacity
+            style={[
+              styles.currentLocationBox,
+              {
+                backgroundColor: isDark ? '#064E3B20' : '#ECFDF5',
+                borderColor: isDark ? '#047857' : '#A7F3D0',
+              },
+            ]}
+            onPress={() =>
+              navigation.navigate('VetDetail', {
+                vetId: responsibleVet.id,
+                vetName: responsibleVet.name,
+              })
+            }
+            activeOpacity={0.85}
+          >
+            <View style={[styles.currentLocationPin, { backgroundColor: '#10B981' }]}>
+              <Ionicons name="medkit" size={18} color="#FFFFFF" />
+            </View>
+            <View style={{ flex: 1 }}>
+              <View style={styles.currentLocLabelRow}>
+                <Text style={[styles.currentLocLabel, { color: '#059669' }]}>
+                  {responsibleVet.clinicName}
+                </Text>
+                <View style={[styles.activeLocBadge, { backgroundColor: '#10B981' }]}>
+                  <Text style={styles.activeLocBadgeText}>{t.responsibleVetBadge}</Text>
+                </View>
+              </View>
+              <Text style={[styles.currentLocTitle, { color: colors.text }]}>
+                {responsibleVet.name}
+              </Text>
+              <Text style={{ fontSize: 12, color: colors.textSecondary, marginTop: 2 }}>
+                {responsibleVet.title} • {responsibleVet.regionName}
+              </Text>
+            </View>
+            <Ionicons name="chevron-forward" size={18} color="#10B981" />
+          </TouchableOpacity>
+        ) : (
+          <View style={styles.emptyHistoryLocBox}>
+            <Text style={[styles.emptyHistoryLocText, { color: colors.textMuted }]}>
+              {t.noVetAssignedYet}
+            </Text>
+          </View>
         )}
       </View>
 

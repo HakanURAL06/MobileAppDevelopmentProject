@@ -1,8 +1,8 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import MapView, { Marker, Callout, PROVIDER_DEFAULT } from 'react-native-maps';
+import MapView, { Marker, Callout } from 'react-native-maps';
 
-export default function CatMap({ cats = [], animals = null, location, onSelectCat }) {
+export default function CatMap({ cats = [], animals = null, vets = [], location, onSelectCat, onSelectVet }) {
   const list = animals || cats;
 
   const initialRegion = location || {
@@ -14,7 +14,6 @@ export default function CatMap({ cats = [], animals = null, location, onSelectCa
 
   return (
     <MapView
-      provider={PROVIDER_DEFAULT}
       style={styles.map}
       initialRegion={initialRegion}
       showsUserLocation={true}
@@ -40,6 +39,29 @@ export default function CatMap({ cats = [], animals = null, location, onSelectCa
               <View style={styles.callout}>
                 <Text style={styles.calloutTitle}>{animal.name}</Text>
                 <Text style={[styles.calloutSub, { color: borderColor }]}>Detaya Git ➔</Text>
+              </View>
+            </Callout>
+          </Marker>
+        );
+      })}
+
+      {vets.map((vet) => {
+        if (!vet.latitude || !vet.longitude) return null;
+        return (
+          <Marker
+            key={vet.id}
+            coordinate={{ latitude: vet.latitude, longitude: vet.longitude }}
+            title={vet.clinicName}
+            description={vet.name}
+          >
+            <View style={[styles.customMarker, { borderColor: '#10B981' }]}>
+              <Text style={styles.markerText}>🩺</Text>
+            </View>
+            <Callout onPress={() => onSelectVet && onSelectVet(vet)}>
+              <View style={styles.callout}>
+                <Text style={styles.calloutTitle}>{vet.clinicName}</Text>
+                <Text style={{ fontSize: 11, color: '#4B5563', marginTop: 1 }}>{vet.name}</Text>
+                <Text style={[styles.calloutSub, { color: '#10B981' }]}>Hekim Detayı ➔</Text>
               </View>
             </Callout>
           </Marker>

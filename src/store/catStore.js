@@ -2,9 +2,9 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Colors } from '../theme/colors';
-import { INITIAL_SEED_CATS, INITIAL_SEED_DOGS } from '../data/seedData';
+import { INITIAL_SEED_CATS, INITIAL_SEED_DOGS, INITIAL_SEED_VETS } from '../data/seedData';
 
-export const SEED_VERSION = 'v2';
+export const SEED_VERSION = 'v3';
 
 /**
  * @typedef {Object} Interaction
@@ -62,6 +62,7 @@ export const useCatStore = create(
       // Başlangıçta boş başlar, ancak ilk açılışta (storage boş ise) seedData ile doldurulur
       cats: INITIAL_SEED_CATS,
       dogs: INITIAL_SEED_DOGS,
+      vets: INITIAL_SEED_VETS,
       hasHydrated: false,
       isLoading: false,
       toast: null, // { message: string, type: 'success' | 'delete' | 'info', id: number }
@@ -991,6 +992,75 @@ export const useCatStore = create(
           remainingCount: 1,
         };
       },
+
+      // ==========================================
+      // VETERİNER HEKİM & KLİNİK İŞLEMLERİ
+      // ==========================================
+      addVet: (newVetData) => {
+        const id = 'vet-' + Date.now();
+        const newVet = {
+          id,
+          name: newVetData.name?.trim() || 'Veteriner Hekim',
+          title: newVetData.title?.trim() || 'Veteriner Hekim',
+          clinicName: newVetData.clinicName?.trim() || 'Veteriner Kliniği',
+          regionName: newVetData.regionName?.trim() || 'Genel Bölge',
+          address: newVetData.address?.trim() || '',
+          phone: newVetData.phone?.trim() || '',
+          emergencyPhone: newVetData.emergencyPhone?.trim() || '',
+          workingHours: newVetData.workingHours?.trim() || '09:00 - 19:00',
+          avatarEmoji: newVetData.avatarEmoji || '🩺',
+          photoUri: newVetData.photoUri || 'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=500&auto=format&fit=crop&q=80',
+          notes: newVetData.notes?.trim() || '',
+          latitude: typeof newVetData.latitude === 'number' ? newVetData.latitude : null,
+          longitude: typeof newVetData.longitude === 'number' ? newVetData.longitude : null,
+          assignedAnimalIds: Array.isArray(newVetData.assignedAnimalIds) ? newVetData.assignedAnimalIds : [],
+          services: Array.isArray(newVetData.services) && newVetData.services.length > 0
+            ? newVetData.services
+            : ['Rutin Muayene', 'Aşı Takibi', 'Parazit Tedavisi'],
+          completedCareCount: 0,
+          createdAt: new Date().toISOString(),
+        };
+
+        set((state) => ({
+          vets: [newVet, ...(state.vets || [])],
+        }));
+
+        const isEn = get().language === 'en';
+        get().showToast(
+          isEn ? `"${newVet.name}" registered! 🩺` : `"${newVet.name}" başarıyla kaydedildi! 🩺`,
+          'success'
+        );
+        return newVet;
+      },
+
+      updateVet: (vetId, updatedFields) => {
+        set((state) => ({
+          vets: (state.vets || []).map((vet) =>
+            vet.id === vetId ? { ...vet, ...updatedFields } : vet
+          ),
+        }));
+
+        const isEn = get().language === 'en';
+        get().showToast(
+          isEn ? 'Clinic information updated! ✨' : 'Veteriner bilgileri güncellendi ✨',
+          'success'
+        );
+      },
+
+      deleteVet: (vetId) => {
+        const targetVet = (get().vets || []).find((v) => v.id === vetId);
+        const name = targetVet?.name || 'Veteriner';
+
+        set((state) => ({
+          vets: (state.vets || []).filter((v) => v.id !== vetId),
+        }));
+
+        const isEn = get().language === 'en';
+        get().showToast(
+          isEn ? `"${name}" removed 🗑️` : `"${name}" başarıyla silindi 🗑️`,
+          'delete'
+        );
+      },
     }),
     {
       // KURAL 2 & 4: Resmi persist + createJSONStorage + AsyncStorage kurulumu.
@@ -1000,6 +1070,7 @@ export const useCatStore = create(
       partialize: (state) => ({
         cats: Array.isArray(state.cats) ? state.cats : [],
         dogs: Array.isArray(state.dogs) ? state.dogs : [],
+        vets: Array.isArray(state.vets) ? state.vets : [],
         theme: state.theme || 'light',
         language: state.language || 'tr',
       }),
@@ -1009,12 +1080,14 @@ export const useCatStore = create(
             ...currentState,
             cats: INITIAL_SEED_CATS,
             dogs: INITIAL_SEED_DOGS,
+            vets: INITIAL_SEED_VETS,
           };
         }
 
         // Eğer daha önce kaydedilmiş bir durum varsa ancak listeler tanımsız veya boşsa seed data yükle
         const savedCats = Array.isArray(persistedState.cats) ? persistedState.cats : [];
         const savedDogs = Array.isArray(persistedState.dogs) ? persistedState.dogs : [];
+        const savedVets = Array.isArray(persistedState.vets) ? persistedState.vets : [];
         const isFreshInstall = savedCats.length === 0 && savedDogs.length === 0;
 
         return {
@@ -1022,6 +1095,7 @@ export const useCatStore = create(
           ...persistedState,
           cats: isFreshInstall ? INITIAL_SEED_CATS : savedCats,
           dogs: isFreshInstall ? INITIAL_SEED_DOGS : savedDogs,
+          vets: savedVets.length === 0 ? INITIAL_SEED_VETS : savedVets,
           theme: persistedState.theme || currentState.theme,
           language: persistedState.language || currentState.language,
         };

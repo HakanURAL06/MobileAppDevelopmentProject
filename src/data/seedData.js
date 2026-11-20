@@ -485,3 +485,72 @@ export const INITIAL_SEED_DOGS = [
     createdAt: '2026-06-01T08:00:00.000Z',
   },
 ];
+
+export const INITIAL_SEED_VETS = [
+  // 1. Forum İstanbul Sorumlu Veteriner Hekimi
+  {
+    id: 'vet-forum-istanbul',
+    name: 'Uzm. Vet. Selin Acar',
+    title: 'Cerrahi & Dahiliye Uzmanı',
+    clinicName: 'Forum Pati & Yaşam Kliniği',
+    regionName: 'Forum İstanbul',
+    address: 'Forum İstanbul AVM Yanı No: 12, Bayrampaşa / İstanbul',
+    phone: '0212 555 43 21',
+    emergencyPhone: '0532 555 43 21',
+    workingHours: '09:00 - 19:30 (Haftanın 7 Günü)',
+    avatarEmoji: '👩‍⚕️',
+    photoUri: 'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=500&auto=format&fit=crop&q=80',
+    notes: 'Forum İstanbul ve çevresinde yaşayan Habeş, Tipsiz ve Pancarlar\'ın düzenli beslenme takipleri, aşı programları ve rutin sağlık kontrollerinden sorumludur. Bayrampaşa Belediyesi ve mahalle gönüllüleriyle koordineli çalışmaktadır.',
+    latitude: 41.046031,
+    longitude: 28.894292,
+    assignedAnimalIds: ['seed-cat-habes', 'seed-cat-tipsiz', 'seed-dog-pancarlar'],
+    services: ['Kuduz & Karma Aşı', 'İç-Dış Parazit', 'Mikroçip & Pasaport', 'Acil Tedavi'],
+    completedCareCount: 14,
+    createdAt: '2026-09-01T08:00:00.000Z',
+  },
+
+  // 2. Kocatepe Metro Durağı Sorumlu Veteriner Hekimi
+  {
+    id: 'vet-kocatepe-metro',
+    name: 'Vet. Hekim Barış Demir',
+    title: 'Sokak Hayvanları Hekimi & Beslenme Uzmanı',
+    clinicName: 'Kocatepe Metro Veteriner İstasyonu',
+    regionName: 'Kocatepe Metro Durağı',
+    address: 'Kocatepe Metro İstasyonu Doğu Çıkışı No: 4, Bayrampaşa / İstanbul',
+    phone: '0212 555 12 34',
+    emergencyPhone: '0533 555 12 34',
+    workingHours: '08:30 - 20:00 (Hafta İçi & Cmt)',
+    avatarEmoji: '👨‍⚕️',
+    photoUri: 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=500&auto=format&fit=crop&q=80',
+    notes: 'Metro çevresinin efsanevi obez kedisi Avcı\'nın diyet mama programını, rutin kilo kontrolünü, yıllık aşılarını ve metro peronundaki sağlık güvenliğini takip etmektedir.',
+    latitude: 41.048417,
+    longitude: 28.895278,
+    assignedAnimalIds: ['seed-cat-avci'],
+    services: ['Kilo & Diyet Takibi', 'Aşı Takvimi', 'Parazit Tedavisi', 'Rutin Muayene'],
+    completedCareCount: 9,
+    createdAt: '2026-08-01T08:00:00.000Z',
+  },
+
+  // 3. İstanbul Üniversitesi Kampüs Sorumlu Veteriner Hekimi
+  {
+    id: 'vet-istanbul-universitesi',
+    name: 'Doç. Dr. Emre Yıldız',
+    title: 'Kampüs Hayvan Sağlığı Koordinatörü',
+    clinicName: 'Beyazıt Kampüs Hayvan Sağlığı Birimi',
+    regionName: 'İstanbul Üniversitesi',
+    address: 'İ.Ü. Beyazıt Ana Kampüsü Rektörlük Bahçesi, Fatih / İstanbul',
+    phone: '0212 555 78 90',
+    emergencyPhone: '0535 555 78 90',
+    workingHours: '09:00 - 18:00 (Öğrenci & Gönüllü Destekli)',
+    avatarEmoji: '👨‍⚕️',
+    photoUri: 'https://images.unsplash.com/photo-1537368910025-700350fe46c7?w=500&auto=format&fit=crop&q=80',
+    notes: 'Tarihi Beyazıt kampüsünde yaşayan Püskül ve Prenses\'in aşı takvimleri, kış dönemi beslenme ihtiyaçlarını ve kampüs içi sağlık takiplerini öğrenci kulüpleriyle birlikte koordine eder.',
+    latitude: 41.013800,
+    longitude: 28.963000,
+    assignedAnimalIds: ['seed-cat-puskul', 'seed-cat-prenses'],
+    services: ['Kampüs Aşı Programı', 'Kışlık Bakım & Besleme', 'Acil Tedavi', 'Gönüllü Eğitimi'],
+    completedCareCount: 12,
+    createdAt: '2026-07-01T08:00:00.000Z',
+  },
+];
+
