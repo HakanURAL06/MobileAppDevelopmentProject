@@ -246,6 +246,6 @@ Bu proje; **Mobile Application Development** dersi akademik değerlendirmesi kap
 
 **Geliştirici:** Hakan Ural  
 **Öğrenci Numarası:** 0515240030  
-**İletişim:** [GitHub Profili](https://github.com/HakanURAL06)  
+
 
 *Sokaktaki masum dostlarımızın yaşam kalitesini artırmak dileğiyle...* 🐾❤️
