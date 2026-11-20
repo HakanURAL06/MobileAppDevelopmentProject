@@ -4,7 +4,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Colors } from '../theme/colors';
 import { INITIAL_SEED_CATS, INITIAL_SEED_DOGS, INITIAL_SEED_VETS } from '../data/seedData';
 
-export const SEED_VERSION = 'v3';
+export const SEED_VERSION = 'v4';
 
 /**
  * @typedef {Object} Interaction
@@ -70,6 +70,8 @@ export const useCatStore = create(
       // Uygulama Tercihleri (Tema & Dil)
       theme: 'light', // 'light' | 'dark'
       language: 'tr', // 'tr' | 'en'
+      isDisclaimerOpen: false,
+      setDisclaimerOpen: (open) => set({ isDisclaimerOpen: open }),
 
       setHasHydrated: (stateVal) => set({ hasHydrated: stateVal }),
 

@@ -16,6 +16,7 @@ import useCatStore from '../store/catStore';
 import { Colors } from '../theme/colors';
 import { getImageSource } from '../utils/imageHelper';
 import useAppTheme from '../theme/useAppTheme';
+import { dt } from '../utils/dynamicTranslator';
 
 const GROUP_OPTIONS = [
   { id: 'all', title: 'Tümü', emoji: '📋' },
@@ -112,7 +113,7 @@ export default function CatListScreen({ navigation }) {
       return Object.keys(map)
         .sort((a, b) => a.localeCompare(b, 'tr'))
         .map((locName) => ({
-          title: locName,
+          title: dt(locName, language),
           emoji: '📍',
           data: map[locName],
         }));
@@ -132,7 +133,7 @@ export default function CatListScreen({ navigation }) {
       return Object.keys(map)
         .sort((a, b) => a.localeCompare(b, 'tr'))
         .map((breedName) => ({
-          title: breedName,
+          title: dt(breedName, language),
           emoji: '🐾',
           data: map[breedName],
         }));
@@ -142,12 +143,12 @@ export default function CatListScreen({ navigation }) {
     if (groupBy === 'bond') {
       const tiers = [
         {
-          title: 'Aile (Level 3 - 9+ Etkileşim)',
+          title: language === 'en' ? 'Family (Level 3 - 9+ Interactions)' : 'Aile (Level 3 - 9+ Etkileşim)',
           emoji: '💖',
           filter: (c) => (c.interactionHistory?.length || 0) >= 9,
         },
         {
-          title: 'Dost (Level 2 - 4-8 Etkileşim)',
+          title: language === 'en' ? 'Friend (Level 2 - 4-8 Interactions)' : 'Dost (Level 2 - 4-8 Etkileşim)',
           emoji: '😺',
           filter: (c) => {
             const l = c.interactionHistory?.length || 0;
@@ -155,7 +156,7 @@ export default function CatListScreen({ navigation }) {
           },
         },
         {
-          title: 'Tanışıklık (Level 1 - 1-3 Etkileşim)',
+          title: language === 'en' ? 'Acquaintance (Level 1 - 1-3 Interactions)' : 'Tanışıklık (Level 1 - 1-3 Etkileşim)',
           emoji: '🐾',
           filter: (c) => {
             const l = c.interactionHistory?.length || 0;
@@ -163,7 +164,7 @@ export default function CatListScreen({ navigation }) {
           },
         },
         {
-          title: 'Yeni Tanışma (Level 0 - 0 Etkileşim)',
+          title: language === 'en' ? 'New Friend (Level 0 - 0 Interactions)' : 'Yeni Tanışma (Level 0 - 0 Etkileşim)',
           emoji: '🌱',
           filter: (c) => (c.interactionHistory?.length || 0) === 0,
         },
@@ -230,10 +231,10 @@ export default function CatListScreen({ navigation }) {
           </View>
 
           <Text style={[styles.catBreed, { color: colors.textSecondary }]} numberOfLines={1}>
-            🐾 {item.breed || t.breedUnknown}
+            🐾 {dt(item.breed, language) || t.breedUnknown}
           </Text>
           <Text style={[styles.catLocation, { color: colors.textMuted }]} numberOfLines={1}>
-            📍 {locationName || t.locationUnknown}
+            📍 {dt(locationName, language) || t.locationUnknown}
           </Text>
 
           {/* HAKKINDA / NOT ÖNİZLEMESİ (Varsa) */}
@@ -241,7 +242,7 @@ export default function CatListScreen({ navigation }) {
             <View style={[styles.notePreviewBox, { backgroundColor: isDark ? colors.cardBorder : '#FFF8F4' }]}>
               <Ionicons name="document-text-outline" size={12} color={colors.primary} />
               <Text style={[styles.notePreviewText, { color: colors.textSecondary }]} numberOfLines={1}>
-                {item.notes}
+                {dt(item.notes, language)}
               </Text>
             </View>
           ) : null}
@@ -288,7 +289,7 @@ export default function CatListScreen({ navigation }) {
         <Text style={styles.sectionTitle}>{section.title}</Text>
       </View>
       <View style={styles.sectionCountBadge}>
-        <Text style={styles.sectionCountText}>{section.data.length} Kedi</Text>
+        <Text style={styles.sectionCountText}>{section.data.length} {t.homeStatCats}</Text>
       </View>
     </View>
   );

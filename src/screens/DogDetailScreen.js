@@ -23,6 +23,7 @@ import { Colors } from '../theme/colors';
 import { getImageSource } from '../utils/imageHelper';
 import ImageViewerModal from '../components/ImageViewerModal';
 import useAppTheme from '../theme/useAppTheme';
+import { dt } from '../utils/dynamicTranslator';
 
 const { width } = Dimensions.get('window');
 const PHOTO_SIZE = (width - 36 - 20) / 3;
@@ -320,18 +321,27 @@ export default function DogDetailScreen({ route, navigation }) {
 
   const getLastFedText = () => {
     if (interactions.length === 0) {
-      return 'Henüz etkileşim kaydedilmedi 🌱';
+      return language === 'en' ? 'No interactions recorded yet 🌱' : 'Henüz etkileşim kaydedilmedi 🌱';
     }
     const last = interactions[0];
     const dateObj = new Date(last.date);
     const now = new Date();
     const diffHours = Math.round((now.getTime() - dateObj.getTime()) / (1000 * 60 * 60));
-    const timeStr = dateObj.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
+    const timeStr = dateObj.toLocaleTimeString(language === 'en' ? 'en-US' : 'tr-TR', { hour: '2-digit', minute: '2-digit' });
 
-    if (diffHours < 1) return `Az önce ilgilenildi (${timeStr}) 🐕`;
-    if (diffHours < 24) return `Bugün ${timeStr} civarında ilgilenildi (${diffHours} saat önce) 🐕`;
+    if (diffHours < 1) {
+      return language === 'en' ? `Cared for just now (${timeStr}) 🐕` : `Az önce ilgilenildi (${timeStr}) 🐕`;
+    }
+    if (diffHours < 24) {
+      return language === 'en'
+        ? `Cared for today around ${timeStr} (${diffHours} hours ago) 🐕`
+        : `Bugün ${timeStr} civarında ilgilenildi (${diffHours} saat önce) 🐕`;
+    }
     const diffDays = Math.floor(diffHours / 24);
-    return `${diffDays} gün önce (${dateObj.toLocaleDateString('tr-TR')}) ilgilenildi 🐕`;
+    const dateFormatted = dateObj.toLocaleDateString(language === 'en' ? 'en-US' : 'tr-TR');
+    return language === 'en'
+      ? `Cared for ${diffDays} days ago (${dateFormatted}) 🐕`
+      : `${diffDays} gün önce (${dateFormatted}) ilgilenildi 🐕`;
   };
 
   const handleQuickInteraction = (option) => {
@@ -550,7 +560,7 @@ export default function DogDetailScreen({ route, navigation }) {
               activeOpacity={0.8}
             >
               <Ionicons name="pencil" size={14} color="#D97706" />
-              <Text style={styles.editInfoBtnText}>Düzenle</Text>
+              <Text style={styles.editInfoBtnText}>{language === 'en' ? 'Edit' : 'Düzenle'}</Text>
             </TouchableOpacity>
 
             <View style={[styles.levelBadge, { backgroundColor: bondInfo.badgeBg }]}>
@@ -563,11 +573,11 @@ export default function DogDetailScreen({ route, navigation }) {
           <View style={styles.metaRow}>
             <View style={styles.metaChip}>
               <Ionicons name="paw" size={14} color="#D97706" />
-              <Text style={styles.metaChipText}>{dog.breed}</Text>
+              <Text style={styles.metaChipText}>{dt(dog.breed, language)}</Text>
             </View>
             <View style={styles.metaChip}>
               <Ionicons name="location" size={14} color={Colors.blue} />
-              <Text style={styles.metaChipText}>{locationName}</Text>
+              <Text style={styles.metaChipText}>{dt(locationName, language)}</Text>
             </View>
           </View>
 
@@ -582,12 +592,12 @@ export default function DogDetailScreen({ route, navigation }) {
           <View style={styles.progressHeaderRow}>
             <View>
               <Text style={styles.progressTitle}>
-                Sadakat Seviyesi: Seviye {bondInfo.level} ({bondInfo.title})
+                {language === 'en' ? `Loyalty Level: Level ${bondInfo.level} (${bondInfo.title})` : `Sadakat Seviyesi: Seviye ${bondInfo.level} (${bondInfo.title})`}
               </Text>
               <Text style={styles.progressSubtitle}>{bondInfo.description}</Text>
             </View>
             <View style={[styles.countBadge, { backgroundColor: '#FEF3C7' }]}>
-              <Text style={[styles.countBadgeText, { color: '#D97706' }]}>{interactionCount} Etkileşim</Text>
+              <Text style={[styles.countBadgeText, { color: '#D97706' }]}>{interactionCount} {language === 'en' ? 'Interactions' : 'Etkileşim'}</Text>
             </View>
           </View>
 
@@ -654,7 +664,7 @@ export default function DogDetailScreen({ route, navigation }) {
             <Text style={[styles.sectionTitle, { color: colors.text }]}>{t.locationHistoryTitle || 'Konum & Hareket Geçmişi 📍'}</Text>
           </View>
           <TouchableOpacity style={styles.editLocationShortBtn} onPress={handleOpenEditModal}>
-            <Text style={styles.editLocationShortText}>Konumu Değiştir</Text>
+            <Text style={styles.editLocationShortText}>{language === 'en' ? 'Change Location' : 'Konumu Değiştir'}</Text>
           </TouchableOpacity>
         </View>
 
@@ -664,16 +674,18 @@ export default function DogDetailScreen({ route, navigation }) {
           </View>
           <View style={{ flex: 1 }}>
             <View style={styles.currentLocLabelRow}>
-              <Text style={styles.currentLocLabel}>Mevcut Konum</Text>
+              <Text style={styles.currentLocLabel}>{language === 'en' ? 'Current Location' : 'Mevcut Konum'}</Text>
               <View style={styles.activeLocBadge}>
-                <Text style={styles.activeLocBadgeText}>Aktif</Text>
+                <Text style={styles.activeLocBadgeText}>{language === 'en' ? 'Active' : 'Aktif'}</Text>
               </View>
             </View>
-            <Text style={[styles.currentLocTitle, { color: colors.text }]}>{locationName}</Text>
+            <Text style={[styles.currentLocTitle, { color: colors.text }]}>{dt(locationName, language)}</Text>
           </View>
         </View>
 
-        <Text style={[styles.pastLocHeaderTitle, { color: colors.textSecondary }]}>Önceki Konum Kayıtları</Text>
+        <Text style={[styles.pastLocHeaderTitle, { color: colors.textSecondary }]}>
+          {language === 'en' ? 'Previous Location Records' : 'Önceki Konum Kayıtları'}
+        </Text>
         {locationHistory.length === 0 ? (
           <View style={styles.emptyHistoryLocBox}>
             <Text style={[styles.emptyHistoryLocText, { color: colors.textMuted }]}>
@@ -685,8 +697,10 @@ export default function DogDetailScreen({ route, navigation }) {
             <View key={item.id || idx} style={styles.historyLocRow}>
               <View style={[styles.historyLocDot, { backgroundColor: '#D97706' }]} />
               <View style={{ flex: 1 }}>
-                <Text style={[styles.historyLocName, { color: colors.text }]}>{item.regionName}</Text>
-                <Text style={[styles.historyLocDate, { color: colors.textMuted }]}>{formatDate(item.changedAt)} tarihine kadar buradaydı</Text>
+                <Text style={[styles.historyLocName, { color: colors.text }]}>{dt(item.regionName, language)}</Text>
+                <Text style={[styles.historyLocDate, { color: colors.textMuted }]}>
+                  {formatDate(item.changedAt)} {language === 'en' ? 'until this date' : 'tarihine kadar buradaydı'}
+                </Text>
               </View>
             </View>
           ))
@@ -821,7 +835,7 @@ export default function DogDetailScreen({ route, navigation }) {
                 vaccineTab === 'completed' && styles.vaccineTabBtnTextActive,
               ]}
             >
-              Tamamlanan ({completedVaccines.length})
+              {language === 'en' ? `Completed (${completedVaccines.length})` : `Tamamlanan (${completedVaccines.length})`}
             </Text>
           </TouchableOpacity>
 
@@ -840,7 +854,7 @@ export default function DogDetailScreen({ route, navigation }) {
                 vaccineTab === 'scheduled' && styles.vaccineTabBtnTextActive,
               ]}
             >
-              Planlanan / Gelecek ({scheduledVaccines.length})
+              {language === 'en' ? `Upcoming (${scheduledVaccines.length})` : `Planlanan / Gelecek (${scheduledVaccines.length})`}
             </Text>
           </TouchableOpacity>
         </View>
@@ -851,9 +865,13 @@ export default function DogDetailScreen({ route, navigation }) {
             {completedVaccines.length === 0 ? (
               <View style={styles.emptyVaccineBox}>
                 <Ionicons name="shield-outline" size={32} color={Colors.textMuted} />
-                <Text style={styles.emptyVaccineTitle}>Tamamlanan Aşı Yok</Text>
+                <Text style={styles.emptyVaccineTitle}>
+                  {language === 'en' ? 'No Completed Vaccines' : 'Tamamlanan Aşı Yok'}
+                </Text>
                 <Text style={styles.emptyVaccineSub}>
-                  Sadık dostumuzun yapılmış olan aşılarını yukarıdaki "+ Aşı Ekle" butonuyla kaydedebilirsin.
+                  {language === 'en'
+                    ? 'You can record vaccinations with the "+ Add Vaccine" button above.'
+                    : 'Sadık dostumuzun yapılmış olan aşılarını yukarıdaki "+ Aşı Ekle" butonuyla kaydedebilirsin.'}
                 </Text>
               </View>
             ) : (
@@ -864,14 +882,14 @@ export default function DogDetailScreen({ route, navigation }) {
                   </View>
                   <View style={{ flex: 1 }}>
                     <View style={styles.vaccineTitleRow}>
-                      <Text style={styles.vaccineItemName}>{vac.name}</Text>
+                      <Text style={styles.vaccineItemName}>{dt(vac.name, language)}</Text>
                       <Text style={styles.vaccineItemDate}>{formatDate(vac.date)}</Text>
                     </View>
                     {vac.clinic ? (
-                      <Text style={styles.vaccineItemClinic}>🏥 {vac.clinic}</Text>
+                      <Text style={styles.vaccineItemClinic}>🏥 {dt(vac.clinic, language)}</Text>
                     ) : null}
                     {vac.notes ? (
-                      <Text style={styles.vaccineItemNote}>📝 {vac.notes}</Text>
+                      <Text style={styles.vaccineItemNote}>📝 {dt(vac.notes, language)}</Text>
                     ) : null}
                   </View>
                   <TouchableOpacity
@@ -893,9 +911,13 @@ export default function DogDetailScreen({ route, navigation }) {
             {scheduledVaccines.length === 0 ? (
               <View style={styles.emptyVaccineBox}>
                 <Ionicons name="calendar-outline" size={32} color={Colors.textMuted} />
-                <Text style={styles.emptyVaccineTitle}>Planlanmış Aşı Yok</Text>
+                <Text style={styles.emptyVaccineTitle}>
+                  {language === 'en' ? 'No Scheduled Vaccines' : 'Planlanmış Aşı Yok'}
+                </Text>
                 <Text style={styles.emptyVaccineSub}>
-                  Gelecek kuduz, parazit veya karma aşı randevularını "+ Planla" butonuyla ekleyebilirsin.
+                  {language === 'en'
+                    ? 'You can schedule future rabies, core, or parasite doses with "+ Schedule".'
+                    : 'Gelecek kuduz, parazit veya karma aşı randevularını "+ Planla" butonuyla ekleyebilirsin.'}
                 </Text>
               </View>
             ) : (
@@ -906,13 +928,13 @@ export default function DogDetailScreen({ route, navigation }) {
                   </View>
                   <View style={{ flex: 1 }}>
                     <View style={styles.vaccineTitleRow}>
-                      <Text style={styles.scheduledItemName}>{plan.name}</Text>
+                      <Text style={styles.scheduledItemName}>{dt(plan.name, language)}</Text>
                       <View style={styles.plannedDateBadge}>
                         <Text style={styles.plannedDateBadgeText}>📅 {formatDate(plan.plannedDate)}</Text>
                       </View>
                     </View>
                     {plan.notes ? (
-                      <Text style={styles.vaccineItemNote}>📌 {plan.notes}</Text>
+                      <Text style={styles.vaccineItemNote}>📌 {dt(plan.notes, language)}</Text>
                     ) : null}
 
                     <TouchableOpacity
@@ -921,7 +943,9 @@ export default function DogDetailScreen({ route, navigation }) {
                       activeOpacity={0.8}
                     >
                       <Ionicons name="checkmark-circle" size={14} color="#059669" />
-                      <Text style={styles.markCompleteBtnText}>Aşı Yapıldı Olarak İşaretle ✓</Text>
+                      <Text style={styles.markCompleteBtnText}>
+                        {language === 'en' ? 'Mark Completed ✓' : 'Aşı Yapıldı Olarak İşaretle ✓'}
+                      </Text>
                     </TouchableOpacity>
                   </View>
                   <TouchableOpacity
@@ -1006,7 +1030,7 @@ export default function DogDetailScreen({ route, navigation }) {
                   color="#D97706"
                   style={styles.noteQuoteIcon}
                 />
-                <Text style={[styles.noteDisplayText, { color: colors.text }]}>{dog.notes}</Text>
+                <Text style={[styles.noteDisplayText, { color: colors.text }]}>{dt(dog.notes, language)}</Text>
               </View>
             ) : (
               <TouchableOpacity
@@ -1015,9 +1039,13 @@ export default function DogDetailScreen({ route, navigation }) {
                 activeOpacity={0.8}
               >
                 <Ionicons name="create-outline" size={28} color="#D97706" />
-                <Text style={[styles.emptyNotePromptTitle, { color: colors.text }]}>Henüz bir not yazılmadı</Text>
+                <Text style={[styles.emptyNotePromptTitle, { color: colors.text }]}>
+                  {language === 'en' ? 'No notes written yet' : 'Henüz bir not yazılmadı'}
+                </Text>
                 <Text style={[styles.emptyNotePromptSub, { color: colors.textSecondary }]}>
-                  {dog.name} dostumuzun huyları, tasması veya sevdiği oyunlar hakkında buraya not alabilirsin.
+                  {language === 'en'
+                    ? `You can take notes here about ${dog.name}'s personality, leash, or favorite games.`
+                    : `${dog.name} dostumuzun huyları, tasması veya sevdiği oyunlar hakkında buraya not alabilirsin.`}
                 </Text>
                 <View style={[styles.addNotePill, { backgroundColor: isDark ? '#2D2310' : '#FEF3C7' }]}>
                   <Text style={[styles.addNotePillText, { color: '#D97706' }]}>+ {t.notesTitle}</Text>
@@ -1093,9 +1121,13 @@ export default function DogDetailScreen({ route, navigation }) {
         {interactions.length === 0 ? (
           <View style={styles.emptyHistoryBox}>
             <Text style={styles.emptyHistoryEmoji}>🐕</Text>
-            <Text style={styles.emptyHistoryTitle}>Henüz bir etkileşim kaydı yok</Text>
+            <Text style={styles.emptyHistoryTitle}>
+              {language === 'en' ? 'No interaction logs yet' : 'Henüz bir etkileşim kaydı yok'}
+            </Text>
             <Text style={styles.emptyHistorySub}>
-              Yukarıdaki butonlara dokunarak ilk yürüyüşünü veya mamayı kaydedebilirsin!
+              {language === 'en'
+                ? 'Tap the quick buttons above to record your first walk or meal!'
+                : 'Yukarıdaki butonlara dokunarak ilk yürüyüşünü veya mamayı kaydedebilirsin!'}
             </Text>
           </View>
         ) : (
@@ -1122,12 +1154,12 @@ export default function DogDetailScreen({ route, navigation }) {
               </View>
 
               <View style={styles.historyTextCol}>
-                <Text style={styles.historyNote}>{item.note || 'Etkileşim'}</Text>
+                <Text style={styles.historyNote}>{dt(item.note, language) || (language === 'en' ? 'Care Activity' : 'Etkileşim')}</Text>
                 <Text style={styles.historyDate}>{formatDate(item.date)}</Text>
               </View>
 
               <View style={styles.historyTag}>
-                <Text style={styles.historyTagText}>+1 Sadakat</Text>
+                <Text style={styles.historyTagText}>+1 {language === 'en' ? 'Bond' : 'Sadakat'}</Text>
               </View>
             </View>
           ))
@@ -1147,7 +1179,9 @@ export default function DogDetailScreen({ route, navigation }) {
         >
           <View style={[styles.editModalContent, { backgroundColor: colors.card, paddingBottom: modalBottomPadding }]}>
             <View style={styles.modalHeaderRow}>
-              <Text style={[styles.modalTitle, { color: colors.text }]}>Köpek Bilgilerini Düzenle ✏️</Text>
+              <Text style={[styles.modalTitle, { color: colors.text }]}>
+                {language === 'en' ? 'Edit Dog Information ✏️' : 'Köpek Bilgilerini Düzenle ✏️'}
+              </Text>
               <TouchableOpacity
                 style={[styles.modalCloseBtn, { backgroundColor: isDark ? '#2D3748' : '#F3F4F6' }]}
                 onPress={() => setIsEditModalVisible(false)}

@@ -16,6 +16,7 @@ import useCatStore from '../store/catStore';
 import { Colors } from '../theme/colors';
 import { getImageSource } from '../utils/imageHelper';
 import useAppTheme from '../theme/useAppTheme';
+import { dt } from '../utils/dynamicTranslator';
 
 const GROUP_OPTIONS = [
   { id: 'all', title: 'Tümü', emoji: '📋' },
@@ -102,7 +103,7 @@ export default function DogListScreen({ navigation }) {
       return Object.keys(map)
         .sort((a, b) => a.localeCompare(b, 'tr'))
         .map((locName) => ({
-          title: locName,
+          title: dt(locName, language),
           emoji: '📍',
           data: map[locName],
         }));
@@ -121,7 +122,7 @@ export default function DogListScreen({ navigation }) {
       return Object.keys(map)
         .sort((a, b) => a.localeCompare(b, 'tr'))
         .map((breedName) => ({
-          title: breedName,
+          title: dt(breedName, language),
           emoji: '🐾',
           data: map[breedName],
         }));
@@ -130,12 +131,12 @@ export default function DogListScreen({ navigation }) {
     if (groupBy === 'bond') {
       const tiers = [
         {
-          title: 'Can Yoldaşı (Level 3 - 9+ Etkileşim)',
+          title: language === 'en' ? 'Soulmate (Level 3 - 9+ Interactions)' : 'Can Yoldaşı (Level 3 - 9+ Etkileşim)',
           emoji: '💖',
           filter: (d) => (d.interactionHistory?.length || 0) >= 9,
         },
         {
-          title: 'Sadık Dost (Level 2 - 4-8 Etkileşim)',
+          title: language === 'en' ? 'Loyal Friend (Level 2 - 4-8 Interactions)' : 'Sadık Dost (Level 2 - 4-8 Etkileşim)',
           emoji: '🐕',
           filter: (d) => {
             const l = d.interactionHistory?.length || 0;
@@ -143,7 +144,7 @@ export default function DogListScreen({ navigation }) {
           },
         },
         {
-          title: 'Tanışıklık (Level 1 - 1-3 Etkileşim)',
+          title: language === 'en' ? 'Acquaintance (Level 1 - 1-3 Interactions)' : 'Tanışıklık (Level 1 - 1-3 Etkileşim)',
           emoji: '🐾',
           filter: (d) => {
             const l = d.interactionHistory?.length || 0;
@@ -151,7 +152,7 @@ export default function DogListScreen({ navigation }) {
           },
         },
         {
-          title: 'Yeni Tanışma (Level 0 - 0 Etkileşim)',
+          title: language === 'en' ? 'New Friend (Level 0 - 0 Interactions)' : 'Yeni Tanışma (Level 0 - 0 Etkileşim)',
           emoji: '🌱',
           filter: (d) => (d.interactionHistory?.length || 0) === 0,
         },
@@ -216,17 +217,17 @@ export default function DogListScreen({ navigation }) {
           </View>
 
           <Text style={[styles.dogBreed, { color: colors.textSecondary }]} numberOfLines={1}>
-            🐕 {item.breed || t.breedUnknown}
+            🐕 {dt(item.breed, language) || t.breedUnknown}
           </Text>
           <Text style={[styles.dogLocation, { color: colors.textMuted }]} numberOfLines={1}>
-            📍 {locationName || t.locationUnknown}
+            📍 {dt(locationName, language) || t.locationUnknown}
           </Text>
 
           {item.notes && item.notes.trim().length > 0 ? (
             <View style={[styles.notePreviewBox, { backgroundColor: isDark ? colors.cardBorder : '#FFFDF5' }]}>
               <Ionicons name="document-text-outline" size={12} color="#D97706" />
               <Text style={[styles.notePreviewText, { color: colors.textSecondary }]} numberOfLines={1}>
-                {item.notes}
+                {dt(item.notes, language)}
               </Text>
             </View>
           ) : null}
@@ -271,7 +272,7 @@ export default function DogListScreen({ navigation }) {
         <Text style={styles.sectionTitle}>{section.title}</Text>
       </View>
       <View style={styles.sectionCountBadge}>
-        <Text style={styles.sectionCountText}>{section.data.length} Köpek</Text>
+        <Text style={styles.sectionCountText}>{section.data.length} {t.homeStatDogs}</Text>
       </View>
     </View>
   );

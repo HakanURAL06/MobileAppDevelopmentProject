@@ -16,6 +16,7 @@ import useCatStore from '../store/catStore';
 import { Colors } from '../theme/colors';
 import useAppTheme from '../theme/useAppTheme';
 import { getImageSource } from '../utils/imageHelper';
+import { dt } from '../utils/dynamicTranslator';
 
 export default function VetDetailScreen({ route, navigation }) {
   const { vetId } = route.params || {};
@@ -40,6 +41,8 @@ export default function VetDetailScreen({ route, navigation }) {
   const [editWorkingHours, setEditWorkingHours] = useState(vet?.workingHours || '');
   const [editNotes, setEditNotes] = useState(vet?.notes || '');
   const [editAddress, setEditAddress] = useState(vet?.address || '');
+  const [editLatitude, setEditLatitude] = useState(vet?.latitude ? vet.latitude.toString() : '');
+  const [editLongitude, setEditLongitude] = useState(vet?.longitude ? vet.longitude.toString() : '');
 
   if (!vet) {
     return (
@@ -87,6 +90,16 @@ export default function VetDetailScreen({ route, navigation }) {
       );
       return;
     }
+    // Sahte/Simülasyon numarası kontrolü
+    if (phoneNumber.includes('000') || phoneNumber.includes('Temsili') || phoneNumber.includes('Simülasyon')) {
+      Alert.alert(
+        language === 'en' ? 'Simulated Academic Line 🩺' : 'Temsili Simülasyon Hattı 🩺',
+        language === 'en'
+          ? `Selected phone (${phoneNumber}) is a fictional demo number created for Mobile App Development project. No actual call is initiated.`
+          : `Aranan numara (${phoneNumber}) Mobile App Development proje ödevi kapsamında kurgulanmış temsili bir simülasyon numarasıdır. Gerçek arama yapılmaz.`
+      );
+      return;
+    }
     const cleanNum = phoneNumber.replace(/[^0-9+]/g, '');
     Linking.openURL(`tel:${cleanNum}`).catch(() => {
       Alert.alert(
@@ -106,6 +119,8 @@ export default function VetDetailScreen({ route, navigation }) {
     setEditWorkingHours(vet.workingHours || '');
     setEditNotes(vet.notes || '');
     setEditAddress(vet.address || '');
+    setEditLatitude(vet.latitude ? vet.latitude.toString() : '');
+    setEditLongitude(vet.longitude ? vet.longitude.toString() : '');
     setIsEditModalOpen(true);
   };
 
@@ -128,6 +143,8 @@ export default function VetDetailScreen({ route, navigation }) {
       workingHours: editWorkingHours.trim(),
       notes: editNotes.trim(),
       address: editAddress.trim(),
+      latitude: editLatitude ? parseFloat(editLatitude) : null,
+      longitude: editLongitude ? parseFloat(editLongitude) : null,
     });
 
     setIsEditModalOpen(false);
@@ -184,16 +201,21 @@ export default function VetDetailScreen({ route, navigation }) {
                 <Ionicons name="pencil" size={16} color={Colors.primary} />
               </TouchableOpacity>
             </View>
-            <Text style={[styles.vetTitleText, { color: Colors.primary }]}>
-              {vet.title || 'Veteriner Hekim'}
-            </Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 2 }}>
+              <Text style={[styles.vetTitleText, { color: Colors.primary }]}>
+                {dt(vet.title, language) || (language === 'en' ? 'Veterinary Surgeon (Simulated)' : 'Veteriner Hekim (Temsili)')}
+              </Text>
+              <View style={[styles.academicPill, { backgroundColor: '#4F46E5' }]}>
+                <Text style={styles.academicPillText}>{language === 'en' ? 'Demo' : 'Temsili'}</Text>
+              </View>
+            </View>
             <Text style={[styles.clinicNameText, { color: colors.textSecondary }]}>
-              🏥 {vet.clinicName}
+              🏥 {dt(vet.clinicName, language)}
             </Text>
             <View style={[styles.regionBadge, { backgroundColor: isDark ? '#1E293B' : '#EFF6FF' }]}>
               <Ionicons name="location" size={13} color="#3B82F6" />
               <Text style={[styles.regionBadgeText, { color: '#3B82F6' }]}>
-                {vet.regionName}
+                {dt(vet.regionName, language)}
               </Text>
             </View>
           </View>
@@ -324,7 +346,7 @@ export default function VetDetailScreen({ route, navigation }) {
                       <Text style={{ fontSize: 13 }}>{animal.isDog ? '🐶' : '🐱'}</Text>
                     </View>
                     <Text style={[styles.animalBreedText, { color: colors.textSecondary }]} numberOfLines={1}>
-                      {animal.breed}
+                      {dt(animal.breed, language)}
                     </Text>
                     <Text style={[styles.animalGotoLink, { color: Colors.primary }]}>
                       {language === 'en' ? 'View Details ➔' : 'Profili Gör ➔'}
@@ -371,7 +393,7 @@ export default function VetDetailScreen({ route, navigation }) {
             >
               <Ionicons name="checkmark-circle" size={14} color="#10B981" />
               <Text style={[styles.servicePillText, { color: isDark ? '#A7F3D0' : '#065F46' }]}>
-                {service}
+                {dt(service, language)}
               </Text>
             </View>
           ))}
@@ -395,7 +417,7 @@ export default function VetDetailScreen({ route, navigation }) {
               {t.vetMissionTitle}
             </Text>
           </View>
-          <Text style={[styles.notesText, { color: colors.text }]}>{vet.notes}</Text>
+          <Text style={[styles.notesText, { color: colors.text }]}>{dt(vet.notes, language)}</Text>
         </View>
       ) : null}
 
@@ -501,6 +523,27 @@ export default function VetDetailScreen({ route, navigation }) {
                 value={editAddress}
                 onChangeText={setEditAddress}
               />
+            </View>
+
+            <View style={{ flexDirection: 'row', gap: 10 }}>
+              <View style={[styles.inputField, { flex: 1 }]}>
+                <Text style={[styles.fieldLabel, { color: colors.text }]}>{language === 'en' ? 'Latitude' : 'Enlem'}</Text>
+                <TextInput
+                  style={[styles.textInput, { backgroundColor: colors.card, borderColor: colors.cardBorder, color: colors.text }]}
+                  value={editLatitude}
+                  onChangeText={setEditLatitude}
+                  keyboardType="numeric"
+                />
+              </View>
+              <View style={[styles.inputField, { flex: 1 }]}>
+                <Text style={[styles.fieldLabel, { color: colors.text }]}>{language === 'en' ? 'Longitude' : 'Boylam'}</Text>
+                <TextInput
+                  style={[styles.textInput, { backgroundColor: colors.card, borderColor: colors.cardBorder, color: colors.text }]}
+                  value={editLongitude}
+                  onChangeText={setEditLongitude}
+                  keyboardType="numeric"
+                />
+              </View>
             </View>
 
             <View style={styles.inputField}>
@@ -829,5 +872,16 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontWeight: '800',
     fontSize: 15,
+  },
+  academicPill: {
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 6,
+  },
+  academicPillText: {
+    color: '#FFFFFF',
+    fontSize: 9,
+    fontWeight: '800',
+    textTransform: 'uppercase',
   },
 });

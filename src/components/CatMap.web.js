@@ -5,7 +5,7 @@ import { Colors } from '../theme/colors';
 import { getImageSource } from '../utils/imageHelper';
 import useAppTheme from '../theme/useAppTheme';
 
-export default function CatMap({ cats = [], animals = null, location, onSelectCat }) {
+export default function CatMap({ cats = [], animals = null, vets = [], location, onSelectCat, onSelectVet }) {
   const list = animals || cats;
   const { isDark, colors, t, language } = useAppTheme();
 
@@ -77,6 +77,37 @@ export default function CatMap({ cats = [], animals = null, location, onSelectCa
             );
           })
         )}
+
+        {vets.map((vet) => (
+          <TouchableOpacity
+            key={vet.id}
+            style={[
+              styles.pinCard,
+              { backgroundColor: isDark ? '#064E3B20' : '#ECFDF5', borderColor: isDark ? '#047857' : '#A7F3D0' },
+            ]}
+            activeOpacity={0.8}
+            onPress={() => onSelectVet && onSelectVet(vet)}
+          >
+            <View style={[styles.catPinAvatar, { backgroundColor: '#10B981', alignItems: 'center', justifyContent: 'center' }]}>
+              <Text style={{ fontSize: 22 }}>🩺</Text>
+            </View>
+            <View style={styles.pinInfo}>
+              <View style={styles.pinTitleRow}>
+                <Text style={[styles.catPinName, { color: colors.text }]}>{vet.clinicName}</Text>
+                <Text style={styles.pinEmoji}>🩺</Text>
+              </View>
+              <Text style={[styles.catPinLocation, { color: '#059669' }]}>
+                {vet.name} • {vet.regionName}
+              </Text>
+              <Text style={[styles.catPinCoords, { color: colors.textMuted }]}>
+                {vet.latitude ? `${vet.latitude.toFixed(3)}, ${vet.longitude.toFixed(3)}` : 'Simülasyon Konumu'}
+              </Text>
+            </View>
+            <View style={[styles.actionArrowCircle, { backgroundColor: isDark ? '#064E3B' : '#D1FAE5' }]}>
+              <Ionicons name="chevron-forward" size={14} color="#10B981" />
+            </View>
+          </TouchableOpacity>
+        ))}
       </View>
     </View>
   );

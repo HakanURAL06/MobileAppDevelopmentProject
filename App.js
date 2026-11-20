@@ -19,6 +19,7 @@ import AnalyticsScreen from './src/screens/AnalyticsScreen';
 import VetListScreen from './src/screens/VetListScreen';
 import VetDetailScreen from './src/screens/VetDetailScreen';
 import ToastBanner from './src/components/ToastBanner';
+import ProjectDisclaimerModal from './src/components/ProjectDisclaimerModal';
 import useCatStore from './src/store/catStore';
 import { getThemeColors, Colors } from './src/theme/colors';
 import { getTranslation } from './src/i18n/translations';
@@ -60,10 +61,24 @@ function HeaderPreferencesButtons() {
   const language = useCatStore((state) => state.language || 'tr');
   const toggleTheme = useCatStore((state) => state.toggleTheme);
   const toggleLanguage = useCatStore((state) => state.toggleLanguage);
+  const setDisclaimerOpen = useCatStore((state) => state.setDisclaimerOpen);
   const isDark = theme === 'dark';
 
   return (
     <View style={styles.headerBtnGroup}>
+      {/* Akademik Proje Künyesi Butonu */}
+      <TouchableOpacity
+        style={[
+          styles.headerIconBtn,
+          { backgroundColor: isDark ? 'rgba(255,255,255,0.12)' : 'rgba(255,255,255,0.22)' },
+        ]}
+        onPress={() => setDisclaimerOpen(true)}
+        activeOpacity={0.7}
+        hitSlop={{ top: 10, bottom: 10, left: 6, right: 2 }}
+      >
+        <Ionicons name="school-outline" size={16} color="#FFFFFF" />
+      </TouchableOpacity>
+
       {/* Tema Butonu */}
       <TouchableOpacity
         style={[
@@ -72,7 +87,7 @@ function HeaderPreferencesButtons() {
         ]}
         onPress={toggleTheme}
         activeOpacity={0.7}
-        hitSlop={{ top: 10, bottom: 10, left: 8, right: 4 }}
+        hitSlop={{ top: 10, bottom: 10, left: 2, right: 2 }}
       >
         <Ionicons
           name={isDark ? 'moon' : 'sunny'}
@@ -89,7 +104,7 @@ function HeaderPreferencesButtons() {
         ]}
         onPress={toggleLanguage}
         activeOpacity={0.7}
-        hitSlop={{ top: 10, bottom: 10, left: 4, right: 8 }}
+        hitSlop={{ top: 10, bottom: 10, left: 2, right: 6 }}
       >
         <Text style={styles.headerLangText}>
           {language === 'tr' ? 'TR' : 'EN'}
@@ -207,6 +222,8 @@ function BottomTabs() {
 export default function App() {
   const theme = useCatStore((state) => state.theme || 'light');
   const language = useCatStore((state) => state.language || 'tr');
+  const isDisclaimerOpen = useCatStore((state) => state.isDisclaimerOpen);
+  const setDisclaimerOpen = useCatStore((state) => state.setDisclaimerOpen);
   const isDark = theme === 'dark';
   const colors = getThemeColors(theme);
   const t = getTranslation(language);
@@ -326,6 +343,10 @@ export default function App() {
           />
         </Stack.Navigator>
       </NavigationContainer>
+      <ProjectDisclaimerModal
+        visible={isDisclaimerOpen}
+        onClose={() => setDisclaimerOpen(false)}
+      />
       <ToastBanner />
     </SafeAreaProvider>
   );

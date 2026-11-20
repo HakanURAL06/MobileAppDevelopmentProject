@@ -15,9 +15,11 @@ import {
   Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import * as Location from 'expo-location';
 import useCatStore from '../store/catStore';
 import { Colors } from '../theme/colors';
 import useAppTheme from '../theme/useAppTheme';
+import { dt } from '../utils/dynamicTranslator';
 
 export default function VetListScreen({ navigation }) {
   const vets = useCatStore((state) => state.vets || []);
@@ -41,6 +43,9 @@ export default function VetListScreen({ navigation }) {
   const [newTitle, setNewTitle] = useState('');
   const [newClinicName, setNewClinicName] = useState('');
   const [newRegionName, setNewRegionName] = useState('');
+  const [newLatitude, setNewLatitude] = useState('');
+  const [newLongitude, setNewLongitude] = useState('');
+  const [isGettingLocation, setIsGettingLocation] = useState(false);
   const [newAddress, setNewAddress] = useState('');
   const [newPhone, setNewPhone] = useState('');
   const [newEmergencyPhone, setNewEmergencyPhone] = useState('');
@@ -102,12 +107,22 @@ export default function VetListScreen({ navigation }) {
     });
   };
 
-  // Telefon arama eylemi
+  // Telefon arama eylemi (Akademik Simülasyon Korumalı)
   const handleCall = (phoneNumber) => {
     if (!phoneNumber) {
       Alert.alert(
         language === 'en' ? 'No Phone' : 'Numara Yok',
         language === 'en' ? 'No phone number registered for this clinic.' : 'Bu klinik için telefon numarası kayıtlı değil.'
+      );
+      return;
+    }
+    // Sahte/Simülasyon numarası kontrolü
+    if (phoneNumber.includes('000') || phoneNumber.includes('Temsili') || phoneNumber.includes('Simülasyon')) {
+      Alert.alert(
+        language === 'en' ? 'Simulated Academic Line 🩺' : 'Temsili Simülasyon Hattı 🩺',
+        language === 'en'
+          ? `Selected phone (${phoneNumber}) is a fictional demo number created for Mobile App Development course project. No actual phone call is placed.`
+          : `Aranan numara (${phoneNumber}) Mobile App Development proje ödevi kapsamında kurgulanmış temsili bir simülasyon numarasıdır. Gerçek bir arama yapılmaz.`
       );
       return;
     }
@@ -118,6 +133,43 @@ export default function VetListScreen({ navigation }) {
         language === 'en' ? 'Unable to make phone call.' : 'Arama başlatılamadı.'
       );
     });
+  };
+
+  // Cihaz GPS Konumunu Alma
+  const handleGetLocation = async () => {
+    setIsGettingLocation(true);
+    try {
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert(
+          language === 'en' ? 'Permission Denied' : 'Konum İzni Gerekli',
+          language === 'en' ? 'Location permission was denied.' : 'Konum izni verilmedi.'
+        );
+        setIsGettingLocation(false);
+        return;
+      }
+      const loc = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
+      setNewLatitude(loc.coords.latitude.toFixed(6));
+      setNewLongitude(loc.coords.longitude.toFixed(6));
+      Alert.alert(
+        language === 'en' ? 'GPS Acquired ✓' : 'GPS Alındı ✓',
+        `${loc.coords.latitude.toFixed(5)}, ${loc.coords.longitude.toFixed(5)}`
+      );
+    } catch {
+      Alert.alert(
+        language === 'en' ? 'Error' : 'Hata',
+        language === 'en' ? 'Could not obtain device location.' : 'Cihaz konumu alınamadı.'
+      );
+    } finally {
+      setIsGettingLocation(false);
+    }
+  };
+
+  // Hızlı Bölge Şablonu Seçme
+  const applyPresetLocation = (region, lat, lng) => {
+    setNewRegionName(region);
+    setNewLatitude(lat.toString());
+    setNewLongitude(lng.toString());
   };
 
   // Yeni veteriner kaydetme
@@ -139,13 +191,15 @@ export default function VetListScreen({ navigation }) {
 
     addVet({
       name: newName,
-      title: newTitle || (language === 'en' ? 'Veterinary Surgeon' : 'Veteriner Hekim'),
+      title: newTitle || (language === 'en' ? 'Veterinary Surgeon (Simulated)' : 'Veteriner Hekim (Temsili)'),
       clinicName: newClinicName,
       regionName: newRegionName,
-      address: newAddress,
-      phone: newPhone,
-      emergencyPhone: newEmergencyPhone,
+      address: newAddress || (language === 'en' ? 'Academic Project Address' : 'Akademik Kurgu Adresi'),
+      phone: newPhone || '0 (000) 000 00 00 (Simülasyon)',
+      emergencyPhone: newEmergencyPhone || '0 (000) 000 00 00 (Simülasyon)',
       workingHours: newWorkingHours || '09:00 - 19:00',
+      latitude: newLatitude ? parseFloat(newLatitude) : null,
+      longitude: newLongitude ? parseFloat(newLongitude) : null,
       notes: newNotes,
       services: servicesList.length > 0 ? servicesList : ['Rutin Muayene', 'Aşı Takibi', 'Parazit Tedavisi'],
       assignedAnimalIds: selectedAnimalIds,
@@ -156,6 +210,8 @@ export default function VetListScreen({ navigation }) {
     setNewTitle('');
     setNewClinicName('');
     setNewRegionName('');
+    setNewLatitude('');
+    setNewLongitude('');
     setNewAddress('');
     setNewPhone('');
     setNewEmergencyPhone('');
@@ -263,7 +319,7 @@ export default function VetListScreen({ navigation }) {
                       : { color: colors.text },
                   ]}
                 >
-                  {region} ({count})
+                  {dt(region, language)} ({count})
                 </Text>
               </TouchableOpacity>
             );
@@ -336,10 +392,10 @@ export default function VetListScreen({ navigation }) {
                     </Text>
                   </View>
                   <Text style={[styles.vetTitle, { color: Colors.primary }]} numberOfLines={1}>
-                    {item.title || 'Veteriner Hekim'}
+                    {dt(item.title, language) || (language === 'en' ? 'Veterinarian' : 'Veteriner Hekim')}
                   </Text>
                   <Text style={[styles.clinicName, { color: colors.textSecondary }]} numberOfLines={1}>
-                    🏥 {item.clinicName}
+                    🏥 {dt(item.clinicName, language)}
                   </Text>
                 </View>
               </View>
@@ -349,7 +405,7 @@ export default function VetListScreen({ navigation }) {
                 <View style={[styles.badgePill, { backgroundColor: isDark ? '#1E293B' : '#EFF6FF' }]}>
                   <Ionicons name="location" size={13} color="#3B82F6" />
                   <Text style={[styles.badgeText, { color: '#3B82F6' }]}>
-                    {item.regionName}
+                    {dt(item.regionName, language)}
                   </Text>
                 </View>
 
@@ -357,7 +413,7 @@ export default function VetListScreen({ navigation }) {
                   <View style={[styles.badgePill, { backgroundColor: isDark ? '#1E293B' : '#F3F4F6' }]}>
                     <Ionicons name="time-outline" size={13} color={colors.textSecondary} />
                     <Text style={[styles.badgeText, { color: colors.textSecondary }]}>
-                      {item.workingHours}
+                      {dt(item.workingHours, language)}
                     </Text>
                   </View>
                 ) : null}
@@ -512,6 +568,69 @@ export default function VetListScreen({ navigation }) {
                 value={newRegionName}
                 onChangeText={setNewRegionName}
               />
+            </View>
+
+            {/* GPS Koordinatları (Harita Pinleri İçin) */}
+            <View style={styles.inputGroup}>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+                <Text style={[styles.inputLabel, { color: colors.text }]}>
+                  {language === 'en' ? 'Map GPS Coordinates 📍' : 'Harita GPS Koordinatları 📍'}
+                </Text>
+                <TouchableOpacity
+                  style={[styles.miniGpsBtn, { backgroundColor: isDark ? colors.card : '#EFF6FF' }]}
+                  onPress={handleGetLocation}
+                >
+                  <Ionicons name="navigate" size={13} color="#3B82F6" />
+                  <Text style={[styles.miniGpsBtnText, { color: '#3B82F6' }]}>
+                    {isGettingLocation ? (language === 'en' ? 'Acquiring...' : 'Alınıyor...') : (language === 'en' ? 'Get Device GPS' : 'Cihaz GPS Al')}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+
+              {/* Hızlı Bölge Şablonları */}
+              <View style={{ flexDirection: 'row', gap: 6, marginBottom: 8 }}>
+                <TouchableOpacity
+                  style={[styles.presetChip, { backgroundColor: isDark ? colors.card : '#F3F4F6' }]}
+                  onPress={() => applyPresetLocation('Forum İstanbul', 41.046850, 28.893700)}
+                >
+                  <Text style={[styles.presetChipText, { color: colors.text }]}>Forum İst.</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.presetChip, { backgroundColor: isDark ? colors.card : '#F3F4F6' }]}
+                  onPress={() => applyPresetLocation('Kocatepe Metro Durağı', 41.049100, 28.894700)}
+                >
+                  <Text style={[styles.presetChipText, { color: colors.text }]}>Kocatepe</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.presetChip, { backgroundColor: isDark ? colors.card : '#F3F4F6' }]}
+                  onPress={() => applyPresetLocation('İstanbul Üniversitesi', 41.014900, 28.962800)}
+                >
+                  <Text style={[styles.presetChipText, { color: colors.text }]}>İ.Ü. Kampüs</Text>
+                </TouchableOpacity>
+              </View>
+
+              <View style={styles.rowInputs}>
+                <View style={[styles.inputGroup, { flex: 1, marginRight: 8 }]}>
+                  <TextInput
+                    style={[styles.modalInput, { backgroundColor: colors.card, borderColor: colors.cardBorder, color: colors.text }]}
+                    placeholder={language === 'en' ? 'Latitude (e.g. 41.046)' : 'Enlem (örn: 41.046)'}
+                    placeholderTextColor={colors.textMuted}
+                    value={newLatitude}
+                    onChangeText={setNewLatitude}
+                    keyboardType="numeric"
+                  />
+                </View>
+                <View style={[styles.inputGroup, { flex: 1 }]}>
+                  <TextInput
+                    style={[styles.modalInput, { backgroundColor: colors.card, borderColor: colors.cardBorder, color: colors.text }]}
+                    placeholder={language === 'en' ? 'Longitude (e.g. 28.894)' : 'Boylam (örn: 28.894)'}
+                    placeholderTextColor={colors.textMuted}
+                    value={newLongitude}
+                    onChangeText={setNewLongitude}
+                    keyboardType="numeric"
+                  />
+                </View>
+              </View>
             </View>
 
             {/* Telefon & Acil Hat */}
@@ -961,5 +1080,26 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontWeight: '800',
     fontSize: 15,
+  },
+  miniGpsBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 8,
+  },
+  miniGpsBtnText: {
+    fontSize: 11,
+    fontWeight: '700',
+  },
+  presetChip: {
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 10,
+  },
+  presetChipText: {
+    fontSize: 11,
+    fontWeight: '600',
   },
 });
