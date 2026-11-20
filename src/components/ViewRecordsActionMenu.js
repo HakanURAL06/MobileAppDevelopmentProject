@@ -44,13 +44,20 @@ export default function ViewRecordsActionMenu({
         onPress={() => setIsOpen(true)}
         activeOpacity={0.85}
       >
-        <View style={styles.btnContentRow}>
-          <View style={[styles.btnIconBadge, { backgroundColor: isDark ? '#1E293B' : '#F1F5F9' }]}>
-            <Ionicons name="albums-outline" size={18} color={colors.primary} />
+        <View style={styles.btnLeftRow}>
+          <View style={[styles.btnIconBadge, { backgroundColor: isDark ? '#1E293B' : '#F0F9FF' }]}>
+            <Ionicons name="albums-outline" size={22} color={colors.primary} />
           </View>
-          <Text style={[styles.mainBtnText, { color: colors.text }]}>
-            {isEn ? 'View Paws & Clinics 📋' : 'Kayıtlı Canlar & Klinikler 📋'}
-          </Text>
+          <View style={styles.btnTextCol}>
+            <Text style={[styles.mainBtnText, { color: colors.text }]}>
+              {isEn ? 'View Paws & Clinics 📋' : 'Kayıtlı Canlar & Klinikler 📋'}
+            </Text>
+            <Text style={[styles.mainBtnSub, { color: colors.textSecondary }]}>
+              {isEn
+                ? `${catsCount + dogsCount} paws • ${vetsCount} clinics`
+                : `${catsCount + dogsCount} can • ${vetsCount} klinik kayıtlı`}
+            </Text>
+          </View>
         </View>
 
         <View style={styles.rightGroup}>
@@ -59,7 +66,9 @@ export default function ViewRecordsActionMenu({
               {catsCount + dogsCount + vetsCount}
             </Text>
           </View>
-          <Ionicons name="chevron-down" size={18} color={colors.textSecondary} />
+          <View style={[styles.btnChevronCircle, { backgroundColor: isDark ? colors.surfaceSecondary : '#F3F4F6' }]}>
+            <Ionicons name="chevron-down" size={18} color={colors.textSecondary} />
+          </View>
         </View>
       </TouchableOpacity>
 
@@ -247,32 +256,40 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingVertical: 14,
-    paddingHorizontal: 16,
-    borderRadius: 16,
+    paddingVertical: 16,
+    paddingHorizontal: 18,
+    borderRadius: 22,
     borderWidth: 1.5,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.06,
+    shadowRadius: 10,
     elevation: 2,
   },
-  btnContentRow: {
+  btnLeftRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
+    gap: 12,
     flex: 1,
   },
   btnIconBadge: {
-    width: 32,
-    height: 32,
-    borderRadius: 10,
+    width: 44,
+    height: 44,
+    borderRadius: 15,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  mainBtnText: {
-    fontSize: 15,
-    fontWeight: '700',
+  btnTextCol: {
     flex: 1,
+  },
+  mainBtnText: {
+    fontSize: 16,
+    fontWeight: '800',
+    letterSpacing: 0.1,
+  },
+  mainBtnSub: {
+    fontSize: 12,
+    marginTop: 2,
+    fontWeight: '500',
   },
   rightGroup: {
     flexDirection: 'row',
@@ -280,13 +297,20 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   countPill: {
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 10,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
   },
   countPillText: {
     fontSize: 12,
     fontWeight: '800',
+  },
+  btnChevronCircle: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   modalOverlay: {
     flex: 1,

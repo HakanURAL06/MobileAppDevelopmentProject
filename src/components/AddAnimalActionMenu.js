@@ -43,11 +43,23 @@ export default function AddAnimalActionMenu({ navigation }) {
         onPress={() => setIsOpen(true)}
         activeOpacity={0.88}
       >
-        <Ionicons name="add" size={24} color="#FFFFFF" />
-        <Text style={styles.mainBtnText}>
-          {isEn ? 'Register Animal 🐾' : 'Patili Dost Ekle 🐾'}
-        </Text>
-        <Ionicons name="chevron-down" size={16} color="#FFFFFF" />
+        <View style={styles.btnLeftRow}>
+          <View style={styles.btnIconCircle}>
+            <Ionicons name="add" size={26} color={colors.primary} />
+          </View>
+          <View style={styles.btnTextCol}>
+            <Text style={styles.mainBtnText}>
+              {isEn ? 'Register Animal 🐾' : 'Patili Dost Ekle 🐾'}
+            </Text>
+            <Text style={styles.mainBtnSub}>
+              {isEn ? 'Tap to add a new cat or dog' : 'Yeni kedi veya köpek kaydet'}
+            </Text>
+          </View>
+        </View>
+
+        <View style={styles.btnChevronCircle}>
+          <Ionicons name="chevron-down" size={18} color="#FFFFFF" />
+        </View>
       </TouchableOpacity>
 
       {/* Açılır Modal / Seçenekler */}
@@ -151,21 +163,56 @@ const styles = StyleSheet.create({
   mainBtn: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 16,
+    paddingHorizontal: 18,
+    borderRadius: 22,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.18,
+    shadowRadius: 12,
+    elevation: 4,
+  },
+  btnLeftRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    flex: 1,
+  },
+  btnIconCircle: {
+    width: 44,
+    height: 44,
+    borderRadius: 15,
+    backgroundColor: '#FFFFFF',
+    alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 14,
-    paddingHorizontal: 20,
-    borderRadius: 20,
-    gap: 8,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 10,
-    elevation: 3,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  btnTextCol: {
+    flex: 1,
   },
   mainBtnText: {
-    fontSize: 15,
+    fontSize: 16,
     fontWeight: '800',
     color: '#FFFFFF',
     letterSpacing: 0.2,
+  },
+  mainBtnSub: {
+    fontSize: 12,
+    color: 'rgba(255, 255, 255, 0.88)',
+    marginTop: 2,
+    fontWeight: '500',
+  },
+  btnChevronCircle: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: 'rgba(255, 255, 255, 0.22)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: 10,
   },
   modalOverlay: {
     flex: 1,
