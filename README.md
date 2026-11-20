@@ -1,198 +1,89 @@
-# Sokak Hayvanları Sağlık, Bakım ve Bölge Hekimliği Takip Sistemi
-### *Street Animal Health, Care & Regional Veterinary Tracking System*
+# Street Animal Tracker (Sokak Dostları Takip & Bakım Platformu) 🐾
+
+![Platform](https://img.shields.io/badge/Platform-iOS%20%7C%20Android%20%7C%20Web-blue?style=flat-square)
+![Framework](https://img.shields.io/badge/Framework-React%20Native%200.86-61DAFB?style=flat-square&logo=react)
+![SDK](https://img.shields.io/badge/Expo%20SDK-57-000020?style=flat-square&logo=expo)
+![State](https://img.shields.io/badge/State-Zustand%205-764ABC?style=flat-square)
+![Storage](https://img.shields.io/badge/Storage-AsyncStorage-orange?style=flat-square)
+![Cloud](https://img.shields.io/badge/Deployment-EAS%20Update%20OTA-4630EB?style=flat-square)
+![License](https://img.shields.io/badge/License-MIT-green?style=flat-square)
 
 ---
 
-### 🎓 Akademik Proje Künyesi ve Resmi Bildiri
+## 1. Yönetici Özeti (Executive Summary)
 
-| Kriter | Detay Bilgi |
+**Street Animal Tracker**, kentsel yaşam alanlarında ve üniversite yerleşkelerinde barınan sokak kedileri ve köpeklerinin beslenme, rutin sağlık kontrolleri, aşı takvimleri ve coğrafi hareketliliklerini kayıt altına almak üzere tasarlanmış modern, çevrimdışı öncelikli (offline-first) bir mobil platformdur. 
+
+Platform; harici bir sunucu altyapısına ihtiyaç duymadan, cihaz üzerinde **Zustand Persist** ve **AsyncStorage** motorları aracılığıyla çalışan yerel JSON veritabanı mimarisini benimser. Çapraz platform desteği (iOS, Android, Web), iki dilli dinamik yerelleştirme (Türkçe / İngilizce), açık/koyu tema ve **EAS Update** kablosuz güncelleme (OTA) entegrasyonuyla uçtan uca eksiksiz bir mobil mühendislik çözümü sunar.
+
+---
+
+## 2. Problem Tanımı ve Çözüm Yaklaşımı (Academic & Domain Context)
+
+### Problem
+Büyük metropollerde ve geniş üniversite kampüslerinde sokak hayvanlarına yönelik bakım faaliyetleri çoğunlukla bireysel gönüllüler veya dağınık topluluklar tarafından yürütülmektedir. Bu durum:
+- Mükerrer beslemelere veya günlerce süren açlık periyotlarına,
+- Hayvanların hangi aşılarının tamamlandığı ve rapel tarihlerinin ne zaman olduğuna dair bilgi kopukluğuna,
+- Belirli bir bölgede yaşayan canların sağlık ve konum geçmişinin kayıt altına alınamamasına yol açmaktadır.
+
+### Çözüm Yaklaşımı
+Street Animal Tracker, **yerel topluluk hafızası** oluşturarak bu aksaklıkları çözüme kavuşturur:
+- **Merkezi Olmayan Yerel Kayıt:** Kullanıcılar sokakta karşılaştıkları canların fotoğraflarını, ırk/tür bilgilerini ve GPS koordinatlarını sisteme işler.
+- **Dinamik Sağlık Takvimi:** Tamamlanan ve yaklaşan aşılar karne mantığıyla takip edilir.
+- **Oyunlaştırılmış Bağ Seviyesi:** Canlarla yapılan her etkileşim (mama, yürüyüş, sevgi, oyun) 5 aşamalı sadakat/bağ algoritmasına katkı sağlar.
+
+---
+
+## 3. Temel Özellikler ve Kullanıcı Senaryoları (Features & User Flows)
+
+| Modül | Kullanıcı Senaryosu & Fonksiyonel Kapsam |
 | :--- | :--- |
-| **Ders Adı** | **Mobile Application Development (Mobil Uygulama Geliştirme)** |
-| **Proje Türü** | Lisans Bitirme / Dönem Projesi (Term Project) |
-| **Geliştirici / Proje Sahibi** | **Hakan Ural** |
-| **Öğrenci Numarası** | **0515240030** |
-| **Platform Desteği** | iOS, Android ve Web (Çapraz Platform) |
-| **Geliştirme Çatısı** | React Native (v0.86.3) & Expo SDK 57 |
-| **Bulut Dağıtım Kanalı** | Expo Application Services (EAS Update - Production) |
-| **Expo Proje Bağlantısı** | [expo.dev/@hakanural06/street-animal-tracker](https://expo.dev/accounts/hakanural06/projects/street-animal-tracker) |
+| **Kayıt ve Profil Yönetimi** | Kedi ve köpeklerin isim, ırk, karakter özellikleri, çoklu fotoğrafları ve anlık GPS konumlarıyla sisteme kaydedilmesi; eksik kayıtların hızlı taslak olarak bırakılıp sonradan tamamlanabilmesi. |
+| **Harita & Coğrafi Dağılım** | Apple Maps (iOS) ve Google Maps (Android) doğal harita motorları üzerinde canlı pinler; kedi, köpek ve kliniklerin aynı ekranda renk ve ikon ayrımıyla filtrelenmesi. |
+| **Pati Karnesi & Analitik** | Mahalle ve ırk bazlı besleme/bakım istatistikleri, aşı tamamlanma oranları ve en çok ilgi gösterilen canlıların özet paneli (`AnalyticsScreen.js`). |
+| **Temsili Bölge Hekimleri** | Canların bulunduğu konumlara yakın sorumlu veteriner klinikleri (simülasyon korumalı arama hatları ve hekim detayları). |
+| **Dinamik Dil Desteği** | Kullanıcı girdilerini ve ırk/aşı terminolojisini (*Tekir ➔ Tabby*, *Kuduz ➔ Rabies Vaccine*) anında hedef dile dönüştüren reaktif çeviri motoru (`dynamicTranslator.js`). |
 
-> ### 🏛️ Resmi Akademik Feragatname ve Kurgusal Bildirim
-> **Bu mobil uygulama, Mobile Application Development dersi müfredatı kapsamında eğitim, araştırma ve akademik değerlendirme amacıyla hazırlanmış kurgusal bir dönem projesidir.**
-> 
-> Uygulama içerisinde bahsi geçen tüm **Bölge Veteriner Hekimleri, Klinik İsimleri, İletişim Telefon Numaraları ve Acil Nöbetçi Çağrı Hatları tamamen temsili bir simülasyon (mockup) niteliğindedir.** Gerçek kişi, kurum, belediye birimi veya tüzel kişiliklerle hiçbir doğrudan bağlantısı bulunmamaktadır. Uygulamadaki telefon butonları ve acil arama fonksiyonları simülasyon korumalı olup gerçek arama gerçekleştirmemekte; kullanıcıya akademik simülasyon bilgilendirmesi sunmaktadır.
-
----
-
-## 📌 Projenin Amacı ve Kapsamı
-
-Kent ekosisteminde yaşayan sokak canlılarının sağlık, aşı, beslenme ve mekânsal hareketlilik verilerinin tek bir dijital platformda toplanması; hayvanseverler, gönüllüler ve temsili sağlık ekipleri arasında koordinasyon sağlanması hedeflenmiştir. 
-
-Sistem; sunucu bağımlılığı olmaksızın cihaz üzerinde yerel olarak çalışan reaktif bir veri mimarisi (Zustand Persist + AsyncStorage) üzerine inşa edilmiş olup, modern kullanıcı deneyimi (UX) ilkelerine uygun minimalist bir arayüz, çift dilli (Türkçe / İngilizce) dinamik çeviri desteği, karanlık/aydınlık tema uyumluluğu ve kapsamlı bir analitik modülü sunar.
+### Otomatik Başlangıç Verileri (Seed Data)
+Uygulama ilk kez kurulduğunda (`AsyncStorage` boşken) İstanbul'un gerçek sokak sakinlerinden oluşan 6 profil ve fotoğrafları otomatik yüklenir:
+1. **Habeş (Kedi - Calico):** Forum İstanbul yerleşkesi sakinlerinden, miyavlamasıyla bilinen kardeş kedi.
+2. **Tipsiz (Kedi - Calico):** Forum İstanbul bölgesinde barınan, Habeş ile kardeş dostumuz.
+3. **Avcı (Kedi - Tekir):** Kocatepe Metro İstasyonu çevresinde yaşayan tecrübeli fare avcısı.
+4. **Püskül (Kedi - Calico):** İstanbul Üniversitesi Beyazıt Kampüsü çevresinde barınan sevimli kedi.
+5. **Prenses (Kedi - Gri Tekir):** İstanbul Üniversitesi İletişim/Edebiyat fakültesi çevresinde ilgi bağımlısı dostumuz.
+6. **Pancarlar (Köpek - Sokak Köpeği):** Forum İstanbul açık alanında yıllardır birlikte dolaşan kardeş köpekler.
 
 ---
 
-## 🌟 Temel Fonksiyonel Modüller
+## 4. Sistem Mimarisi ve Teknoloji Yığını (Architecture & Tech Stack)
 
-### 1. Gerçek Sokak Dostları ve Yerel Medya Arşivi
-Uygulama ilk kez açıldığında, İstanbul'un yoğun bölgelerindeki gerçek sokak sakinlerinden derlenen başlangıç verilerini yüksek çözünürlüklü yerel fotoğraflarıyla birlikte otomatik olarak yükler:
-- **Habeş:** Forum İstanbul yerleşkesinde yaşayan, Calico ırkı, kendine has miyavlamasıyla tanınan sevimli dostumuz (`habes1.jpg`, `habes2.jpg`).
-- **Tipsiz:** Forum İstanbul bölgesinde yaşayan, Habeş'in kardeşi, insanlara temkinli yaklaşan Calico ırkı kedi (`tipsiz1.jpg`, `tipsiz2.jpg`).
-- **Avcı:** Kocatepe Metro İstasyonu çevresinde yıllardır barınan, fare avcılığıyla meşhur, sevecen Tekir kedi (`avci1.jpg`, `avci2.jpg`).
-- **Püskül:** İstanbul Üniversitesi Tarihi Beyazıt Kampüsü çevresinde yaşayan, gizemli ve zarif Calico kedi (`puskul1.jpg`, `puskul2.jpg`).
-- **Prenses:** İstanbul Üniversitesi İletişim & Edebiyat çevresinde barınan, ilgi bağımlısı Gri Tekir kedi (`prenses1.jpg`).
-- **Pancarlar:** Forum İstanbul açık alanında yıllardır birlikte dolaşan, uyumayı çok seven 2 kardeş sokak köpeği (`pancarlar1.jpg`).
-
-### 2. Temsili Bölge Hekimleri ve Klinik Ağı
-Her canlının bulunduğu coğrafi konuma en yakın bölgeden sorumlu temsili bir veteriner kliniği ve hekimi atanmıştır:
-- **Forum İstanbul Bölge Kliniği (Temsili Simülasyon):** Dr. Simülasyon Veteriner Hekim — *İletişim: 0 (000) 000 00 01 (Temsili) • Acil: 0 (000) 000 00 00 (Simülasyon)*
-- **Kocatepe Metro Acil Veteriner Noktası (Temsili Simülasyon):** Dr. Kurgusal Nöbetçi Hekim — *İletişim: 0 (000) 000 00 02 (Temsili) • Acil: 0 (000) 000 00 00 (Simülasyon)*
-- **Beyazıt Kampüs Veteriner Birimi (Temsili Simülasyon):** Dr. Temsili Fakülte Hekimi — *İletişim: 0 (000) 000 00 03 (Temsili) • Acil: 0 (000) 000 00 00 (Simülasyon)*
-
-> 📍 **Yeni Hekim Ekleme & GPS Desteği:** Kullanıcılar "Yeni Veteriner Hekim Ekle" modalı üzerinden kliniğin ismini, sorumlu hekimi, uzmanlık alanını, çalışma saatlerini ve cihaz GPS'ini kullanarak ya da hazır bölge butonlarıyla enlem/boylam koordinatlarını sisteme kaydedebilirler.
-
-### 3. Coğrafi Bilgi ve Harita Modülü (CatMap)
-- **Doğal Harita Entegrasyonu:** iOS işletim sisteminde Apple Maps (MapKit), Android işletim sisteminde ise API anahtarı kısıtlaması olmaksızın doğrudan cihazın yerel Google Maps motoru kullanılır.
-- **Birleşik Konum Görünümü:** Harita üzerinde kediler (kedi ikonu), köpekler (köpek ikonu) ve sorumlu veteriner klinikleri (yeşil medkit ikonu) eşzamanlı olarak işaretlenir.
-- **Otomatik Kadrajlama (Fit to Coordinates):** Harita açıldığında tüm canlıları ve klinikleri kapsayacak şekilde kamera açısını otomatik optimize eder.
-
-### 4. Dinamik Analitik Modülü: Pati Karnesi & İlgi Özeti
-- Ana ekranda sade ve zarif bir özet kartı (`CareSummaryCard.js`) yer alır.
-- Karta dokunulduğunda bağımsız ve detaylı analitik sayfası açılır (`AnalyticsScreen.js`):
-  1. **Genel Bakış (Overview):** Toplam bakım adedi, tamamlanan ve planlanan aşılar, en yüksek bağ kurulan canlının profiline doğrudan yönlendirme.
-  2. **Bölge / Mahalle Dağılımı:** Forum İstanbul, Kocatepe ve İstanbul Üniversitesi bölgelerindeki can ve bakım dağılımı.
-  3. **Irk & Tür Analizi:** Calico, Tekir, Gri Tekir ve Sokak Köpeği ırklarına uygulanan sağlık aktiviteleri.
-
-### 5. Sadeleştirilmiş UX, Hızlı Kayıt (Quick Save) ve Taslak Yönetimi
-- **Açılır Aksiyon Menüsü:** Ana ekrandaki karmaşık buton kalabalığı tek bir "Yeni Can Ekle +" açılır menüsünde toplanmıştır.
-- **Hızlı Kayıt (Quick Save):** Acil durumlarda yalnızca fotoğraf çekilip anlık GPS konumu alınarak tek tuşla hızlı taslak kaydı yapılabilir.
-- **Taslak Tamamlama Sekmesi:** Kedi ve köpek listelerindeki "Eksik / Taslaklar" sekmesi sayesinde eksik profiller sonradan tek dokunuşla düzenlenebilir.
-
-### 6. Çift Dilli Dinamik Çeviri Motoru (TR / EN)
-- Uygulama genelindeki tüm arayüz butonları, etiketler ve navigasyon başlıkları Türkçe ve İngilizce olarak sunulur.
-- Geliştirilen `dynamicTranslator.js` motoru sayesinde; yalnızca sabit arayüz metinleri değil, veritabanındaki ırklar (*Tekir ➔ Tabby*, *Sokak Köpeği ➔ Street Dog*), aşı türleri (*Kuduz Aşısı ➔ Rabies Vaccine*), bakım notları ve bölgeler anında hedef dile çevrilir. Özel hayvan isimleri ise korunur.
-
-### 7. Tema ve Görsel Bütünlük
-- **Açık (Light) ve Koyu (Dark) Tema:** Cihaz tercihlerine göre otomatik veya sağ üstteki tema butonuyla manuel olarak değiştirilebilir.
-- **Tam Ekran Lightbox:** Fotoğrafların üzerine dokunulduğunda yüksek çözünürlüklü tam ekran görüntüleyici açılır.
-
----
-
-## 📱 Expo Go İle Çalıştırma Rehberi
-
-Uygulamayı fiziksel bir mobil cihazda (iPhone veya Android) ya da simülatörde çalıştırmak için aşağıdaki yöntemlerden dilediğinizi kullanabilirsiniz:
-
-### 🚀 Yöntem 1: Doğrudan Expo Go Bulut Yayını Üzerinden Açma (Tavsiye Edilen En Hızlı Yol)
-
-Bu yöntem için bilgisayarınızda herhangi bir geliştirme ortamı veya kod derleyici kurulu olmasına gerek yoktur:
-
-1. **Expo Go Uygulamasını İndirin:**
-   - **iOS (iPhone/iPad):** [Apple App Store](https://apps.apple.com/app/expo-go/id982107779) üzerinden **Expo Go** uygulamasını yükleyin.
-   - **Android:** [Google Play Store](https://play.google.com/store/apps/details?id=host.exp.exponent) üzerinden **Expo Go** uygulamasını yükleyin.
-2. **Projeyi Açın:**
-   - **Android Cihazlar İçin:** Expo Go uygulamasını açın, *"Scan QR code"* butonuna basın ve aşağıdaki Expo proje bağlantısındaki QR kodu tarayın.
-   - **iOS Cihazlar İçin:** iPhone'unuzun standart **Kamera** uygulamasını açın, QR kodu kadraja alın ve ekranda beliren *"Expo Go ile Aç"* sarı bildirimine dokunun.
-3. **Doğrudan Bağlantı:**
-   - Projenin resmi EAS bulut paneline tarayıcınızdan erişebilirsiniz:  
-     🔗 **[https://expo.dev/accounts/hakanural06/projects/street-animal-tracker](https://expo.dev/accounts/hakanural06/projects/street-animal-tracker)**
-   - Bu sayfadaki **production** dalı (branch) altındaki en güncel güncellemeye dokunarak QR kodu görüntüleyebilirsiniz.
-
----
-
-### 💻 Yöntem 2: Yerel Geliştirici Ortamında Çalıştırma (Local Development)
-
-Proje kaynak kodlarını kendi bilgisayarınızda derleyip çalıştırmak isterseniz:
-
-#### Ön Koşullar:
-- **Node.js** (v18.0.0 veya üzeri)
-- **npm** veya **yarn** paket yöneticisi
-- Bilgisayarınız ve test cihazınızın **aynı Wi-Fi ağına** bağlı olması önerilir.
-
-#### Adım Adım Kurulum:
-```bash
-# 1. Proje deposunu bilgisayarınıza klonlayın
-git clone https://github.com/HakanURAL06/MobileAppDevelopmentProject.git
-
-# 2. Proje dizinine geçiş yapın
-cd MobileAppDevelopmentProject
-
-# 3. Gerekli tüm kütüphane bağımlılıklarını yükleyin
-npm install
-
-# 4. Expo geliştirme sunucusunu (Metro Bundler) başlatın
-npx expo start
-```
-
-Terminalde beliren interaktif menüde:
-- `a` tuşuna basarak bağlı **Android Emulator** üzerinde,
-- `i` tuşuna basarak bağlı **iOS Simulator** üzerinde,
-- `w` tuşuna basarak doğrudan **Web Tarayıcınızda** (`http://localhost:8081`) test edebilirsiniz.
-- Terminaldeki QR kodu telefonunuzdaki **Expo Go** ile tarayarak anında canlı önizleme alabilirsiniz.
-
----
-
-### ☁️ Yöntem 3: EAS Update ile Bulut Yayını Güncelleme
-
-Yapılan değişiklikleri doğrudan buluta yükleyip kullanıcı cihazlarına anında iletmek için:
-
-```bash
-# 1. Expo hesabına giriş yapın
-npx eas-cli login
-
-# 2. Production kanalına yeni derleme paketini dağıtın
-EAS_NO_VCS=1 npx eas-cli update --branch production --message "Surum Guncellemesi"
-```
-
----
-
-## 🛠️ Teknoloji Yığını (Tech Stack)
-
-| Bileşen | Kullanılan Teknoloji / Kütüphane | Sürüm | Görev ve Açıklama |
+| Kategori | Teknoloji | Versiyon | Tercih Nedeni ve Mimari Rolü |
 | :--- | :--- | :--- | :--- |
-| **Framework** | **React Native** | 0.86.3 | Çapraz platform mobil arayüz çekirdeği |
-| **Runtime & SDK** | **Expo SDK** | ~57.0.0 | Cihaz API'leri, kamera, konum ve derleme ekosistemi |
-| **Çekirdek Kütüphane**| **React** | 19.2.3 | Reaktif bileşen mimarisi ve durum döngüleri |
-| **Durum Yönetimi** | **Zustand** | ^5.0.3 | Hızlı, merkezi ve reaktif global state yönetimi |
-| **Veri Kalıcılığı** | **AsyncStorage** | 2.2.0 | Cihaz üzerinde kalıcı JSON depolama motoru |
-| **Navigasyon** | **React Navigation** | ^7.0.0 | Alt menü (Bottom Tabs) ve Yerel Yığın (Native Stack) |
-| **Harita Motoru** | **React Native Maps** | 1.20.1 | Apple Maps & Google Maps yerel harita entegrasyonu |
-| **Coğrafi Konum** | **Expo Location** | ~57.0.0 | Cihaz GPS'i ile canlı enlem/boylam tespiti |
-| **Görsel Seçimi** | **Expo ImagePicker** | ~57.0.0 | Cihaz galerisi ve kameraya yerel erişim |
-| **Vektörel İkonlar**| **@expo/vector-icons**| ^15.0.0 | Ionicons tabanlı modern arayüz sembolleri |
-| **Bulut Dağıtımı** | **EAS Update** | ^14.0.0 | Mağaza onayı beklemeksizin OTA bulut güncellemesi |
-| **Test Koşucusu** | **Node.js Test Runner** | Node v18+ | Analitik ve iş mantığını doğrulayan birim testleri |
+| **Çekirdek Çatı** | React Native | 0.86.3 | Yerel köprü ve yüksek performanslı native arayüz bileşenleri. |
+| **Platform / SDK** | Expo SDK | ~57.0.0 | Cihaz donanımına (kamera, konum) standartlaştırılmış erişim. |
+| **Durum Yönetimi** | Zustand | ^5.0.3 | Redux'a kıyasla daha hafif, tek yönlü veri akışlı merkezi state motoru. |
+| **Veri Kalıcılığı** | AsyncStorage | 2.2.0 | Cihaz diskine serileştirilmiş asenkron JSON depolama. |
+| **Navigasyon** | React Navigation | ^7.0.0 | Bottom Tabs ve Native Stack ile akıcı ekran geçişleri. |
+| **Harita** | React Native Maps | 1.20.1 | iOS üzerinde MapKit, Android üzerinde Google Maps desteği. |
+| **Konum** | Expo Location | ~57.0.0 | Cihaz GPS donanımından anlık enlem/boylam koordinat tespiti. |
+| **Medya** | Expo ImagePicker | ~57.0.0 | Cihaz galerisi ve kamerasından çoklu görsel seçimi. |
+| **Bulut Dağıtımı** | EAS Update | ^14.0.0 | Mağaza onayı beklemeksizin anlık Over-The-Air (OTA) kod güncellemesi. |
+| **Test Koşucusu** | Node.js Test Runner | Node v18+ | Analitik hesaplama motorunu denetleyen birim testleri. |
 
 ---
 
-## 🧪 Birim Testleri (Unit Tests)
-
-Uygulamanın analitik motorunu, aşı sayım mantığını ve seviye ilerleme algoritmalarını denetleyen otomatik birim testleri mevcuttur:
-
-```bash
-# Birim testlerini çalıştırmak için:
-npm test
-```
-
-**Test Kapsamı (`tests/careAnalytics.test.js`):**
-- Boş veri tabanı (initial state) sıfır değer doğrulaması,
-- `null` veya `undefined` veri girişlerinde hata yakalama (safe fallback),
-- Kedi ve köpek etkileşimlerinin ve tamamlanan/planlanan aşıların doğru toplanması,
-- Zustand store veri modeli ile uyumluluk denetimi,
-- Bağ ve sadakat seviyesi yüzdelik hesaplama doğrulaması.
-
----
-
-## 📁 Proje Dizin Mimarisi
+## 5. Proje Klasör Yapısı (Directory Structure)
 
 ```text
 MobileAppDevelopmentProject/
-├── package.json                          # Proje metaverileri, betikler ve bağımlılıklar
-├── app.json                              # Expo ve EAS proje yapılandırma ayarları
-├── eas.json                              # EAS Update ve derleme kanalları (production)
-├── index.js                              # Uygulamanın en dış giriş noktası
+├── app.json                              # Expo ve EAS proje tanımlayıcıları
+├── eas.json                              # Bulut derleme ve OTA kanal ayarları
+├── package.json                          # Bağımlılıklar ve çalıştırma betikleri
+├── index.js                              # Uygulama ana giriş noktası
 ├── App.js                                # Navigasyon, tema sağlayıcıları ve künye modalı
-├── README.md                             # Kapsamlı akademik proje dokümantasyonu
+├── README.md                             # Kapsamlı teknik ve akademik dokümantasyon
 ├── assets/
-│   └── animals/                          # Yüksek çözünürlüklü gerçek hayvan fotoğrafları
+│   └── animals/                          # Yerel yüksek çözünürlüklü canlı fotoğrafları
 │       ├── habes1.jpg, habes2.jpg
 │       ├── tipsiz1.jpg, tipsiz2.jpg
 │       ├── avci1.jpg, avci2.jpg
@@ -201,51 +92,183 @@ MobileAppDevelopmentProject/
 │       └── pancarlar1.jpg
 ├── src/
 │   ├── components/
-│   │   ├── AddAnimalActionMenu.js        # Minimalist açılır yeni can ekleme menüsü
-│   │   ├── CareSummaryCard.js            # Ana ekran Pati Karnesi sadeleştirilmiş kartı
-│   │   ├── CatMap.native.js              # Mobil yerel harita motoru (Apple & Google Maps)
-│   │   ├── CatMap.web.js                 # Web ortamı için harita kartları bileşeni
-│   │   ├── ConfirmDeleteModal.js         # Güvenli kayıt silme teyit penceresi
-│   │   ├── ImageViewerModal.js           # Tam ekran lightbox fotoğraf görüntüleyici
-│   │   ├── ProjectDisclaimerModal.js     # Resmi akademik proje künyesi ve bildirim modalı
-│   │   └── ToastBanner.js                # Dinamik kullanıcı bildirim çubuğu
+│   │   ├── AddAnimalActionMenu.js        # Açılır yeni kayıt aksiyon menüsü
+│   │   ├── CareSummaryCard.js            # Ana ekran analitik özet kartı
+│   │   ├── CatMap.native.js              # Native iOS/Android harita bileşeni
+│   │   ├── CatMap.web.js                 # Web ortamı harita kartları
+│   │   ├── ImageViewerModal.js           # Tam ekran lightbox görsel görüntüleyici
+│   │   ├── ProjectDisclaimerModal.js     # Akademik künye ve simülasyon modalı
+│   │   └── ToastBanner.js                # Bilgilendirme bildirim şeridi
 │   ├── data/
-│   │   └── seedData.js                   # 6 gerçek can ve 3 simülasyon kliniği başlangıç verileri
+│   │   └── seedData.js                   # Başlangıç veri kümesi (Canlar ve Hekimler)
 │   ├── i18n/
-│   │   └── translations.js               # Türkçe ve İngilizce statik sözlük tablosu
+│   │   └── translations.js               # TR / EN statik sözlük tablosu
 │   ├── screens/
-│   │   ├── HomeScreen.js                 # Karşılama, sayaçlar, künye kartı ve yönlendirmeler
-│   │   ├── AnalyticsScreen.js            # Kapsamlı Pati Karnesi & İlgi Özeti analitik sayfası
-│   │   ├── CatListScreen.js              # Kedi listeleme, canlı arama ve filtreleme
-│   │   ├── CatDetailScreen.js            # Kedi detay, aşı takibi, 5 seviyeli bağ ve konum
-│   │   ├── AddCatScreen.js               # Kedi kayıt formu (Hızlı ve Detaylı Kaydet)
-│   │   ├── DogListScreen.js              # Köpek listeleme, canlı arama ve filtreleme
-│   │   ├── DogDetailScreen.js            # Köpek detay, aşı takibi, 5 seviyeli sadakat ve konum
-│   │   ├── AddDogScreen.js               # Köpek kayıt formu (Hızlı ve Detaylı Kaydet)
-│   │   ├── CatMapScreen.js               # Canlı harita, canlı ve veteriner pinleri
-│   │   ├── VetListScreen.js              # Bölge hekimleri listesi, arama ve hekim ekleme
-│   │   └── VetDetailScreen.js            # Veteriner detay, klinik bilgileri ve acil hat
+│   │   ├── HomeScreen.js                 # Ana gösterge ekranı
+│   │   ├── AnalyticsScreen.js            # Pati Karnesi & İlgi Özeti analitik sayfası
+│   │   ├── CatListScreen.js              # Kedi listesi, arama ve gruplama
+│   │   ├── CatDetailScreen.js            # Kedi detay, aşı ve etkileşim geçmişi
+│   │   ├── AddCatScreen.js               # Kedi ekleme formu
+│   │   ├── DogListScreen.js              # Köpek listesi, arama ve gruplama
+│   │   ├── DogDetailScreen.js            # Köpek detay, aşı ve etkileşim geçmişi
+│   │   ├── AddDogScreen.js               # Köpek ekleme formu
+│   │   ├── CatMapScreen.js               # Canlı harita ekranı
+│   │   ├── VetListScreen.js              # Bölge veterinerleri listesi
+│   │   └── VetDetailScreen.js            # Veteriner hekim profil ve nöbet detayları
 │   ├── store/
-│   │   └── catStore.js                   # Zustand persist ve AsyncStorage tabanlı yerel veritabanı
+│   │   └── catStore.js                   # Zustand persist ve AsyncStorage veri katmanı
 │   ├── theme/
-│   │   ├── colors.js                     # Aydınlık ve karanlık tema renk tanımları
-│   │   └── useAppTheme.js                # Tema ve dil durumunu yöneten özel React kancası
+│   │   ├── colors.js                     # Renk paletleri (Açık ve Koyu tema)
+│   │   └── useAppTheme.js                # Tema ve dil durumunu yöneten hook
 │   └── utils/
-│       ├── careAnalytics.js              # Analitik hesaplama ve istatistiksel filtreleme algoritması
-│       ├── dynamicTranslator.js          # Veritabanı ve kullanıcı girdilerini hedef dile çeviren motor
-│       └── imageHelper.js                # Yerel require ve uzak URI görselleri çözümleyici
+│       ├── careAnalytics.js              # İstatistik ve bağ hesaplama algoritması
+│       ├── dynamicTranslator.js          # Veritabanı verilerini dinamik çeviren motor
+│       └── imageHelper.js                # Görsel kaynağı çözümleyici
 └── tests/
-    └── careAnalytics.test.js             # Otomatik birim testleri (Node.js Test Runner)
+    └── careAnalytics.test.js             # Otomatik birim testleri
 ```
 
 ---
 
-## 📜 Lisans ve Telif Hakları
+## 6. Veri Modeli ve Yerel Depolama Stratejisi (Data Schema & Seed Logic)
 
-Bu proje; **Mobile Application Development** dersi akademik değerlendirmesi kapsamında geliştirilmiş olup tüm hakları geliştiriciye aittir.
+Veri modeli, cihazın çevrimdışı çalışabilmesi amacıyla ilişkisel olmayan esnek bir JSON yapısında tutulur. 
 
-**Geliştirici:** Hakan Ural  
-**Öğrenci Numarası:** 0515240030  
+### Örnek Hayvan Veri Şeması (JSON)
+```json
+{
+  "id": "seed-cat-habes",
+  "name": "Habeş",
+  "species": "cat",
+  "breed": "Calico",
+  "photoUri": "require('../../assets/animals/habes1.jpg')",
+  "photos": [
+    "require('../../assets/animals/habes1.jpg')",
+    "require('../../assets/animals/habes2.jpg')"
+  ],
+  "location": {
+    "regionName": "Forum İstanbul",
+    "latitude": 41.046031,
+    "longitude": 28.894292
+  },
+  "locationHistory": [
+    {
+      "id": "loc-1",
+      "regionName": "Forum İstanbul Açık Meydan",
+      "latitude": 41.046100,
+      "longitude": 28.894350,
+      "changedAt": "2026-10-10T11:00:00.000Z"
+    }
+  ],
+  "vaccinations": [
+    {
+      "id": "vac-1",
+      "name": "Kuduz Aşısı",
+      "date": "2026-09-15",
+      "clinic": "Bayrampaşa Veteriner Kliniği",
+      "notes": "Rutin kuduz aşısı uygulandı."
+    }
+  ],
+  "scheduledVaccines": [
+    {
+      "id": "sch-1",
+      "name": "Karma Aşı Rapeli",
+      "plannedDate": "2026-12-15",
+      "notes": "Yıllık tekrar dozu."
+    }
+  ],
+  "notes": "İsmine duyarlı, sakin mizaçlı ve oyuncu bir kedi.",
+  "interactionHistory": [
+    {
+      "id": "int-1",
+      "date": "2026-11-18T09:30:00.000Z",
+      "type": "feeding",
+      "note": "Yaş mama verildi 🥣"
+    }
+  ],
+  "createdAt": "2026-10-01T08:00:00.000Z"
+}
+```
 
+### AsyncStorage & Sürüm Denetimi (Seed Versioning)
+```javascript
+// src/store/catStore.js içindeki sürüm kontrol mekanizması
+export const SEED_VERSION = 'v4';
 
-*Sokaktaki masum dostlarımızın yaşam kalitesini artırmak dileğiyle...* 🐾❤️
+// Uygulama açılışında AsyncStorage kontrol edilir:
+// Kayıtlı versiyon güncel değilse yeni başlangıç verileri (Seed Data) yüklenir.
+```
+
+---
+
+## 7. Hızlı Başlangıç ve Canlı Test (Expo Go & EAS Update)
+
+Değerlendirme esnasında projeyi bilgisayara herhangi bir SDK kurmadan doğrudan fiziksel bir mobil cihazda test etmek için:
+
+### 1. Adım: Expo Go İndirme
+- **iOS:** App Store üzerinden **Expo Go** uygulamasını yükleyin.
+- **Android:** Google Play Store üzerinden **Expo Go** uygulamasını yükleyin.
+
+### 2. Adım: Projeyi Cihazda Açma
+1. Tarayıcınızda resmi EAS bulut paneline gidin:  
+   👉 **[https://expo.dev/accounts/hakanural06/projects/street-animal-tracker](https://expo.dev/accounts/hakanural06/projects/street-animal-tracker)**
+2. Panelde **production** dalı altında yayınlanan en güncel güncellemenin QR kodunu görüntüleyin.
+3. **iPhone Kullanıcıları:** Standart iOS Kamera uygulamasını açıp QR kodu kadraja alın, ekranda beliren sarı *"Expo Go ile Aç"* seçeneğine dokunun.
+4. **Android Kullanıcıları:** Expo Go uygulamasını açıp *"Scan QR code"* butonuyla kodu tarayın.
+
+### EAS Update Proje Metaverileri
+- **EAS Project ID:** `e35c83c7-2cc0-4642-b51f-9d44514b59be`
+- **Kanal / Dal:** `production`
+- **Güncelleme Dağıtım Türü:** Kablosuz Over-The-Air (OTA)
+
+---
+
+## 8. Yerel Geliştirme Ortamı Kurulumu (Local Installation)
+
+Projeyi kendi yerel bilgisayarınızda derlemek ve geliştirmek isterseniz aşağıdaki adımları takip edebilirsiniz:
+
+```bash
+# 1. Proje deposunu yerel diskinize klonlayın
+git clone https://github.com/HakanURAL06/MobileAppDevelopmentProject.git
+
+# 2. Proje dizinine geçiş yapın
+cd MobileAppDevelopmentProject
+
+# 3. Bağımlılıkları yükleyin
+npm install --legacy-peer-deps
+
+# 4. Expo geliştirme sunucusunu başlatın
+npx expo start
+```
+
+### Seçenekler:
+- Terminalde `a` tuşuna basarak bağlı **Android Emulator**'de çalıştırın.
+- Terminalde `i` tuşuna basarak bağlı **iOS Simulator**'de çalıştırın.
+- Terminalde `w` tuşuna basarak **Web Tarayıcısı** üzerinde çalıştırın.
+
+---
+
+## 9. Ekran Görüntüleri ve Arayüz Akışı (UI Showcase)
+
+| Ekran | Açıklama & Görsel Temsil |
+| :--- | :--- |
+| **Ana Gösterge Ekranı** | Can sayaçları, hızlı aksiyon menüsü ve yönlendirme kartları. *(Ekran görseli: HomeScreen)* |
+| **Kedi & Köpek Listeleri** | İsim, ırk, konum filtreleme çipleri ve bağ seviyesi rozetleri. *(Ekran görseli: CatList / DogList)* |
+| **Canlı Harita Görünümü** | Harita pinleri, kedi/köpek ikonları ve sorumlu veteriner klinikleri. *(Ekran görseli: CatMap)* |
+| **Can Detay & Aşı Karnesi** | 5 aşamalı bağ ilerleme çubuğu, geçmiş etkileşim günlüğü ve aşı takvimi. *(Ekran görseli: CatDetail)* |
+| **Pati Karnesi & Analitik** | Mahalle ve ırk bazlı bakım analitiği ile derinlemesine grafiksel döküm. *(Ekran görseli: AnalyticsScreen)* |
+| **Bölge Veteriner Hekimleri** | Temsili veterinerlerin çalışma saatleri, konumları ve nöbetçi simülasyon hatları. *(Ekran görseli: VetDetail)* |
+
+---
+
+## 10. Geliştirici Bilgileri, Akademik Bağlam ve Lisans
+
+### Akademik Künye
+Bu mobil yazılım projesi, **İstanbul Üniversitesi Yönetim Bilişim Sistemleri (MIS)** lisans programı kapsamında **Mobil Uygulama Geliştirme (Mobile Application Development)** dersi dönem projesi olarak geliştirilmiştir.
+
+- **Geliştirici:** Hakan Ural
+- **Öğrenci Numarası:** 0515240030
+- **Depo Bağlantısı:** [GitHub Deposu](https://github.com/HakanURAL06/MobileAppDevelopmentProject)
+
+### Lisans (License)
+Bu proje, açık kaynak topluluğuna katkı ve akademik değerlendirme amacıyla **MIT Lisansı** altında lisanslanmıştır. Detaylar ve serbest kullanım şartları için proje deposundaki lisans esasları geçerlidir.
