@@ -6,7 +6,6 @@
 ![State](https://img.shields.io/badge/State-Zustand%205-764ABC?style=flat-square)
 ![Storage](https://img.shields.io/badge/Storage-AsyncStorage-orange?style=flat-square)
 ![Cloud](https://img.shields.io/badge/Deployment-EAS%20Update%20OTA-4630EB?style=flat-square)
-![License](https://img.shields.io/badge/License-MIT-green?style=flat-square)
 
 ---
 
