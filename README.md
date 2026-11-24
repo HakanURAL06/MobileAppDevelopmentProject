@@ -6,6 +6,10 @@
 ![State](https://img.shields.io/badge/State-Zustand%205-764ABC?style=flat-square)
 ![Storage](https://img.shields.io/badge/Storage-AsyncStorage-orange?style=flat-square)
 ![Cloud](https://img.shields.io/badge/Deployment-EAS%20Update%20OTA-4630EB?style=flat-square)
+![Live](https://img.shields.io/badge/Live%20Web-street--animal--tracker.expo.app-success?style=flat-square)
+
+> 🌐 **Canlı Web Sürümü (Hemen Dene):** [https://street-animal-tracker.expo.app](https://street-animal-tracker.expo.app)  
+> *(Herhangi bir kurulum veya Expo Go uygulaması gerekmeksizin tüm tarayıcılardan 7/24 erişilebilir)*
 
 ---
 
@@ -201,20 +205,21 @@ export const SEED_VERSION = 'v4';
 
 ---
 
-## 7. Hızlı Başlangıç ve Canlı Test (Expo Go & EAS Update)
+## 7. Hızlı Başlangıç ve Canlı Test (Web & Mobil)
 
-Değerlendirme esnasında projeyi bilgisayara herhangi bir SDK kurmadan doğrudan fiziksel bir mobil cihazda test etmek için:
+Değerlendirme esnasında projeyi test etmek için iki farklı yöntem sunulmaktadır:
 
-### 1. Adım: Expo Go İndirme
-- **iOS:** App Store üzerinden **Expo Go** uygulamasını yükleyin.
-- **Android:** Google Play Store üzerinden **Expo Go** uygulamasını yükleyin.
+### A. Seçenek 1: Canlı Web Sürümü (En Hızlı & Kurulumsuz)
+Hiçbir uygulama indirmeden veya hesap açmadan doğrudan tarayıcınız üzerinden test edebilirsiniz:  
+👉 **[https://street-animal-tracker.expo.app](https://street-animal-tracker.expo.app)**
 
-### 2. Adım: Projeyi Cihazda Açma
-1. Tarayıcınızda resmi EAS bulut paneline gidin:  
-   👉 **[https://expo.dev/accounts/hakanural06/projects/street-animal-tracker](https://expo.dev/accounts/hakanural06/projects/street-animal-tracker)**
-2. Panelde **production** dalı altında yayınlanan en güncel güncellemenin QR kodunu görüntüleyin.
-3. **iPhone Kullanıcıları:** Standart iOS Kamera uygulamasını açıp QR kodu kadraja alın, ekranda beliren sarı *"Expo Go ile Aç"* seçeneğine dokunun.
-4. **Android Kullanıcıları:** Expo Go uygulamasını açıp *"Scan QR code"* butonuyla kodu tarayın.
+### B. Seçenek 2: Mobil Cihazda Expo Go İle Test Etme
+1. **Expo Go İndirme:**
+   - **iOS:** App Store üzerinden **Expo Go** uygulamasını yükleyin.
+   - **Android:** Google Play Store üzerinden **Expo Go** uygulamasını yükleyin.
+2. **Projeyi Açma:**
+   - [EAS Bulut Paneli](https://expo.dev/accounts/hakanural06/projects/street-animal-tracker) üzerindeki **production** QR kodunu taratın.
+   - iOS'ta doğrudan Kamera uygulamasıyla, Android'de ise Expo Go içindeki "Scan QR code" ile okutabilirsiniz.
 
 ### EAS Update Proje Metaverileri
 - **EAS Project ID:** `e35c83c7-2cc0-4642-b51f-9d44514b59be`
