@@ -1,8 +1,8 @@
 # Street Animal Tracker (Sokak Dostları Takip & Bakım Platformu) 🐾
 
 ![Platform](https://img.shields.io/badge/Platform-iOS%20%7C%20Android%20%7C%20Web-blue?style=flat-square)
-![Framework](https://img.shields.io/badge/Framework-React%20Native%200.86-61DAFB?style=flat-square&logo=react)
-![SDK](https://img.shields.io/badge/Expo%20SDK-57-000020?style=flat-square&logo=expo)
+![Framework](https://img.shields.io/badge/Framework-React%20Native%200.88-61DAFB?style=flat-square&logo=react)
+![SDK](https://img.shields.io/badge/Expo%20SDK-58-000020?style=flat-square&logo=expo)
 ![State](https://img.shields.io/badge/State-Zustand%205-764ABC?style=flat-square)
 ![Storage](https://img.shields.io/badge/Storage-AsyncStorage-orange?style=flat-square)
 ![Cloud](https://img.shields.io/badge/Deployment-EAS%20Update%20OTA-4630EB?style=flat-square)
@@ -58,14 +58,14 @@ Uygulama ilk kez kurulduğunda (`AsyncStorage` boşken) İstanbul'un gerçek sok
 
 | Kategori | Teknoloji | Versiyon | Tercih Nedeni ve Mimari Rolü |
 | :--- | :--- | :--- | :--- |
-| **Çekirdek Çatı** | React Native | 0.86.3 | Yerel köprü ve yüksek performanslı native arayüz bileşenleri. |
-| **Platform / SDK** | Expo SDK | ~57.0.0 | Cihaz donanımına (kamera, konum) standartlaştırılmış erişim. |
+| **Çekirdek Çatı** | React Native | 0.88.1 | Yerel köprü ve yüksek performanslı native arayüz bileşenleri. |
+| **Platform / SDK** | Expo SDK | ^58.0.0 | Cihaz donanımına (kamera, konum) standartlaştırılmış erişim. |
 | **Durum Yönetimi** | Zustand | ^5.0.3 | Redux'a kıyasla daha hafif, tek yönlü veri akışlı merkezi state motoru. |
 | **Veri Kalıcılığı** | AsyncStorage | 2.2.0 | Cihaz diskine serileştirilmiş asenkron JSON depolama. |
 | **Navigasyon** | React Navigation | ^7.0.0 | Bottom Tabs ve Native Stack ile akıcı ekran geçişleri. |
-| **Harita** | React Native Maps | 1.20.1 | iOS üzerinde MapKit, Android üzerinde Google Maps desteği. |
-| **Konum** | Expo Location | ~57.0.0 | Cihaz GPS donanımından anlık enlem/boylam koordinat tespiti. |
-| **Medya** | Expo ImagePicker | ~57.0.0 | Cihaz galerisi ve kamerasından çoklu görsel seçimi. |
+| **Harita** | React Native Maps | 1.29.11 | iOS üzerinde MapKit, Android üzerinde Google Maps desteği. |
+| **Konum** | Expo Location | ~58.0.22 | Cihaz GPS donanımından anlık enlem/boylam koordinat tespiti. |
+| **Medya** | Expo ImagePicker | ~58.0.10 | Cihaz galerisi ve kamerasından çoklu görsel seçimi. |
 | **Bulut Dağıtımı** | EAS Update | ^14.0.0 | Mağaza onayı beklemeksizin anlık Over-The-Air (OTA) kod güncellemesi. |
 | **Test Koşucusu** | Node.js Test Runner | Node v18+ | Analitik hesaplama motorunu denetleyen birim testleri. |
 
